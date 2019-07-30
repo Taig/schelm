@@ -6,6 +6,7 @@ import cats.implicits._
 
 import scala.collection.immutable.ListMap
 import scala.collection.mutable
+import scala.collection.compat._
 
 sealed abstract class Children[A] extends Product with Serializable {
   final def isEmpty: Boolean = this match {

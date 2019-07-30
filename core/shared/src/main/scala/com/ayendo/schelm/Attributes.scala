@@ -6,6 +6,7 @@ import cats.implicits._
 
 import scala.collection.immutable.ListMap
 import scala.collection.mutable
+import scala.collection.compat._
 
 final case class Attributes[A](
     values: ListMap[String, Property[A]]

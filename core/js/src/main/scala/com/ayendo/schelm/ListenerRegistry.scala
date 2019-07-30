@@ -39,7 +39,7 @@ final class ListenerRegistry[F[_]](
     registry
       .modify { registry =>
         registry.get(key) match {
-          case Some(_) => (registry.removed(key), true)
+          case Some(_) => (registry - key, true)
           case None    => (registry, false)
         }
       }
