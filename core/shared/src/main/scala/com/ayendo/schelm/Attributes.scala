@@ -13,7 +13,10 @@ final case class Attributes[A](
   def isEmpty: Boolean = values.isEmpty
 
   def +(attribute: Attribute[A]): Attributes[A] =
-    Attributes(values.updated(attribute.key, attribute.property))
+    updated(attribute.key, attribute.property)
+
+  def updated(key: String, property: Property[A]): Attributes[A] =
+    Attributes(values.updated(key, property))
 
   def ++(properties: Attributes[A]): Attributes[A] =
     Attributes(values ++ properties.values)

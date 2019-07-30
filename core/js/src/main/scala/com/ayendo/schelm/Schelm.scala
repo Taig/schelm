@@ -28,7 +28,7 @@ object Schelm {
       patcher = BrowserPatcher(renderer)
       html <- render(initial)
       node <- renderer.render(html)
-      _ <- Dom.appendAll(container, node.root)
+      _ <- Dom.appendAll(container, node.head.toList)
       htmls = (queue.dequeue merge subscriptions)
         .evalScan(initial) { (state, event) =>
           val result = events(state, event)
@@ -40,10 +40,10 @@ object Schelm {
     } yield ()
 
   def start[F[_]: Concurrent, State, Event: Eq, Command](
-      patcher: Patcher[F, Event, Node[Event]]
+      patcher: Patcher[F, Event, dom.Node]
   )(
       initial: Html[Event],
-      node: Node[Event],
+      node: Node[Event, dom.Node],
       htmls: Stream[F, Html[Event]]
   ): F[Unit] =
     htmls

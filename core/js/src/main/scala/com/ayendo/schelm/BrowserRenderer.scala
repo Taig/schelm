@@ -11,15 +11,16 @@ final class BrowserRenderer[F[_], A](
     registry: ListenerRegistry[F],
     send: A => Unit
 )(implicit F: Sync[F])
-    extends Renderer[F, A, Node[A]] {
-  override def render(html: Html[A]): F[Node[A]] = render(html, Path.Empty)
+    extends Renderer[F, A, Node[A, dom.Node]] {
+  override def render(html: Html[A]): F[Node[A, dom.Node]] =
+    render(html, Path.Empty)
 
-  def render(html: Html[A], path: Path): F[Node[A]] =
+  def render(html: Html[A], path: Path): F[Node[A, dom.Node]] =
     html.value match {
       case Component.Fragment(children) =>
         children
           .traverse((key, html) => render(html, path / segment(key)))
-          .map(children => Node.Fragment[A](Component.Fragment(children)))
+          .map(children => Node(Component.Fragment(children), None))
       case Component.Element(name, attributes, children) =>
         for {
           element <- Dom.createElement[F](name)
@@ -27,13 +28,13 @@ final class BrowserRenderer[F[_], A](
           children <- children.traverse { (key, html) =>
             render(html, path / segment(key))
           }
-          _ <- Dom.appendAll(element, children.values.flatMap(_.root))
+          _ <- Dom.appendAll(element, children.values.flatMap(_.head.toList))
         } yield {
           val component = Component.Element(name, attributes, children)
-          Node.Element(component, element)
+          Node(component, element.some)
         }
       case component @ Component.Text(value) =>
-        Dom.createTextNode[F](value).map(Node.Text(component, _))
+        Dom.createTextNode[F](value).map(node => Node(component, node.some))
     }
 
   def segment(key: Key): String = s"[$key]"

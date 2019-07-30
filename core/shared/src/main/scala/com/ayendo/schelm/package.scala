@@ -18,6 +18,23 @@ package object schelm {
         (component, _) => Html(component)
       )
 
+  type Node[A, B] = Cofree[Component[?, A], Option[B]]
+
+  object Node {
+    def apply[A, B](
+        component: Component[Node[A, B], A],
+        node: Option[B]
+    ): Node[A, B] =
+      Cofree[Component[?, A], Option[B]](node, component)
+  }
+
+  implicit final class NodeSyntax[A, B](node: Node[A, B])
+      extends ComponentOps[Node[?, B], A](
+        node,
+        _.tail,
+        (component, node) => Node(component, node.head)
+      )
+
   type CommandHandler[F[_], Command, Event] = Command => F[Option[Event]]
 
   type EventHandler[State, Event, Command] =
