@@ -1,6 +1,6 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-ThisBuild / crossScalaVersions := Seq("2.12.8", scalaVersion.value)
+ThisBuild / crossScalaVersions := Seq("2.11.12", "2.12.8", scalaVersion.value)
 
 lazy val root = project
   .in(file("."))
@@ -23,8 +23,8 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
   .settings(sonatypePublishSettings)
   .settings(
     libraryDependencies ++=
-        "org.scala-lang.modules" %%% "scala-collection-compat" % "2.1.1" ::
-      "org.typelevel" %%% "cats-effect" % "2.0.0-M4" ::
+      "org.scala-lang.modules" %%% "scala-collection-compat" % "2.1.1" ::
+        "org.typelevel" %%% "cats-effect" % "2.0.0-M4" ::
         "co.fs2" %%% "fs2-core" % "1.1.0-M1" ::
         Nil,
     name := "schelm-core"
