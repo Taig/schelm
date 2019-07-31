@@ -1,6 +1,9 @@
 # schelm
 
-The Elm architecture on top of cats-effect and fs2
+> The Elm architecture on top of cats-effect and fs2
+
+[![GitLab CI](https://gitlab.com/taig-github/schelm/badges/master/build.svg?style=flat-square)](https://gitlab.com/taig-github/schelm/pipelines)
+[![Maven Central](https://img.shields.io/maven-central/v/io.taig/schelm_2.13.svg?style=flat-square)](https://index.scala-lang.org/taig/schelm)
 
 ## Work in progress
 
