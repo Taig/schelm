@@ -35,3 +35,11 @@ publish:
   - tags
   script:
   - sbt publishAndRelease
+
+docs:
+  stage: publish
+  image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
+  only:
+  - tags
+  script:
+  - sbt publishMicrosite

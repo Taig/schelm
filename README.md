@@ -14,3 +14,30 @@
 - [ ] Documentation & project website
 - [ ] Dom parsing (e.g. for SSR continuation)
 - [ ] Test suite
+
+## Build website
+
+Steps to build the documentation locally, but within a docker container.
+
+  1. Build the container if not already done
+     ```
+     docker build -t schelm .
+     ```
+
+  2. Run the container, exposing port 4000 for Jekyll
+     ```
+     docker run -it -v $PWD:/home/schelm/ -p 4000:4000 schelm
+     ```
+
+  3. Now inside the container, generate the microsite
+     ```
+     sbt docs
+     ```
+
+  4. Start the Jekyll server
+     ```
+     cd website/target/site
+     jekyll serve --host 0.0.0.0
+     ```
+
+  5. Navigate to `localhost:4000` in your browser.

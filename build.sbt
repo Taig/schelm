@@ -1,6 +1,5 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
-
-ThisBuild / crossScalaVersions := Seq("2.11.12", "2.12.8", scalaVersion.value)
+import java.time.Instant
 
 lazy val root = project
   .in(file("."))
@@ -72,6 +71,37 @@ lazy val dslJVM = dsl.jvm
 
 lazy val dslJS = dsl.js
 
+lazy val website = project
+  .enablePlugins(MicrositesPlugin)
+  .settings(noPublishSettings)
+  .settings(
+    mdocVariables ++= Map(
+      "MODULE_CORE" -> (normalizedName in coreJVM).value,
+      "MODULE_CSS" -> (normalizedName in cssJVM).value,
+      "MODULE_DSL" -> (normalizedName in dslJVM).value,
+      "ORGANIZATION" -> organization.value,
+      "VERSION" -> version.value
+    ),
+    name := "schelm-website",
+    micrositeAuthor := "Niklas Klein",
+    micrositeBaseUrl := "/schelm",
+    micrositeCompilingDocsTool := WithMdoc,
+    micrositeDescription := "The Elm architecture on top of cats-effect and fs2",
+    micrositeGithubOwner := "taig",
+    micrositeGithubRepo := githubProject.value,
+    micrositeGithubToken := Option(System.getenv("GITHUB_TOKEN")),
+    micrositeGitterChannel := false,
+    micrositeFooterText := Some(
+      s"<p>Built for version ${version.value} at ${Instant.now()}</p>"
+    ),
+    micrositeImgDirectory := mdocIn.value / "image",
+    micrositeName := "Schelm",
+    micrositePushSiteWith := GitHub4s,
+    micrositeTwitterCreator := "@tttaig",
+    micrositeUrl := "http://taig.io"
+  )
+  .dependsOn(dslJVM)
+
 lazy val playground = crossProject(JVMPlatform, JSPlatform)
   .settings(noPublishSettings)
   .settings(
@@ -83,3 +113,6 @@ lazy val playground = crossProject(JVMPlatform, JSPlatform)
 lazy val playgroundJVM = playground.jvm
 
 lazy val playgroundJS = playground.js
+
+addCommandAlias("makeMicrosite", ";++ 2.12.8 website/makeMicrosite")
+addCommandAlias("publishMicrosite", ";++ 2.12.8 website/publishMicrosite")
