@@ -1,11 +1,11 @@
 FROM        openjdk:8u222-jdk-slim-buster
 
-RUN         apk add --no-cache bash curl
+RUN         apt-get update
+RUN         apt-get install --yes curl
 
 # Install sbt
-RUN         apk add --no-cache --virtual=build-dependencies
-RUN         curl -Ls https://git.io/sbt > /usr/local/bin/sbt && chmod 0755 /usr/local/bin/sbt
-RUN         apk del build-dependencies
+RUN         curl -Ls https://git.io/sbt > /usr/local/bin/sbt
+RUN         chmod 0755 /usr/local/bin/sbt
 
 # Cache sbt
 RUN         mkdir -p \
