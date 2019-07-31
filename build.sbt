@@ -1,4 +1,5 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
+import java.time.Instant
 
 lazy val root = project
   .in(file("."))
@@ -83,17 +84,19 @@ lazy val website = project
     ),
     name := "schelm-website",
     micrositeAuthor := "Niklas Klein",
+    micrositeBaseUrl := "/schelm",
     micrositeCompilingDocsTool := WithMdoc,
     micrositeDescription := "The Elm architecture on top of cats-effect and fs2",
     micrositeGithubOwner := "taig",
     micrositeGithubRepo := githubProject.value,
     micrositeGithubToken := Option(System.getenv("GITHUB_TOKEN")),
     micrositeGitterChannel := false,
-    micrositeFooterText := None,
+    micrositeFooterText := Some(s"Built for version ${version.value} at ${Instant.now()}"),
     micrositeImgDirectory := mdocIn.value / "image",
     micrositeName := "Schelm",
     micrositePushSiteWith := GitHub4s,
-    micrositeTwitterCreator := "@tttaig"
+    micrositeTwitterCreator := "@tttaig",
+    micrositeUrl := "http://taig.io",
   )
   .dependsOn(dslJVM)
 
@@ -109,5 +112,5 @@ lazy val playgroundJVM = playground.jvm
 
 lazy val playgroundJS = playground.js
 
-addCommandAlias("docs", ";++ 2.12.8 website/makeMicrosite")
-addCommandAlias("publishDocs", ";++ 2.12.8 website/publishMicrosite")
+addCommandAlias("makeMicrosite", ";++ 2.12.8 website/makeMicrosite")
+addCommandAlias("publishMicrosite", ";++ 2.12.8 website/publishMicrosite")
