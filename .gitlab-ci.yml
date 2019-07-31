@@ -7,6 +7,7 @@ variables:
   CONTAINER_REGISTRY: registry.gitlab.com
   CONTAINER_IMAGE: $CONTAINER_REGISTRY/taig-github/schelm
   DOCKER_DRIVER: overlay2
+  GIT_SUBMODULE_STRATEGY: recursive
 
 docker:
   stage: docker
