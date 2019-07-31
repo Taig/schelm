@@ -1,7 +1,5 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-ThisBuild / crossScalaVersions := Seq("2.11.12", "2.12.8", scalaVersion.value)
-
 lazy val root = project
   .in(file("."))
   .settings(noPublishSettings)
