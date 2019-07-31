@@ -64,9 +64,10 @@ object Differ {
       next: Children[Html[A]]
   ): Option[Diff[A]] =
     if (previous.isEmpty && next.isEmpty) None
-    else if (previous.isEmpty) Diff.from(next.map(Diff.AddChild.apply))
+    else if (previous.isEmpty)
+      Diff.from(next.toList.map(Diff.AddChild.apply[A] _ tupled))
     else if (next.isEmpty)
-      Diff.from(previous.map((key, _) => Diff.RemoveChild(key)))
+      Diff.from(previous.keys.map(Diff.RemoveChild))
     else compareChildren(previous, next)
 
   def compareChildren[A: Eq](

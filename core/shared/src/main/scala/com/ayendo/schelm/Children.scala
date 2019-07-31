@@ -19,10 +19,17 @@ sealed abstract class Children[A] extends Product with Serializable {
     case Children.Identified(values) => values.size
   }
 
-  def map[B](f: (Key, A) => B): List[B] = {
-    val g = f.tupled
-    toList.map(g)
-  }
+  def map[B](f: (Key, A) => B): Children[B] =
+    this match {
+      case Children.Indexed(raw) =>
+        Children.indexed(raw.zipWithIndex.map {
+          case (value, index) => f(Key.Index(index), value)
+        })
+      case Children.Identified(raw) =>
+        Children.identified(raw.map {
+          case (key, value) => (key, f(Key.Identifier(key), value))
+        })
+    }
 
   def append(key: Key, value: A): Children[A] =
     (key, this) match {
@@ -83,6 +90,14 @@ sealed abstract class Children[A] extends Product with Serializable {
       values.toList.map {
         case (identifier, value) => Key.Identifier(identifier) -> value
       }
+  }
+
+  def keys: List[Key] = this match {
+    case Children.Indexed(raw) =>
+      raw.zipWithIndex.map {
+        case (_, index) => Key.Index(index)
+      }
+    case Children.Identified(raw) => raw.keys.toList.map(Key.Identifier)
   }
 
   def values: List[A] = this match {

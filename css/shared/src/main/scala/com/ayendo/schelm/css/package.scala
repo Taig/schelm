@@ -36,6 +36,21 @@ package object css {
           }
         case html: Component.Text => Html[A](html).pure[F]
       }
+
+    def html[A](widget: Widget[A]): Html[A] =
+      widget.tail match {
+        case Component.Fragment(children) =>
+          Html(Component.Fragment(children.map((_, child) => html[A](child))))
+        case Component.Element(name, attributes, children) =>
+          val component = Component.Element(
+            name,
+            attributes,
+            children.map((_, child) => html[A](child))
+          )
+
+          Html(component)
+        case component: Component.Text => Html(component)
+      }
   }
 
   implicit final class WidgetSyntax[A](widget: Widget[A])
@@ -45,6 +60,11 @@ package object css {
         (component, widget) => Widget[A](component, widget.head)
       ) {
     def setStyles(styles: Styles): Widget[A] = Widget(widget.tail, styles)
+
+    def render[F[_]: Monad](registry: StylesRegistry[F]): F[Html[A]] =
+      Widget.render(widget, registry)
+
+    def html: Html[A] = Widget.html(widget)
   }
 
   private def cls[A](values: List[String]): Attribute[A] =
