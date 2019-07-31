@@ -70,6 +70,25 @@ lazy val dslJVM = dsl.jvm
 
 lazy val dslJS = dsl.js
 
+lazy val website = project
+  .enablePlugins(MicrositesPlugin)
+  .settings(noPublishSettings)
+  .settings(
+    mdocVariables ++= Map(
+      "MODULE_CORE" -> (normalizedName in coreJVM).value,
+      "MODULE_CSS" -> (normalizedName in cssJVM).value,
+      "MODULE_DSL" -> (normalizedName in dslJVM).value,
+      "ORGANIZATION" -> organization.value,
+      "VERSION" -> version.value
+    ),
+    name := "schelm-website",
+    micrositeCompilingDocsTool := WithMdoc,
+    micrositeDescription := "The Elm architecture on top of cats-effect and fs2",
+    micrositeImgDirectory := mdocIn.value / "image",
+    micrositeName := "Schelm",
+  )
+  .dependsOn(dslJVM)
+
 lazy val playground = crossProject(JVMPlatform, JSPlatform)
   .settings(noPublishSettings)
   .settings(
@@ -81,3 +100,5 @@ lazy val playground = crossProject(JVMPlatform, JSPlatform)
 lazy val playgroundJVM = playground.jvm
 
 lazy val playgroundJS = playground.js
+
+addCommandAlias("docs", ";++ 2.12.8 website/makeMicrosite")

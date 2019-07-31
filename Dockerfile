@@ -1,7 +1,8 @@
 FROM        openjdk:8u222-jdk-slim-buster
 
 RUN         apt-get update
-RUN         apt-get install --yes curl
+RUN         apt-get install --yes build-essential curl git ruby-full
+RUN         gem install jekyll bundler
 
 # Install sbt
 RUN         curl -Ls https://git.io/sbt > /usr/local/bin/sbt
@@ -26,7 +27,8 @@ RUN         cd ./cache/ && sbt -v +compile
 # Cache dependencies
 ADD         ./project ./cache/project/
 ADD         ./build.sbt ./cache/
-RUN         cd ./cache/ && sbt -v ";set every sourceGenerators := List.empty;+test:compile"
+RUN         mkdir ./cache/docs/
+RUN         cd ./cache/ && sbt -v ";set every sourceGenerators := List.empty;+test:compile;docs"
 
 # Clean cache
 RUN         rm -r ./cache/
