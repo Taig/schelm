@@ -1,6 +1,6 @@
 package io.taig.schelm.dsl
 
-final class CssUnitOps(val value: String) extends AnyVal {
+final class CssScaleUnitOps(val value: String) extends AnyVal {
   def cm: String = value + "cm"
   def mm: String = value + "mm"
   def in: String = value + "in"

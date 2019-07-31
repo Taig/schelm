@@ -1,51 +1,109 @@
 package io.taig.schelm.dsl
 
 trait CssValuesDsl {
+  def url(value: String) = s"url('$value')"
   val absolute: String = "absolute"
-
+  val alternate: String = "alternate"
+  val alternateReverse: String = "alternate-reverse"
   val auto: String = "auto"
-
+  val backwards: String = "backwards"
   val baseline: String = "baseline"
-
   val block: String = "block"
-
   val bolder: String = "bolder"
-
   val borderBox: String = "border-box"
-
+  val both: String = "both"
+  val bottom: String = "bottom"
+  val breakWord: String = "break-word"
+  val capitalize: String = "capitalize"
+  val center: String = "center"
+  val clip: String = "clip"
+  val collapse: String = "collapse"
+  val column: String = "column"
+  val columnReverse: String = "column-reverse"
+  val contain: String = "contain"
   val contentBox: String = "content-box"
-
+  val contents: String = "contents"
+  val cover: String = "cover"
+  val dashed: String = "dashed"
+  val default: String = "default"
   val dotted: String = "dotted"
-
+  val double: String = "double"
+  val ellipsis: String = "ellipsis"
+  val end: String = "end"
+  val fill: String = "fill"
+  val fixed: String = "fixed"
   val flex: String = "flex"
-
+  val flexEnd: String = "flex-end"
+  val flexStart: String = "flex-start"
+  val forwards: String = "forwards"
+  val grid: String = "grid"
   val hidden: String = "hidden"
-
+  val hide: String = "hide"
+  val infinite: String = "infinite"
   val inherit: String = "inherit"
-
   val initial: String = "initial"
-
   val inline: String = "inline"
-
   val inlineBlock: String = "inline-block"
-
+  val inlineFlex: String = "inline-flex"
+  val inlineGrid: String = "inline-grid"
+  val inlineTable: String = "inline-table"
+  val justify: String = "justify"
+  val left: String = "left"
+  val lineThrough: String = "line-through"
   val listItem: String = "list-item"
-
+  val local: String = "local"
+  val lowercase: String = "lowercase"
+  val ltr: String = "ltr"
+  val medium: String = "medium"
   val monospace: String = "monospace"
-
   val none: String = "none"
-
+  val noRepeat: String = "no-repeat"
   val normal: String = "normal"
-
+  val noWrap: String = "no-wrap"
+  val overline: String = "overline"
+  val paddingBox: String = "padding-box"
+  val paused: String = "paused"
   val pointer: String = "pointer"
-
   val relative: String = "relative"
-
+  val repeat: String = "repeat"
+  val repeatX: String = "repeat-x"
+  val repeatY: String = "repeat-y"
+  val reverse: String = "reverse"
+  val right: String = "right"
+  val round: String = "round"
+  val row: String = "row"
+  val rowReverse: String = "row-reverse"
+  val rtl: String = "rtl"
+  val runIn: String = "run-in"
+  val running: String = "running"
+  val scroll: String = "scroll"
+  val separate: String = "separate"
+  val show: String = "show"
+  val solid: String = "solid"
+  val space: String = "space"
+  val spaceAround: String = "space-around"
+  val spaceBetween: String = "space-between"
+  val start: String = "start"
+  val static: String = "static"
+  val sticky: String = "sticky"
+  val stretch: String = "stretch"
+  val tableCaption: String = "table-caption"
+  val tableCell: String = "table-cell"
+  val tableColumn: String = "table-column"
+  val tableColumnGroup: String = "table-column-group"
+  val tableFooterGroup: String = "table-footer-group"
+  val tableHeaderGroup: String = "table-header-group"
+  val tableRow: String = "table-row"
+  val tableRowGroup: String = "table-row-group"
+  val thick: String = "thick"
+  val thin: String = "thin"
+  val top: String = "top"
   val transparent: String = "transparent"
-
   val underline: String = "underline"
-
+  val uppercase: String = "uppercase"
   val visible: String = "visible"
-
+  val wavy: String = "wavy"
+  val wrap: String = "wrap"
+  val wrapReverse: String = "wrap-reverse"
   val zero: String = "0"
 }

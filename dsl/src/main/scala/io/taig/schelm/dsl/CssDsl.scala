@@ -12,8 +12,11 @@ trait CssDsl[A] extends CssKeysDsl with CssValuesDsl with NormalizeCss {
       declaration: PseudoDeclaration
   ): DeclarationOrPseudo = declaration.asRight
 
-  implicit def numericToUnitsOps[B: Numeric](value: B): CssUnitOps =
-    new CssUnitOps(value.toString)
+  implicit def numericToScaleUnitsOps[B: Numeric](value: B): CssScaleUnitOps =
+    new CssScaleUnitOps(value.toString)
+
+  implicit def numericToTimeUnitsOps[B: Numeric](value: B): CssTimeUnitOps =
+    new CssTimeUnitOps(value.toString)
 
   def css(widget: Widget[A], styles: Styles): Widget[A] =
     Widget(widget.tail, styles)
