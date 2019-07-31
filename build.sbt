@@ -110,3 +110,4 @@ lazy val playgroundJVM = playground.jvm
 lazy val playgroundJS = playground.js
 
 addCommandAlias("docs", ";++ 2.12.8 website/makeMicrosite")
+addCommandAlias("publishDocs", ";++ 2.12.8 website/publishMicrosite")

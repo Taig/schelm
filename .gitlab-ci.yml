@@ -1,6 +1,7 @@
 stages:
 - docker
 - test
+- temp
 - publish
 
 variables:
@@ -26,6 +27,12 @@ test:
   script:
   - sbt scalafmtCheckAll
   - sbt -Dmode=strict playgroundJS/fullOptJS
+
+docs:
+  stage: temp
+  image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
+  script:
+  - sbt publishDocs
 
 publish:
   stage: publish
