@@ -87,10 +87,12 @@ lazy val website = project
     micrositeDescription := "The Elm architecture on top of cats-effect and fs2",
     micrositeGithubOwner := "taig",
     micrositeGithubRepo := githubProject.value,
+    micrositeGithubToken := Option(System.getenv("GITHUB_TOKEN")),
     micrositeGitterChannel := false,
     micrositeFooterText := None,
     micrositeImgDirectory := mdocIn.value / "image",
     micrositeName := "Schelm",
+    micrositePushSiteWith := GitHub4s,
     micrositeTwitterCreator := "@tttaig"
   )
   .dependsOn(dslJVM)
