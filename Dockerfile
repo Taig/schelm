@@ -28,6 +28,7 @@ RUN         cd ./cache/ && sbt -v +compile
 ADD         ./project ./cache/project/
 ADD         ./build.sbt ./cache/
 RUN         mkdir ./cache/docs/
+RUN         touch ./cache/docs/index.md
 RUN         cd ./cache/ && sbt -v ";set every sourceGenerators := List.empty;+test:compile;makeMicrosite"
 
 # Clean cache
