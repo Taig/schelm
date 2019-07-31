@@ -82,10 +82,16 @@ lazy val website = project
       "VERSION" -> version.value
     ),
     name := "schelm-website",
+    micrositeAuthor := "Niklas Klein",
     micrositeCompilingDocsTool := WithMdoc,
     micrositeDescription := "The Elm architecture on top of cats-effect and fs2",
+    micrositeGithubOwner := "taig",
+    micrositeGithubRepo := githubProject.value,
+    micrositeGitterChannel := false,
+    micrositeFooterText := None,
     micrositeImgDirectory := mdocIn.value / "image",
     micrositeName := "Schelm",
+    micrositeTwitterCreator := "@tttaig"
   )
   .dependsOn(dslJVM)
 
