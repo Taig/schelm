@@ -1,7 +1,6 @@
 stages:
 - docker
-#- test
-- temp
+- test
 - publish
 
 variables:
@@ -21,18 +20,12 @@ docker:
   - docker build --cache-from $CONTAINER_IMAGE:latest --tag $CONTAINER_IMAGE:latest --tag $CONTAINER_IMAGE:$CI_BUILD_REF_NAME .
   - docker push $CONTAINER_IMAGE
 
-#test:
-#  stage: test
-#  image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
-#  script:
-#  - sbt scalafmtCheckAll
-#  - sbt -Dmode=strict playgroundJS/fullOptJS
-
-docs:
-  stage: temp
+test:
+  stage: test
   image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
   script:
-  - sbt publishMicrosite
+  - sbt scalafmtCheckAll
+  - sbt -Dmode=strict playgroundJS/fullOptJS
 
 publish:
   stage: publish
@@ -42,3 +35,11 @@ publish:
   - tags
   script:
   - sbt publishAndRelease
+
+docs:
+  stage: publish
+  image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
+  only:
+  - tags
+  script:
+  - sbt publishMicrosite

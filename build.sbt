@@ -91,12 +91,14 @@ lazy val website = project
     micrositeGithubRepo := githubProject.value,
     micrositeGithubToken := Option(System.getenv("GITHUB_TOKEN")),
     micrositeGitterChannel := false,
-    micrositeFooterText := Some(s"Built for version ${version.value} at ${Instant.now()}"),
+    micrositeFooterText := Some(
+      s"<p>Built for version ${version.value} at ${Instant.now()}</p>"
+    ),
     micrositeImgDirectory := mdocIn.value / "image",
     micrositeName := "Schelm",
     micrositePushSiteWith := GitHub4s,
     micrositeTwitterCreator := "@tttaig",
-    micrositeUrl := "http://taig.io",
+    micrositeUrl := "http://taig.io"
   )
   .dependsOn(dslJVM)
 
