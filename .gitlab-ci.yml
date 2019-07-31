@@ -32,6 +32,9 @@ docs:
   stage: temp
   image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
   script:
+  - git config --global user.name "Niklas Klein"
+  - git config --global user.email mail@taig.io
+  - git config --global push.default simple
   - sbt publishDocs
 
 publish:
