@@ -1,12 +1,11 @@
 package com.ayendo.schelm.css
 
 import cats.Applicative
-import cats.effect.Concurrent
+import cats.effect.Sync
 import cats.effect.concurrent.Ref
 import cats.implicits._
 
 final class CssRegistry[F[_]: Applicative](
-    globals: Stylesheet,
     registry: Ref[F, Styles]
 ) {
   def register(styles: Styles): F[List[Identifier]] =
@@ -20,12 +19,12 @@ final class CssRegistry[F[_]: Applicative](
   def snapshot: F[Stylesheet] = registry.get.map { styles =>
     styles.foldMap { style =>
       val selectors = Selectors.one(identify(style).selector)
-      globals ++ style.toStylesheet(selectors)
+      style.toStylesheet(selectors)
     }
   }
 }
 
 object CssRegistry {
-  def apply[F[_]: Concurrent](globals: Stylesheet): F[CssRegistry[F]] =
-    Ref[F].of(Styles.Empty).map(new CssRegistry[F](globals, _))
+  def apply[F[_]: Sync]: F[CssRegistry[F]] =
+    Ref[F].of(Styles.Empty).map(new CssRegistry[F](_))
 }

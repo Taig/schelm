@@ -10,9 +10,8 @@ object Playground extends IOApp with Dsl[Event] {
   override def run(args: List[String]): IO[ExitCode] =
     for {
       main <- IO(dom.document.getElementById("main"))
-      global = Stylesheet.of(normalize)
-      registry <- CssRegistry[IO](global)
-      render = Css.enable(registry, App.widget)
+      globals = Stylesheet.of(normalize)
+      render <- Css.enable[IO, State, Event](globals, App.widget)
       _ <- Schelm.start(main)(State(), render, App.events, App.commands)
     } yield ExitCode.Success
 }
