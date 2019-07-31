@@ -1,8 +1,6 @@
 package io.taig.schelm.css
 
 import cats.Monoid
-import cats.implicits._
-import io.taig.schelm.internal.TextHelpers
 
 final case class Declarations(values: List[Declaration]) extends AnyVal {
   def :+(declaration: Declaration): Declarations =

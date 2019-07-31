@@ -1,6 +1,5 @@
 package io.taig.schelm.css
 
-import cats.implicits._
 import cats.Monoid
 
 final case class Style(

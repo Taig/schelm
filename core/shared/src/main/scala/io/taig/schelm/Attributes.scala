@@ -6,7 +6,6 @@ import cats.implicits._
 
 import scala.collection.immutable.ListMap
 import scala.collection.mutable
-import scala.collection.compat._
 
 final case class Attributes[A](
     values: ListMap[String, Property[A]]
@@ -75,7 +74,9 @@ object Attributes {
 
   def from[A](values: Iterable[Attribute[A]]): Attributes[A] =
     Attributes(
-      ListMap.from(values.map(attribute => attribute.key -> attribute.property))
+      ListMap(
+        values.map(attribute => attribute.key -> attribute.property).toSeq: _*
+      )
     )
 
   implicit def monoid[A]: Monoid[Attributes[A]] = new Monoid[Attributes[A]] {

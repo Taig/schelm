@@ -1,7 +1,6 @@
 package io.taig.schelm.css
 
 import cats.Monoid
-import cats.implicits._
 
 final case class Stylesheet(values: List[Rule]) {
   def +:(rule: Rule): Stylesheet = Stylesheet(rule +: values)

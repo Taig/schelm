@@ -1,7 +1,5 @@
 package io.taig.schelm
 
-import cats.implicits._
-
 abstract class ComponentOps[F[_], A](
     component: F[A],
     extract: F[A] => Component[F[A], A],

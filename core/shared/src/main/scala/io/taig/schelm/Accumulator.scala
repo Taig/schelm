@@ -1,7 +1,5 @@
 package io.taig.schelm
 
-import cats.implicits._
-
 final case class Accumulator(value: String) extends AnyVal {
   def +(accumulator: Accumulator): Accumulator =
     Accumulator(value + accumulator.value)

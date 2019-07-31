@@ -1,7 +1,5 @@
 package io.taig.schelm
 
-import cats.implicits._
-
 sealed abstract class Component[+A, +B] extends Product with Serializable
 
 object Component {

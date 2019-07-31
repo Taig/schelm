@@ -6,7 +6,6 @@ import cats.implicits._
 
 import scala.collection.immutable.ListMap
 import scala.collection.mutable
-import scala.collection.compat._
 
 sealed abstract class Children[A] extends Product with Serializable {
   final def isEmpty: Boolean = this match {
@@ -138,5 +137,5 @@ object Children {
   def indexed[A](children: Iterable[A]): Children[A] = Indexed(children.toList)
 
   def identified[A](children: Iterable[(String, A)]): Children[A] =
-    Identified(ListMap.from(children))
+    Identified(ListMap(children.toSeq: _*))
 }

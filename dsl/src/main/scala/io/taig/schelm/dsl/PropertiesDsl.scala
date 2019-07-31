@@ -1,6 +1,5 @@
 package io.taig.schelm.dsl
 
-import cats.implicits._
 import io.taig.schelm.css.{Declaration, Declarations}
 import io.taig.schelm._
 

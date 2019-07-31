@@ -4,7 +4,6 @@ import cats.Monoid
 import cats.implicits._
 
 import scala.collection.immutable.ListSet
-import scala.collection.compat._
 
 final case class Styles(values: ListSet[Style]) extends AnyVal {
   def isEmpty: Boolean = values.isEmpty
@@ -23,7 +22,7 @@ object Styles {
 
   def of(styles: Style*): Styles = Styles(ListSet.from(styles))
 
-  def from(styles: Iterable[Style]): Styles = Styles(ListSet.from(styles))
+  def from(styles: Iterable[Style]): Styles = Styles(ListSet(styles.toSeq: _*))
 
   implicit val monoid: Monoid[Styles] = new Monoid[Styles] {
     override def empty: Styles = Empty

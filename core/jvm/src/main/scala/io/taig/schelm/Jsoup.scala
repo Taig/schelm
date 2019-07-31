@@ -2,7 +2,7 @@ package io.taig.schelm
 
 import cats.effect.Sync
 import cats.implicits._
-import org.jsoup.nodes.{Element => JElement, Node => JNode, TextNode => JText}
+import org.jsoup.nodes.{Element => JElement, Node => JNode}
 
 object Jsoup {
   def appendChild[F[_]](parent: JElement, child: JNode)(

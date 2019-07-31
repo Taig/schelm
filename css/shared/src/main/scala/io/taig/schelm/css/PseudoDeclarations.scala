@@ -1,7 +1,6 @@
 package io.taig.schelm.css
 
 import cats.Monoid
-import cats.implicits._
 
 final case class PseudoDeclarations(values: List[PseudoDeclaration]) {
   def :+(declaration: PseudoDeclaration): PseudoDeclarations =
