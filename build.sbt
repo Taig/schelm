@@ -51,7 +51,7 @@ lazy val css = crossProject(JVMPlatform, JSPlatform)
     Compile / sourceGenerators += Def.task {
       val source = (baseDirectory in LocalRootProject).value / "normalize.css" / "normalize.css"
       val target = (sourceManaged in Compile).value / "normalize.scala"
-      NormalizeCssGenerator("com.ayendo.schelm.css", source, target)
+      NormalizeCssGenerator("io.taig.schelm.css", source, target)
       Seq(target)
     }
   )
