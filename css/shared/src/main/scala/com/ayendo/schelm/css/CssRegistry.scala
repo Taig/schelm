@@ -5,7 +5,7 @@ import cats.effect.Concurrent
 import cats.effect.concurrent.Ref
 import cats.implicits._
 
-final class StylesRegistry[F[_]: Applicative](
+final class CssRegistry[F[_]: Applicative](
     globals: Stylesheet,
     registry: Ref[F, Styles]
 ) {
@@ -25,7 +25,7 @@ final class StylesRegistry[F[_]: Applicative](
   }
 }
 
-object StylesRegistry {
-  def apply[F[_]: Concurrent](globals: Stylesheet): F[StylesRegistry[F]] =
-    Ref[F].of(Styles.Empty).map(new StylesRegistry[F](globals, _))
+object CssRegistry {
+  def apply[F[_]: Concurrent](globals: Stylesheet): F[CssRegistry[F]] =
+    Ref[F].of(Styles.Empty).map(new CssRegistry[F](globals, _))
 }

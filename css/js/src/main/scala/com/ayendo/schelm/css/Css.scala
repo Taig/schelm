@@ -9,7 +9,7 @@ object Css {
   val Id = "schelm-css"
 
   def enable[F[_]: Sync, State, Event](
-      registry: StylesRegistry[F],
+      registry: CssRegistry[F],
       render: State => Widget[Event]
   ): State => F[Html[Event]] = { state =>
     val widget = render(state)
@@ -26,7 +26,7 @@ object Css {
   def enable[F[_]: Concurrent, State, Event](
       render: State => Widget[Event]
   ): F[State => F[Html[Event]]] =
-    StylesRegistry[F](Stylesheet.Empty).map(enable[F, State, Event](_, render))
+    CssRegistry[F](Stylesheet.Empty).map(enable[F, State, Event](_, render))
 
   def getOrCreateStyleElement[F[_]: Sync]: F[dom.Element] =
     Dom.getElementById(Id).flatMap {

@@ -11,7 +11,7 @@ object Playground extends IOApp with Dsl[Event] {
     for {
       main <- IO(dom.document.getElementById("main"))
       global = Stylesheet.of(normalize)
-      registry <- StylesRegistry[IO](global)
+      registry <- CssRegistry[IO](global)
       render = Css.enable(registry, App.widget)
       _ <- Schelm.start(main)(State(), render, App.events, App.commands)
     } yield ExitCode.Success

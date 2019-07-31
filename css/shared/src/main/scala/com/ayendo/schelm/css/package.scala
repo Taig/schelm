@@ -15,7 +15,7 @@ package object css {
 
     def render[F[_]: Monad, A](
         widget: Widget[A],
-        registry: StylesRegistry[F]
+        registry: CssRegistry[F]
     ): F[Html[A]] =
       widget.tail match {
         case Component.Fragment(children) =>
@@ -61,7 +61,7 @@ package object css {
       ) {
     def setStyles(styles: Styles): Widget[A] = Widget(widget.tail, styles)
 
-    def render[F[_]: Monad](registry: StylesRegistry[F]): F[Html[A]] =
+    def render[F[_]: Monad](registry: CssRegistry[F]): F[Html[A]] =
       Widget.render(widget, registry)
 
     def html: Html[A] = Widget.html(widget)
