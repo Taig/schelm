@@ -20,7 +20,7 @@ final case class Styles(values: ListSet[Style]) extends AnyVal {
 object Styles {
   val Empty: Styles = Styles(ListSet.empty)
 
-  def of(styles: Style*): Styles = Styles(ListSet.from(styles))
+  def of(styles: Style*): Styles = from(styles)
 
   def from(styles: Iterable[Style]): Styles = Styles(ListSet(styles.toSeq: _*))
 

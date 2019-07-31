@@ -2,7 +2,6 @@ package io.taig.schelm
 
 import cats._
 import cats.implicits._
-import io.taig.schelm.{Accumulator, Attribute, Component, Value}
 
 package object css {
   type Widget[A] = Cofree[Component[?, A], Styles]
