@@ -5,13 +5,17 @@ import io.taig.schelm.{Attributes, Children, Component}
 import io.taig.schelm.Children
 
 trait WidgetDsl {
-  implicit def childrenBuilderToWidget[A](builder: ChildrenBuilder[A]): Widget[A] =
+  implicit def childrenBuilderToWidget[A](
+      builder: ChildrenBuilder[A]
+  ): Widget[A] =
     builder.widget
 
   implicit def nodeBuilderToWidget[A](builder: NodeBuilder[A]): Widget[A] =
     builder.widget
 
-  implicit def nodeBuilderNothingToWidget[A](builder: NodeBuilder[Nothing]): Widget[A] =
+  implicit def nodeBuilderNothingToWidget[A](
+      builder: NodeBuilder[Nothing]
+  ): Widget[A] =
     builder.widget
 
   implicit def tagBuilderToWidget[A](builder: TagBuilder[A]): Widget[A] =

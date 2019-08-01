@@ -13,7 +13,8 @@ trait PropertiesDsl {
       accumulator: Accumulator
   ): Attribute[Nothing] = Attribute(key, Value.Multiple(values, accumulator))
 
-  def data(key: String, value: String): Attribute[Nothing] = attr(s"data-$key", value)
+  def data(key: String, value: String): Attribute[Nothing] =
+    attr(s"data-$key", value)
 
   def flag(key: String, value: Boolean): Attribute[Nothing] =
     Attribute(key, Value.Flag(value))
@@ -29,7 +30,8 @@ trait PropertiesDsl {
 
   def id(value: String): Attribute[Nothing] = attr("id", value)
 
-  def onClick[A](value: A): Attribute[A] = Attribute("click", Listener.Pure(value))
+  def onClick[A](value: A): Attribute[A] =
+    Attribute("click", Listener.Pure(value))
 
   def style(declarations: Declarations): Attribute[Nothing] =
     attrs(

@@ -1,5 +1,7 @@
 package io.taig
 
+import cats.implicits._
+
 package object schelm {
   final case class Fix[+F[+_]](value: F[Fix[F]])
   final case class Cofree[+F[+_], +A](head: A, tail: F[Cofree[F, A]])
@@ -18,7 +20,7 @@ package object schelm {
         (component, _) => Html(component)
       )
 
-  type Node[A, B] = Cofree[Component[+?, A], Option[B]]
+  type Node[+A, B] = Cofree[Component[+?, A], Option[B]]
 
   object Node {
     def apply[A, B](
@@ -33,7 +35,14 @@ package object schelm {
         node,
         _.tail,
         (component, node) => Node(component, node.head)
-      )
+      ) {
+    def root: List[B] = node match {
+      case Cofree(Some(node), _) => List(node)
+      case Cofree(None, component: Component.Fragment[Node[A, B], A]) =>
+        component.children.values.flatMap(_.root)
+      case Cofree(None, _) => List.empty
+    }
+  }
 
   type CommandHandler[F[_], Command, Event] = Command => F[Option[Event]]
 

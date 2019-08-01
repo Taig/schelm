@@ -24,11 +24,11 @@ object Schelm {
         queue.enqueue1(action).runAsync(_ => IO.unit).unsafeRunSync()
       }
       listener <- ListenerRegistry[F]
-      renderer = BrowserRenderer(listener, send)
-      patcher = BrowserPatcher(renderer)
+      (renderer) = ??? : Renderer[F, Event, dom.Node]
+      (patcher) = ??? : Patcher[F, Event, dom.Node]
       html <- render(initial)
       node <- renderer.render(html)
-      _ <- Dom.appendAll(container, node.head.toList)
+      // _ <- Dom.appendAll(container, node.head.toList)
       htmls = (queue.dequeue merge subscriptions)
         .evalScan(initial) { (state, event) =>
           val result = events(state, event)
