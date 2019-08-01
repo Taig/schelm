@@ -12,6 +12,7 @@ RUN         chmod 0755 /usr/local/bin/sbt
 RUN         mkdir -p \
               ./cache/project/ \
               ./cache/src/main/scala/
+ADD         ./.jvmopts ./cache/.jvmopts
 ADD         ./project/build.properties ./cache/project/
 RUN         cd ./cache/ && sbt -v exit
 

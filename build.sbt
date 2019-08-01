@@ -1,5 +1,4 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
-import java.time.Instant
 
 lazy val root = project
   .in(file("."))
@@ -73,7 +72,7 @@ lazy val dslJS = dsl.js
 
 lazy val website = project
   .enablePlugins(MicrositesPlugin)
-  .settings(noPublishSettings)
+  .settings(micrositeSettings)
   .settings(
     mdocVariables ++= Map(
       "MODULE_CORE" -> (normalizedName in coreJVM).value,
@@ -83,22 +82,8 @@ lazy val website = project
       "VERSION" -> version.value
     ),
     name := "schelm-website",
-    micrositeAuthor := "Niklas Klein",
-    micrositeBaseUrl := "/schelm",
-    micrositeCompilingDocsTool := WithMdoc,
     micrositeDescription := "The Elm architecture on top of cats-effect and fs2",
-    micrositeGithubOwner := "taig",
-    micrositeGithubRepo := githubProject.value,
-    micrositeGithubToken := Option(System.getenv("GITHUB_TOKEN")),
-    micrositeGitterChannel := false,
-    micrositeFooterText := Some(
-      s"<p>Built for version ${version.value} at ${Instant.now()}</p>"
-    ),
-    micrositeImgDirectory := mdocIn.value / "image",
-    micrositeName := "Schelm",
-    micrositePushSiteWith := GitHub4s,
-    micrositeTwitterCreator := "@tttaig",
-    micrositeUrl := "http://taig.io"
+    micrositeName := "Schelm"
   )
   .dependsOn(dslJVM)
 
