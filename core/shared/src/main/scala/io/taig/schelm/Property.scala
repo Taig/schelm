@@ -15,15 +15,7 @@ object Property {
   }
 }
 
-sealed abstract class Value extends Property[Nothing] {
-  final def render: Option[String] = this match {
-    case Value.Multiple(values, accumulator) =>
-      values.mkString(accumulator.value).some
-    case Value.One(value)  => value.some
-    case Value.Flag(true)  => "".some
-    case Value.Flag(false) => None
-  }
-}
+sealed abstract class Value extends Property[Nothing]
 
 object Value {
   final case class Flag(value: Boolean) extends Value

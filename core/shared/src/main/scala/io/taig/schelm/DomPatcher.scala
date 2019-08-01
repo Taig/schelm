@@ -17,29 +17,31 @@ final class DomPatcher[F[_]: Sync, A, B](
           _ <- dom.appendChildren(element, child.root)
         } yield node.updateChildren(_.append(diff.key, child))
       case (node, Diff.Group(diffs)) => diffs.foldLeftM(node)(patch)
-//      case (node, Diff.RemoveChild(key)) =>
-//        val children = node.children.get(key).toList.flatMap(_.head)
-//        element(node).flatMap(Dom.removeChildren(_, children)) *>
-//          node.updateChildren(_.remove(key)).pure[F]
-//      case (node, Diff.Replace(key)) => ???
-//      case (node, Diff.UpdateText(value)) =>
-//        text(node).flatMap(node => F.delay(node.data = value)) *> node.pure[F]
-//      case (node, Diff.UpdateAttribute(Attribute(key, value: Value))) =>
-//        element(node).flatMap { element =>
-//          value.render.fold(Dom.removeAttribute[F](element, key))(
-//            Dom.setAttribute[F](element, key, _)
-//          )
-//        } *> node.updateAttributes(_.updated(key, value)).pure[F]
-//      case (node, Diff.UpdateChild(key, diff)) =>
-//        node.children
-//          .get(key)
-//          .traverse(patch(_, diff))
-//          .flatMap {
-//            case Some(child) =>
-//              node.updateChildren(_.updated(key, child)).pure[F]
-//            case None =>
-//              EffectHelpers.fail[F](s"No child at key $key. Dom out of sync?")
-//          }
+      case (node, Diff.RemoveChild(key)) =>
+        extract(node).flatMap(dom.element).flatMap { parent =>
+          val children = node.children.get(key).toList.flatMap(_.head)
+          dom.removeChildren(parent, children)
+        } *> node.updateChildren(_.remove(key)).pure[F]
+      case (node, Diff.UpdateText(value)) =>
+        extract(node).flatMap(dom.text).flatMap(dom.data(_, value)) *> node
+          .pure[F]
+      case (node, Diff.UpdateAttribute(Attribute(key, value: Value))) =>
+        extract(node).flatMap(dom.element).flatMap { element =>
+          value match {
+            case Value.Flag(true)  => dom.setAttribute(element, key, "")
+            case Value.Flag(false) => dom.removeAttribute(element, key)
+            case Value.Multiple(values, accumulator) =>
+              dom.setAttribute(element, key, values.mkString(accumulator.value))
+            case Value.One(value) => dom.setAttribute(element, key, value)
+          }
+        } *> node.updateAttributes(_.updated(key, value)).pure[F]
+      case (node, Diff.UpdateChild(key, diff)) =>
+        EffectHelpers
+          .get[F, Node[A, B]](
+            node.children.get(key),
+            s"No child at key $key. Dom out of sync?"
+          )
+          .flatMap(patch(_, diff))
       case _ =>
         val message = s"Can not patch node $node with diff $diff"
         EffectHelpers.fail[F](message)
