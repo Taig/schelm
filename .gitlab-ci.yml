@@ -30,7 +30,7 @@ test-artifacts:
   stage: test
   image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
   script:
-  - sbt -Dmode=strict playgroundJS/fastOptJS
+  - sbt -Dmode=strict +playgroundJS/fastOptJS
 
 test-docs:
   stage: test
