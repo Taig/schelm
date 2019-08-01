@@ -7,25 +7,25 @@ import org.jsoup.nodes.{Element => JElement, Node => JNode, TextNode => JText}
 final class ServerRenderer[F[_], A](implicit F: Sync[F])
     extends Renderer[F, A, Node[A, JNode]] {
 
-  override def render(html: Html[A]): F[Node[A, JNode]] =
-    html.value match {
-      case Component.Fragment(children) =>
-        children
-          .traverse((_, html) => render(html))
-          .map(children => Node(Component.Fragment(children), None))
-      case Component.Element(name, attributes, children) =>
-        for {
-          element <- F.delay(new JElement(name))
-          _ <- attributes.traverse_(register(element, _))
-          children <- children.traverse((_, html) => render(html))
-          _ <- Jsoup.appendAll(element, children.values.flatMap(_.head.toList))
-        } yield {
-          val component = Component.Element(name, attributes, children)
-          Node(component, element.some)
-        }
-      case component @ Component.Text(value) =>
-        F.delay(new JText(value)).map(node => Node(component, node.some))
-    }
+  override def render(html: Html[A]): F[Node[A, JNode]] = ???
+//    html.value match {
+//      case Component.Fragment(children) =>
+//        children
+//          .traverse((_, html) => render(html))
+//          .map(children => Node(Component.Fragment(children), None))
+//      case Component.Element(name, attributes, children) =>
+//        for {
+//          element <- F.delay(new JElement(name))
+//          _ <- attributes.traverse_(register(element, _))
+//          children <- children.traverse((_, html) => render(html))
+//          _ <- Jsoup.appendAll(element, children.values.flatMap(_.head.toList))
+//        } yield {
+//          val component = Component.Element(name, attributes, children)
+//          Node(component, element.some)
+//        }
+//      case component @ Component.Text(value) =>
+//        F.delay(new JText(value)).map(node => Node(component, node.some))
+//    }
 
   def register(element: JElement, attribute: Attribute[A]): F[Unit] =
     attribute match {

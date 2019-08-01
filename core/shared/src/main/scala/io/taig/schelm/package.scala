@@ -1,14 +1,14 @@
 package io.taig
 
 package object schelm {
-  final case class Fix[F[_]](value: F[Fix[F]])
-  final case class Cofree[F[_], A](head: A, tail: F[Cofree[F, A]])
+  final case class Fix[+F[+_]](value: F[Fix[F]])
+  final case class Cofree[+F[+_], +A](head: A, tail: F[Cofree[F, A]])
 
-  type Html[A] = Fix[Component[?, A]]
+  type Html[+A] = Fix[Component[+?, A]]
 
   object Html {
     def apply[A](component: Component[Html[A], A]): Html[A] =
-      Fix[Component[?, A]](component)
+      Fix[Component[+?, A]](component)
   }
 
   implicit final class HtmlSyntax[A](html: Html[A])
@@ -18,14 +18,14 @@ package object schelm {
         (component, _) => Html(component)
       )
 
-  type Node[A, B] = Cofree[Component[?, A], Option[B]]
+  type Node[A, B] = Cofree[Component[+?, A], Option[B]]
 
   object Node {
     def apply[A, B](
         component: Component[Node[A, B], A],
         node: Option[B]
     ): Node[A, B] =
-      Cofree[Component[?, A], Option[B]](node, component)
+      Cofree[Component[+?, A], Option[B]](node, component)
   }
 
   implicit final class NodeSyntax[A, B](node: Node[A, B])

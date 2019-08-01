@@ -5,19 +5,19 @@ import cats.data.Ior
 import cats.implicits._
 
 object Differ {
-  def diff[A: Eq](previous: Html[A], next: Html[A]): Option[Diff[A]] =
-    (previous.value, next.value) match {
-      case (Component.Text(previous), Component.Text(next)) =>
-        text(previous, next)
-      case (Component.Fragment(previous), Component.Fragment(next)) =>
-        children(previous, next)
-      case (
-          previous: Component.Element[Html[A], A],
-          next: Component.Element[Html[A], A]
-          ) =>
-        node(previous, next)
-      case (_, next) => Diff.Replace(Html(next)).some
-    }
+  def diff[A: Eq](previous: Html[A], next: Html[A]): Option[Diff[A]] = ???
+//    (previous.value, next.value) match {
+//      case (Component.Text(previous), Component.Text(next)) =>
+//        text(previous, next)
+//      case (Component.Fragment(previous), Component.Fragment(next)) =>
+//        children(previous, next)
+//      case (
+//          previous: Component.Element[Html[A], A],
+//          next: Component.Element[Html[A], A]
+//          ) =>
+//        node(previous, next)
+//      case (_, next) => Diff.Replace(Html(next)).some
+//    }
 
   def node[A: Eq](
       previous: Component.Element[Html[A], A],

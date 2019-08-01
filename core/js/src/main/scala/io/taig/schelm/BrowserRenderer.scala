@@ -15,27 +15,27 @@ final class BrowserRenderer[F[_], A](
   override def render(html: Html[A]): F[Node[A, dom.Node]] =
     render(html, Path.Empty)
 
-  def render(html: Html[A], path: Path): F[Node[A, dom.Node]] =
-    html.value match {
-      case Component.Fragment(children) =>
-        children
-          .traverse((key, html) => render(html, path / segment(key)))
-          .map(children => Node(Component.Fragment(children), None))
-      case Component.Element(name, attributes, children) =>
-        for {
-          element <- Dom.createElement[F](name)
-          _ <- attributes.traverse_(register(element, path, _))
-          children <- children.traverse { (key, html) =>
-            render(html, path / segment(key))
-          }
-          _ <- Dom.appendAll(element, children.values.flatMap(_.head.toList))
-        } yield {
-          val component = Component.Element(name, attributes, children)
-          Node(component, element.some)
-        }
-      case component @ Component.Text(value) =>
-        Dom.createTextNode[F](value).map(node => Node(component, node.some))
-    }
+  def render(html: Html[A], path: Path): F[Node[A, dom.Node]] = ???
+//    html.value match {
+//      case Component.Fragment(children) =>
+//        children
+//          .traverse((key, html) => render(html, path / segment(key)))
+//          .map(children => Node(Component.Fragment(children), None))
+//      case Component.Element(name, attributes, children) =>
+//        for {
+//          element <- Dom.createElement[F](name)
+//          _ <- attributes.traverse_(register(element, path, _))
+//          children <- children.traverse { (key, html) =>
+//            render(html, path / segment(key))
+//          }
+//          _ <- Dom.appendAll(element, children.values.flatMap(_.head.toList))
+//        } yield {
+//          val component = Component.Element(name, attributes, children)
+//          Node(component, element.some)
+//        }
+//      case component @ Component.Text(value) =>
+//        Dom.createTextNode[F](value).map(node => Node(component, node.some))
+//    }
 
   def segment(key: Key): String = s"[$key]"
 

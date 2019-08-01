@@ -9,7 +9,7 @@ import io.taig.schelm.dsl._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-object App extends Dsl[Event] {
+object App extends Dsl {
   def widget(state: State): Widget[Event] =
     css(
       div(
