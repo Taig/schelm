@@ -33,7 +33,7 @@ Schelm is split into 3 major modules:
 2. `@MODULE_CSS@` introduces the notion of CSS. Styles can be attached to components that will then be moved to the `<style />` section of the document, a generated class is then added to the component in order to receive the styles. 
 3. `@MODULE_DSL@` adds plenty of convenience methods to build up HTML structures, add attributes and attach listeners or styles.
 
-All of these modules are available for the JVM and JS.
+All of these modules are available for the JVM (Scala @SCALA_VERSIONS@) and JS (Scala.js @SCALAJS_VERSION@).
 
 ```scala
 libraryDependencies ++=

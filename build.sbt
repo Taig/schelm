@@ -79,7 +79,9 @@ lazy val website = project
       "MODULE_CSS" -> (normalizedName in cssJVM).value,
       "MODULE_DSL" -> (normalizedName in dslJVM).value,
       "ORGANIZATION" -> organization.value,
-      "VERSION" -> version.value
+      "VERSION" -> version.value,
+      "SCALA_VERSIONS" -> crossScalaVersions.value.mkString(", "),
+      "SCALAJS_VERSION" -> scalaJSVersion
     ),
     name := "schelm-website",
     micrositeDescription := "The Elm architecture on top of cats-effect and fs2",
