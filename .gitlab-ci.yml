@@ -20,12 +20,18 @@ docker:
   - docker build --cache-from $CONTAINER_IMAGE:latest --tag $CONTAINER_IMAGE:latest --tag $CONTAINER_IMAGE:$CI_BUILD_REF_NAME .
   - docker push $CONTAINER_IMAGE
 
-test:
+artifact-test:
   stage: test
   image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
   script:
   - sbt scalafmtCheckAll
-  - sbt -Dmode=strict playgroundJS/fullOptJS
+  - sbt -Dmode=strict playgroundJS/fastOptJS
+
+docs-test:
+  stage: test
+  image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
+  script:
+  - sbt makeMicrosite
 
 publish:
   stage: publish
