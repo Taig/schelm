@@ -21,7 +21,7 @@ technologies:
 
 - Schelm copies [Elm's](https://elm-lang.org/) design closely, the available features work identical
 - An app can subscribe to an [fs2.Stream](https://github.com/functional-streams-for-scala/fs2) to receive external events
-- The `css` module is inspired by [elm-css](https://github.com/rtfeldman/elm-css), but no as closely copied as the `core`
+- The `css` module is inspired by [elm-css](https://github.com/rtfeldman/elm-css), but not as closely copied as the `core`
 - Schelm apps can be rendered on the JVM natively (SSR)
 - Some more sophisticated features such as `Html.lazy` are currently not available in Schelm but will be added later
 
