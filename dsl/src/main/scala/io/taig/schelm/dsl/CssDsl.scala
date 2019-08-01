@@ -3,7 +3,7 @@ package io.taig.schelm.dsl
 import cats.implicits._
 import io.taig.schelm.css._
 
-trait CssDsl[A] extends CssKeysDsl with CssValuesDsl with NormalizeCss {
+trait CssDsl[A] extends CssKeysDsl with CssValuesDsl {
   implicit def declarationToEither(
       declaration: Declaration
   ): DeclarationOrPseudo = declaration.asLeft

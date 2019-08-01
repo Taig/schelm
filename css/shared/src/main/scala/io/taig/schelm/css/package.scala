@@ -2,8 +2,9 @@ package io.taig.schelm
 
 import cats._
 import cats.implicits._
+import io.taig.schelm.css.NormalizeCss
 
-package object css {
+package object css extends NormalizeCss {
   type Widget[A] = Cofree[Component[?, A], Styles]
 
   object Widget {
