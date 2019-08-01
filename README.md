@@ -15,6 +15,10 @@
 - [ ] Dom parsing (e.g. for SSR continuation)
 - [ ] Test suite
 
+## Documentation
+
+Please visit the [microsite](http://taig.io/schelm/).
+
 ## Build website
 
 Steps to build the documentation locally, but within a docker container.
