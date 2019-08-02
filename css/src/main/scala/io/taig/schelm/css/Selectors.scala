@@ -6,7 +6,7 @@ import cats.implicits._
 final case class Selectors(values: NonEmptyList[Selector]) extends AnyVal {
   def +(modifier: Modifier): Selectors = Selectors(values.map(_ + modifier))
 
-  override def toString: String = values.map(_.render).mkString_(", ")
+  override def toString: String = values.map(_.toString).mkString_(", ")
 }
 
 object Selectors {

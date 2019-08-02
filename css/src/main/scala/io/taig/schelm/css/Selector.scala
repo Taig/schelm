@@ -1,7 +1,7 @@
 package io.taig.schelm.css
 
 final case class Selector(value: String) extends AnyVal {
-  def +(modifier: Modifier): Selector = Selector(value + modifier.render)
+  def +(modifier: Modifier): Selector = Selector(value + modifier.toString)
 
-  def render: String = value
+  override def toString: String = value
 }

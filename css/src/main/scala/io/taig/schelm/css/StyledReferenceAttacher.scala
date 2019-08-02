@@ -2,7 +2,7 @@ package io.taig.schelm.css
 
 import cats.effect.Sync
 import cats.implicits._
-import io.taig.schelm.css.CssSchelm.Id
+import io.taig.schelm.css.StyledReferenceAttacher.Id
 import io.taig.schelm.{Attacher, Dom, Reference, ReferenceAttacher}
 
 final class StyledReferenceAttacher[F[_]: Sync, Event, Node](
@@ -15,7 +15,7 @@ final class StyledReferenceAttacher[F[_]: Sync, Event, Node](
   ): F[Unit] = {
     for {
       style <- getOrCreateStyleElement
-      _ <- dom.innerHtml(style, s"\n${child.styleheet}\n")
+      _ <- dom.innerHtml(style, s"\n${child.stylesheet}\n")
       _ <- attacher.attach(parent, child.reference)
     } yield ()
   }

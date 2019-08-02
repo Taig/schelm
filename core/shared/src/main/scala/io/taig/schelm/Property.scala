@@ -21,9 +21,9 @@ object Value {
   }
 }
 
-sealed abstract class Listener[A] extends Property[A]
+sealed abstract class Listener[Event] extends Property[Event]
 
 object Listener {
-  final case class Pure[A](event: A) extends Listener[A]
-  final case class Input[A](event: String => A) extends Listener[A]
+  final case class Pure[Event](event: Event) extends Listener[Event]
+  final case class Input[Event](event: String => Event) extends Listener[Event]
 }

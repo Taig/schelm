@@ -9,7 +9,7 @@ final class StyledHtmlDiffer[A](differ: Differ[Html[A], Diff[A]])
       next: StyledHtml[A]
   ): Option[StyledDiff[A]] =
     differ.diff(previous.html, next.html).map { diff =>
-      StyledDiff(diff, next.styleheet)
+      StyledDiff(diff, next.stylesheet)
     }
 }
 

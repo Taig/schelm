@@ -1,8 +1,8 @@
 package io.taig.schelm.css
 
-import io.taig.schelm.{Html, Reference}
+import io.taig.schelm.Reference
 
 final case class StyledReference[Event, Node](
     reference: Reference[Event, Node],
-    styleheet: Stylesheet
+    stylesheet: Stylesheet
 )

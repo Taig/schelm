@@ -13,17 +13,23 @@ object Playground extends IOApp {
       manager <- EventManager.unbounded[IO, Event]
       xxx <- BrowserDom[IO, Event](manager)
       container <- xxx.getElementById("main").map(_.get)
-      schelm = Schelm(
-        WidgetRenderer[IO, Event, dom.Node](xxx),
+      renderer = HtmlRenderer[IO, Event, dom.Node](xxx)
+      schelm = Schelm[IO, Event, dom.Node, StyledHtml[Event], StyledReference[
+        Event,
+        dom.Node
+      ], StyledDiff[Event]](
+        manager,
+        StyledHtmlRenderer[IO, Event, dom.Node](renderer),
         StyledReferenceAttacher[IO, Event, dom.Node](xxx),
         StyledHtmlDiffer[Event],
-        ???
+        StyledReferencePatcher[IO, Event, dom.Node](renderer, xxx)
       )
       _ <- schelm.start[State, Command](
         container,
         State(),
-        App.widget,
+        state => (StyledHtml.apply[Event] _ tupled)(App.widget(state).render),
         App.events,
+        App.commands,
         Stream.empty
       )
     } yield ExitCode.Success

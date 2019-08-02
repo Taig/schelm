@@ -7,8 +7,8 @@ package object schelm {
   type Html[+Event] = Fix[Component[+?, Event]]
 
   object Html {
-    def apply[A](component: Component[Html[A], A]): Html[A] =
-      Fix[Component[+?, A]](component)
+    def apply[Event](component: Component[Html[Event], Event]): Html[Event] =
+      Fix[Component[+?, Event]](component)
   }
 
   implicit final class HtmlSyntax[A](html: Html[A])
