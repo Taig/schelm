@@ -28,7 +28,6 @@ object Schelm {
         )
       renderer = DomRenderer(dom)
       patcher = DomPatcher(renderer, dom)
-      listener <- ListenerRegistry[F]
       html <- render(initial)
       node <- renderer.render(html)
       _ <- dom.appendChildren(container, node.root)

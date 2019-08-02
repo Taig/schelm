@@ -42,6 +42,7 @@ lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 
 lazy val css = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Pure)
   .settings(sonatypePublishSettings)
   .settings(
     name := "schelm-css",
@@ -100,6 +101,3 @@ lazy val playground = crossProject(JVMPlatform, JSPlatform)
 lazy val playgroundJVM = playground.jvm
 
 lazy val playgroundJS = playground.js
-
-addCommandAlias("makeMicrosite", ";++ 2.12.8 website/makeMicrosite")
-addCommandAlias("publishMicrosite", ";++ 2.12.8 website/publishMicrosite")
