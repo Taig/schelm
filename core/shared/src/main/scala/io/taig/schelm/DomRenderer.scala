@@ -58,3 +58,8 @@ final class DomRenderer[F[_], A, B](dom: Dom[F, A, B])(implicit F: Monad[F])
 
   def segment(key: Key): String = s"[$key]"
 }
+
+object DomRenderer {
+  def apply[F[_]: Monad, A, B](dom: Dom[F, A, B]): Renderer[F, A, B] =
+    new DomRenderer[F, A, B](dom)
+}

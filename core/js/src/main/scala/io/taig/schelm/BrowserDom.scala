@@ -60,6 +60,14 @@ final class BrowserDom[F[_], A](send: A => Unit)(implicit F: Sync[F])
   override def data(text: Text, value: String): F[Unit] =
     F.delay(text.data = value)
 
+  override def getElementById(id: String): F[Option[Element]] =
+    F.delay(Option(document.getElementById(id)))
+
+  override def head: F[Element] = F.delay(document.head)
+
+  override def innerHtml(element: Element, value: String): F[Unit] =
+    F.delay(element.innerHTML = value)
+
   override def removeChild(parent: Element, child: dom.Node): F[Unit] =
     F.delay(parent.removeChild(child)).void
 
@@ -72,4 +80,9 @@ final class BrowserDom[F[_], A](send: A => Unit)(implicit F: Sync[F])
       value: String
   ): F[Unit] =
     F.delay(element.setAttribute(key, value))
+}
+
+object BrowserDom {
+  def apply[F[_]: Sync, A](send: A => Unit): Dom[F, A, dom.Node] =
+    new BrowserDom[F, A](send)
 }

@@ -23,8 +23,8 @@ final class DomPatcher[F[_]: Sync, A, B](
           dom.removeChildren(parent, children)
         } *> node.updateChildren(_.remove(key)).pure[F]
       case (node, Diff.UpdateText(value)) =>
-        extract(node).flatMap(dom.text).flatMap(dom.data(_, value)) *> node
-          .pure[F]
+        extract(node).flatMap(dom.text).flatMap(dom.data(_, value)) *>
+          node.setText(value).pure[F]
       case (node, Diff.UpdateAttribute(Attribute(key, value: Value))) =>
         extract(node).flatMap(dom.element).flatMap { element =>
           value match {
@@ -42,6 +42,7 @@ final class DomPatcher[F[_]: Sync, A, B](
             s"No child at key $key. Dom out of sync?"
           )
           .flatMap(patch(_, diff))
+          .map(child => node.updateChildren(_.updated(key, child)))
       case _ =>
         val message = s"Can not patch node $node with diff $diff"
         EffectHelpers.fail[F](message)
@@ -49,4 +50,11 @@ final class DomPatcher[F[_]: Sync, A, B](
 
   def extract(node: Node[A, B]): F[B] =
     EffectHelpers.get[F, B](node.head, "No node available. Dom out of sync?")
+}
+
+object DomPatcher {
+  def apply[F[_]: Sync, A, B](
+      renderer: Renderer[F, A, B],
+      dom: Dom[F, A, B]
+  ): Patcher[F, A, B] = new DomPatcher[F, A, B](renderer, dom)
 }

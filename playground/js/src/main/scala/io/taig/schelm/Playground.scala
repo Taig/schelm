@@ -1,15 +1,25 @@
 package io.taig.schelm
 
 import cats.effect.{ExitCode, IO, IOApp}
+import fs2.concurrent.Queue
 import io.taig.schelm.css._
-import org.scalajs.dom
 
 object Playground extends IOApp {
-  override def run(args: List[String]): IO[ExitCode] = ???
-//    for {
-//      main <- IO(dom.document.getElementById("main"))
-//      globals = Stylesheet.of(normalize)
-//      render <- Css.enable[IO, State, Event](globals, App.widget)
-//      _ <- Schelm.start(main)(State(), render, App.events, App.commands)
-//    } yield ExitCode.Success
+  override def run(args: List[String]): IO[ExitCode] = {
+    val globals = Stylesheet.of(normalize)
+    for {
+      queue <- Queue.unbounded[IO, Event]
+      send = { action: Event =>
+        queue.enqueue1(action).runAsync(_ => IO.unit).unsafeRunSync()
+      }
+      dom = BrowserDom[IO, Event](send)
+      render <- Css.enable(globals, dom, App.widget)
+      _ <- Schelm.start("main", dom, queue)(
+        State(),
+        render,
+        App.events,
+        App.commands
+      )
+    } yield ExitCode.Success
+  }
 }

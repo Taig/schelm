@@ -1,16 +1,18 @@
 package io.taig.schelm
 
-import cats.{Eq, Parallel}
 import cats.effect._
 import cats.effect.implicits._
 import cats.implicits._
+import cats.{Eq, Parallel}
 import fs2.Stream
 import fs2.concurrent.Queue
-import org.scalajs.dom
+import io.taig.schelm.internal.EffectHelpers
 
 object Schelm {
-  def start[F[_]: ConcurrentEffect, G[_], State, Event: Eq, Command](
-      container: dom.Element
+  def start[F[_]: ConcurrentEffect, G[_], State, Event: Eq, Command, B](
+      id: String,
+      dom: Dom[F, Event, B],
+      queue: Queue[F, Event]
   )(
       initial: State,
       render: State => F[Html[Event]],
@@ -19,16 +21,17 @@ object Schelm {
       subscriptions: Stream[F, Event] = Stream.empty
   )(implicit P: Parallel[F, G]): F[Unit] =
     for {
-      queue <- Queue.unbounded[F, Event]
-      send = { action: Event =>
-        queue.enqueue1(action).runAsync(_ => IO.unit).unsafeRunSync()
-      }
+      container <- dom
+        .getElementById(id)
+        .flatMap(
+          EffectHelpers.get[F, dom.Element](_, s"No element with id $id found")
+        )
+      renderer = DomRenderer(dom)
+      patcher = DomPatcher(renderer, dom)
       listener <- ListenerRegistry[F]
-      (renderer) = ??? : Renderer[F, Event, dom.Node]
-      (patcher) = ??? : Patcher[F, Event, dom.Node]
       html <- render(initial)
       node <- renderer.render(html)
-      // _ <- Dom.appendAll(container, node.head.toList)
+      _ <- dom.appendChildren(container, node.root)
       htmls = (queue.dequeue merge subscriptions)
         .evalScan(initial) { (state, event) =>
           val result = events(state, event)
@@ -39,11 +42,11 @@ object Schelm {
       _ <- start(patcher)(html, node, htmls)
     } yield ()
 
-  def start[F[_]: Concurrent, State, Event: Eq, Command](
-      patcher: Patcher[F, Event, dom.Node]
+  def start[F[_]: Concurrent, State, Event: Eq, Command, B](
+      patcher: Patcher[F, Event, B]
   )(
       initial: Html[Event],
-      node: Node[Event, dom.Node],
+      node: Node[Event, B],
       htmls: Stream[F, Html[Event]]
   ): F[Unit] =
     htmls

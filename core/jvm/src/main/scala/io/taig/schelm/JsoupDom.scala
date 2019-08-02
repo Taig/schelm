@@ -3,9 +3,15 @@ package io.taig.schelm
 import cats.effect.Sync
 import cats.implicits._
 import io.taig.schelm.internal.EffectHelpers
-import org.jsoup.nodes.{Element => JElement, Node => JNode, TextNode => JText}
+import org.jsoup.nodes.{
+  Element => JElement,
+  Node => JNode,
+  TextNode => JText,
+  Document => JDocument
+}
 
-final class JsoupDom[F[_], A](implicit F: Sync[F]) extends Dom[F, A, JNode] {
+final class JsoupDom[F[_], A](document: JDocument)(implicit F: Sync[F])
+    extends Dom[F, A, JNode] {
   override type Element = JElement
   override type Text = JText
   override type Notify = Unit
@@ -32,14 +38,22 @@ final class JsoupDom[F[_], A](implicit F: Sync[F]) extends Dom[F, A, JNode] {
   override def appendChild(parent: JElement, child: JNode): F[Unit] =
     F.delay(parent.appendChild(child)).void
 
-  override def data(text: JText, value: String): F[Unit] =
-    F.delay(text.text(value)).void
-
   override def createElement(name: String): F[Element] =
     F.delay(new JElement(name))
 
   override def createTextNode(value: String): F[JText] =
     F.delay(new JText(value))
+
+  override def data(text: JText, value: String): F[Unit] =
+    F.delay(text.text(value)).void
+
+  override def getElementById(id: String): F[Option[Element]] =
+    F.delay(Option(document.getElementById(id)))
+
+  override def head: F[Element] = F.delay(document.head)
+
+  override def innerHtml(element: JElement, value: String): F[Unit] =
+    F.delay(element.wrap(value)).void
 
   override def removeChild(parent: JElement, child: JNode): F[Unit] =
     F.delay(child.remove())
@@ -53,4 +67,12 @@ final class JsoupDom[F[_], A](implicit F: Sync[F]) extends Dom[F, A, JNode] {
       value: String
   ): F[Unit] =
     F.delay(element.attr(key, value)).void
+}
+
+object JsoupDom {
+  def apply[F[_]: Sync, A](document: JDocument): Dom[F, A, JNode] =
+    new JsoupDom[F, A](document)
+
+  def apply[F[_], A](implicit F: Sync[F]): F[Dom[F, A, JNode]] =
+    F.delay(new JDocument("/")).map(JsoupDom[F, A])
 }

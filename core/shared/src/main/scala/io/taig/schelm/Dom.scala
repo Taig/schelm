@@ -31,6 +31,12 @@ abstract class Dom[F[_], A, Node] {
 
   def data(text: Text, value: String): F[Unit]
 
+  def getElementById(id: String): F[Option[Element]]
+
+  def head: F[Element]
+
+  def innerHtml(element: Element, value: String): F[Unit]
+
   def removeAttribute(element: Element, key: String): F[Unit]
 
   def removeChild(parent: Element, child: Node): F[Unit]

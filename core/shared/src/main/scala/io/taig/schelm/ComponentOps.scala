@@ -33,4 +33,10 @@ abstract class ComponentOps[F[_], A](
         inject(fragment.copy(children = f(fragment.children)), component)
       case _ => component
     }
+
+  final def setText(value: String): F[A] =
+    extract(component) match {
+      case text: Component.Text => inject(text.copy(value = value), component)
+      case _                    => component
+    }
 }

@@ -16,41 +16,39 @@ package object css extends NormalizeCss {
     def render[F[_]: Monad, A](
         widget: Widget[A],
         registry: CssRegistry[F]
-    ): F[Html[A]] = ???
-//      widget.tail match {
-//        case Component.Fragment(children) =>
-//          children
-//            .traverse((_, widget) => render(widget, registry))
-//            .map(children => Html(Component.Fragment(children)))
-//        case Component.Element(name, properties, children) =>
-//          for {
-//            identifiers <- registry.register(widget.head)
-//            children <- children.traverse { (_, widget) =>
-//              render(widget, registry)
-//            }
-//          } yield {
-//            val update =
-//              if (identifiers.isEmpty) properties
-//              else properties.merge(cls(identifiers.map(_.cls)))
-//            Html(Component.Element(name, update, children))
-//          }
-//        case html: Component.Text => Html[A](html).pure[F]
-//      }
+    ): F[Html[A]] =
+      widget.tail match {
+        case component: Component.Fragment[Widget[A], A] =>
+          component.children
+            .traverse((_, widget) => render(widget, registry))
+            .map(children => Html(Component.Fragment(children)))
+        case component: Component.Element[Widget[A], A] =>
+          for {
+            identifiers <- registry.register(widget.head)
+            children <- component.children.traverse { (_, widget) =>
+              render(widget, registry)
+            }
+          } yield {
+            val update =
+              if (identifiers.isEmpty) component.attributes
+              else component.attributes.merge(cls(identifiers.map(_.cls)))
+            Html(Component.Element(component.name, update, children))
+          }
+        case component: Component.Text => Html[A](component).pure[F]
+      }
 
-    def html[A](widget: Widget[A]): Html[A] = ???
-//      widget.tail match {
-//        case Component.Fragment(children) =>
-//          Html(Component.Fragment(children.map((_, child) => html[A](child))))
-//        case Component.Element(name, attributes, children) =>
-//          val component = Component.Element(
-//            name,
-//            attributes,
-//            children.map((_, child) => html[A](child))
-//          )
-//
-//          Html(component)
-//        case component: Component.Text => Html(component)
-//      }
+    def html[A](widget: Widget[A]): Html[A] =
+      widget.tail match {
+        case component: Component.Fragment[Widget[A], A] =>
+          Html(
+            Component
+              .Fragment(component.children.map((_, child) => html[A](child)))
+          )
+        case component: Component.Element[Widget[A], A] =>
+          val children = component.children.map((_, child) => html[A](child))
+          Html(component.copy(children = children))
+        case component: Component.Text => Html(component)
+      }
   }
 
   implicit final class WidgetSyntax[A](widget: Widget[A])
