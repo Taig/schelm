@@ -18,25 +18,25 @@ package object schelm {
         (component, _) => Html(component)
       )
 
-  type Node[+A, B] = Cofree[Component[+?, A], Option[B]]
+  type Reference[+A, B] = Cofree[Component[+?, A], Option[B]]
 
   object Node {
     def apply[A, B](
-        component: Component[Node[A, B], A],
+        component: Component[Reference[A, B], A],
         node: Option[B]
-    ): Node[A, B] =
+    ): Reference[A, B] =
       Cofree[Component[+?, A], Option[B]](node, component)
   }
 
-  implicit final class NodeSyntax[A, B](node: Node[A, B])
-      extends ComponentOps[Node[?, B], A](
+  implicit final class ReferenceSyntax[A, B](node: Reference[A, B])
+      extends ComponentOps[Reference[?, B], A](
         node,
         _.tail,
         (component, node) => Node(component, node.head)
       ) {
     def root: List[B] = (node.head, node.tail) match {
       case (Some(node), _) => List(node)
-      case (None, component: Component.Fragment[Node[A, B], A]) =>
+      case (None, component: Component.Fragment[Reference[A, B], A]) =>
         component.children.values.flatMap(_.root)
       case (None, _) => List.empty
     }

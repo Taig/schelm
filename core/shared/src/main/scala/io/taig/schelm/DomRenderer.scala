@@ -6,7 +6,7 @@ import cats.implicits._
 final class DomRenderer[F[_], Event, B](dom: Dom[F, Event, B])(
     implicit F: Monad[F]
 ) extends Renderer[F, Event, B] {
-  override def render(html: Html[Event], path: Path): F[Node[Event, B]] =
+  override def render(html: Html[Event], path: Path): F[Reference[Event, B]] =
     html.value match {
       case component: Component.Element[Html[Event], Event] =>
         for {

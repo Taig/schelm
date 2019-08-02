@@ -8,7 +8,7 @@ final class DomPatcher[F[_]: Sync, A, B](
     renderer: Renderer[F, A, B],
     dom: Dom[F, A, B]
 ) extends Patcher[F, A, B] {
-  override def patch(node: Node[A, B], diff: Diff[A]): F[Node[A, B]] =
+  override def patch(node: Reference[A, B], diff: Diff[A]): F[Reference[A, B]] =
     (node, diff) match {
       case (node, diff: Diff.AddChild[A]) =>
         for {
@@ -48,7 +48,7 @@ final class DomPatcher[F[_]: Sync, A, B](
         EffectHelpers.fail[F](message)
     }
 
-  def extract(node: Node[A, B]): F[B] =
+  def extract(node: Reference[A, B]): F[B] =
     EffectHelpers.get[F](node.head, "No node available. Dom out of sync?")
 }
 

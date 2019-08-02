@@ -40,7 +40,7 @@ final class HtmlSchelm[F[_], Event, B](
       patcher: Patcher[F, Event, B]
   )(
       initial: Html[Event],
-      node: Node[Event, B],
+      node: Reference[Event, B],
       htmls: Stream[F, Html[Event]]
   ): F[Unit] =
     htmls
