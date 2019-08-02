@@ -13,29 +13,45 @@ package object css extends NormalizeCss {
     ): Widget[A] =
       Cofree[Component[+?, A], Styles](styles, component)
 
-    def render[F[_]: Monad, A](
-        widget: Widget[A],
-        registry: CssRegistry[F]
-    ): F[Html[A]] =
+    def render[A](
+        widget: Widget[A]
+    ): (Html[A], Stylesheet) = {
       widget.tail match {
-        case component: Component.Fragment[Widget[A], A] =>
-          component.children
-            .traverse((_, widget) => render(widget, registry))
-            .map(children => Html(Component.Fragment(children)))
         case component: Component.Element[Widget[A], A] =>
-          for {
-            identifiers <- registry.register(widget.head)
-            children <- component.children.traverse { (_, widget) =>
-              render(widget, registry)
-            }
-          } yield {
-            val update =
-              if (identifiers.isEmpty) component.attributes
-              else component.attributes.merge(cls(identifiers.map(_.cls)))
-            Html(Component.Element(component.name, update, children))
-          }
-        case component: Component.Text => Html[A](component).pure[F]
+          val styles = widget.head.map { style =>
+            val identifier = Identifier(style.hashCode)
+            val selectors = Selectors.of(identifier.selector)
+            identifier -> style.toStylesheet(selectors)
+          }.toMap
+
+          val identifiers = styles.keys.toList
+          val stylesheet = styles.values.toList.combineAll
+
+          val attributes =
+            if (identifiers.isEmpty) component.attributes
+            else component.attributes.merge(cls(identifiers.map(_.cls)))
+
+          val children = component.children.map((_, child) => render(child))
+
+          val x = children.map { case (_, (html, _))     => html }
+          val y = children.values.map { case (_, styles) => styles }
+
+          val a = Html(component.copy(attributes = attributes, children = x))
+          val b = stylesheet ++ y.combineAll
+
+          (a, b)
+        case component: Component.Fragment[Widget[A], A] =>
+          val x = component.children.map((_, widget) => render(widget))
+          val y = x.map { case (_, (html, _))     => html }
+          val z = x.values.map { case (_, styles) => styles }
+
+          val a = Html(component.copy(children = y))
+          val b = z.combineAll
+
+          (a, b)
+        case component: Component.Text => (Html(component), Stylesheet.Empty)
       }
+    }
 
     def html[A](widget: Widget[A]): Html[A] =
       widget.tail match {
@@ -59,9 +75,10 @@ package object css extends NormalizeCss {
       ) {
     def setStyles(styles: Styles): Widget[A] = Widget(widget.tail, styles)
 
-    def render[F[_]: Monad](registry: CssRegistry[F]): F[Html[A]] =
-      Widget.render(widget, registry)
+    @inline
+    def render: (Html[A], Stylesheet) = Widget.render(widget)
 
+    @inline
     def html: Html[A] = Widget.html(widget)
   }
 

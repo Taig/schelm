@@ -13,15 +13,15 @@ final class HtmlSchelm[F[_], Event, B](
   override def start[State, Command](
       container: dom.Element,
       initial: State,
-      render: State => F[Html[Event]],
+      render: State => Html[Event],
       events: EventHandler[State, Event, Command],
       commands: CommandHandler[F, Command, Event],
       subscriptions: Stream[F, Event]
   ): F[Unit] = {
     val renderer = DomRenderer(dom)
+    val html = render(initial)
 
     for {
-      html <- render(initial)
       node <- renderer.render(html)
       _ <- dom.appendChildren(container, node.root)
       htmls = (manager.subscription merge subscriptions)
@@ -30,7 +30,7 @@ final class HtmlSchelm[F[_], Event, B](
           result.state.getOrElse(state).pure[F] <*
             execute(result.commands, commands, manager)
         }
-        .evalMap(render)
+        .map(render)
       patcher = DomPatcher(renderer, dom)
       _ <- patch(patcher)(html, node, htmls)
     } yield ()

@@ -11,7 +11,7 @@ abstract class Schelm[F[_], Event, Node] {
   final def start[State, Command](
       id: String,
       initial: State,
-      render: State => F[Html[Event]],
+      render: State => Html[Event],
       events: EventHandler[State, Event, Command],
       commands: CommandHandler[F, Command, Event],
       subscriptions: Stream[F, Event] = Stream.empty
@@ -24,7 +24,7 @@ abstract class Schelm[F[_], Event, Node] {
   def start[State, Command](
       container: dom.Element,
       initial: State,
-      render: State => F[Html[Event]],
+      render: State => Html[Event],
       events: EventHandler[State, Event, Command],
       commands: CommandHandler[F, Command, Event],
       subscriptions: Stream[F, Event]

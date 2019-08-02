@@ -7,31 +7,31 @@ import fs2.Stream
 import io.taig.schelm._
 import io.taig.schelm.internal.EffectHelpers
 
-abstract class CssSchelm[F[_], Event, Node] {
-  val dom: Dom[F, Event, Node]
-
-  final def start[State, Command](
-      id: String,
-      initial: State,
-      render: State => Widget[Event],
-      events: EventHandler[State, Event, Command],
-      commands: CommandHandler[F, Command, Event],
-      subscriptions: Stream[F, Event] = Stream.empty
-  )(implicit F: MonadError[F, Throwable]): F[Unit] =
-    dom
-      .getElementById(id)
-      .flatMap(EffectHelpers.get[F](_, s"No element with id $id found"))
-      .flatMap(start(_, initial, render, events, commands, subscriptions))
-
-  def start[State, Command](
-      container: dom.Element,
-      initial: State,
-      render: State => Widget[Event],
-      events: EventHandler[State, Event, Command],
-      commands: CommandHandler[F, Command, Event],
-      subscriptions: Stream[F, Event]
-  ): F[Unit]
-}
+//cabstract class CssSchelm[F[_], Event, Node] {
+//  val dom: Dom[F, Event, Node]
+//
+//  final def start[State, Command](
+//      id: String,
+//      initial: State,
+//      render: State => Widget[Event],
+//      events: EventHandler[State, Event, Command],
+//      commands: CommandHandler[F, Command, Event],
+//      subscriptions: Stream[F, Event] = Stream.empty
+//  )(implicit F: MonadError[F, Throwable]): F[Unit] =
+//    dom
+//      .getElementById(id)
+//      .flatMap(EffectHelpers.get[F](_, s"No element with id $id found"))
+//      .flatMap(start(_, initial, render, events, commands, subscriptions))
+//
+//  def start[State, Command](
+//      container: dom.Element,
+//      initial: State,
+//      render: State => Widget[Event],
+//      events: EventHandler[State, Event, Command],
+//      commands: CommandHandler[F, Command, Event],
+//      subscriptions: Stream[F, Event]
+//  ): F[Unit]
+//}
 
 //object CssSchelm {
 //  val Id = "schelm-css"
