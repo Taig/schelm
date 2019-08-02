@@ -1,21 +1,24 @@
 package io.taig.schelm.css
 
-import cats.Functor
-import cats.implicits._
+import cats.Monad
 import cats.effect.Sync
+import cats.implicits._
 import io.taig.schelm._
+import io.taig.schelm.css.internal.StyleHelpers
 
-final class StyledReferencePatcher[F[_]: Functor, Event, Node](
+final class StyledReferencePatcher[F[_]: Monad, Event, Node](
+    dom: Dom[F, Event, Node],
     patcher: Patcher[F, Reference[Event, Node], Diff[Event]]
 ) extends Patcher[F, StyledReference[Event, Node], StyledDiff[Event]] {
   override def patch(
-      node: StyledReference[Event, Node],
+      reference: StyledReference[Event, Node],
       diff: StyledDiff[Event]
   ): F[StyledReference[Event, Node]] =
-    // TODO Patch stylesheeet
-    patcher.patch(node.reference, diff.diff).map { ref =>
-      StyledReference(ref, node.stylesheet)
-    }
+    for {
+      style <- StyleHelpers.getOrCreateStyleElement(dom)
+      _ <- dom.innerHtml(style, s"\n${diff.stylesheet}\n")
+      ref <- patcher.patch(reference.reference, diff.diff)
+    } yield StyledReference(ref, reference.stylesheet)
 }
 
 object StyledReferencePatcher {
@@ -24,6 +27,7 @@ object StyledReferencePatcher {
       dom: Dom[F, Event, Node]
   ): Patcher[F, StyledReference[Event, Node], StyledDiff[Event]] =
     new StyledReferencePatcher[F, Event, Node](
+      dom,
       ReferencePatcher[F, Event, Node](renderer, dom)
     )
 }

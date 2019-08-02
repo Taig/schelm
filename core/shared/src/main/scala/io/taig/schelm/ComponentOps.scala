@@ -19,6 +19,7 @@ abstract class ComponentOps[F[_], A](
     extract(component) match {
       case element: Component.Element[F[A], A] => element.children
       case fragment: Component.Fragment[F[A]]  => fragment.children
+      case lzy: Component.Lazy[F[A], A]        => ???
       case _: Component.Text                   => Children.empty
     }
 
@@ -31,12 +32,14 @@ abstract class ComponentOps[F[_], A](
         inject(element.copy(children = f(element.children)), component)
       case fragment: Component.Fragment[F[A]] =>
         inject(fragment.copy(children = f(fragment.children)), component)
-      case _ => component
+      case lzy: Component.Lazy[F[A], A] => ???
+      case _: Component.Text            => component
     }
 
   final def setText(value: String): F[A] =
     extract(component) match {
-      case text: Component.Text => inject(text.copy(value = value), component)
-      case _                    => component
+      case text: Component.Text         => inject(text.copy(value = value), component)
+      case lzy: Component.Lazy[F[A], A] => ???
+      case _                            => component
     }
 }
