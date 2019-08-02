@@ -9,17 +9,17 @@ import org.scalajs.dom.raw.HTMLInputElement
 
 import scala.scalajs.js
 
-final class BrowserDom[F[_], A](
+final class BrowserDom[F[_], Event](
     registry: ListenerRegistry[F],
-    manager: EventManager[F, A]
+    manager: EventManager[F, Event]
 )(
     implicit F: Sync[F]
-) extends Dom[F, A, dom.Node] {
+) extends Dom[F, Event, dom.Node] {
   override type Element = dom.Element
   override type Text = dom.Text
   override type Notify = js.Function1[dom.Event, _]
 
-  override def lift(listener: Listener[A]): js.Function1[dom.Event, _] =
+  override def lift(listener: Listener[Event]): js.Function1[dom.Event, _] =
     listener match {
       case Listener.Pure(event) =>
         e =>
@@ -97,8 +97,8 @@ final class BrowserDom[F[_], A](
 }
 
 object BrowserDom {
-  def apply[F[_]: Sync, A](
-      manager: EventManager[F, A]
-  ): F[Dom[F, A, dom.Node]] =
-    ListenerRegistry[F].map(new BrowserDom[F, A](_, manager))
+  def apply[F[_]: Sync, Event](
+      manager: EventManager[F, Event]
+  ): F[Dom[F, Event, dom.Node]] =
+    ListenerRegistry[F].map(new BrowserDom[F, Event](_, manager))
 }

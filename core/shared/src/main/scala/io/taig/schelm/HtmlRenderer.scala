@@ -3,9 +3,9 @@ package io.taig.schelm
 import cats.Monad
 import cats.implicits._
 
-final class DomRenderer[F[_], Event, Node](dom: Dom[F, Event, Node])(
+final class HtmlRenderer[F[_], Event, Node](dom: Dom[F, Event, Node])(
     implicit F: Monad[F]
-) extends Renderer[F, Event, Node] {
+) extends Renderer[F, Html[Event], Reference[Event, Node]] {
   override def render(
       html: Html[Event],
       path: Path
@@ -60,7 +60,9 @@ final class DomRenderer[F[_], Event, Node](dom: Dom[F, Event, Node])(
   def segment(key: Key): String = s"[$key]"
 }
 
-object DomRenderer {
-  def apply[F[_]: Monad, A, B](dom: Dom[F, A, B]): Renderer[F, A, B] =
-    new DomRenderer[F, A, B](dom)
+object HtmlRenderer {
+  def apply[F[_]: Monad, Event, Node](
+      dom: Dom[F, Event, Node]
+  ): Renderer[F, Html[Event], Reference[Event, Node]] =
+    new HtmlRenderer[F, Event, Node](dom)
 }

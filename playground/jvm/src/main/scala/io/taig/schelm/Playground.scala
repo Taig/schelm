@@ -8,7 +8,7 @@ object Playground extends IOApp {
     ServerDom[IO, Event].flatMap { dom =>
       val widget = App.widget(State())
       val html = widget.html
-      val renderer = DomRenderer(dom)
+      val renderer = HtmlRenderer(dom)
       renderer.render(html).flatMap(node => IO(println(node.head))) *>
         IO(ExitCode.Success)
     }

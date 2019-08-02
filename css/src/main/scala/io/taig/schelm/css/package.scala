@@ -3,7 +3,7 @@ package io.taig.schelm
 import cats.implicits._
 
 package object css extends NormalizeCss {
-  type Widget[+A] = Cofree[Component[+?, A], Styles]
+  type Widget[+Event] = Cofree[Component[+?, Event], Styles]
 
   object Widget {
     def apply[A](
