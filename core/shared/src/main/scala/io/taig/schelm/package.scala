@@ -34,11 +34,11 @@ package object schelm {
         _.tail,
         (component, node) => Node(component, node.head)
       ) {
-    def root: List[B] = node match {
-      case Cofree(Some(node), _) => List(node)
-      case Cofree(None, component: Component.Fragment[Node[A, B], A]) =>
+    def root: List[B] = (node.head, node.tail) match {
+      case (Some(node), _) => List(node)
+      case (None, component: Component.Fragment[Node[A, B], A]) =>
         component.children.values.flatMap(_.root)
-      case Cofree(None, _) => List.empty
+      case (None, _) => List.empty
     }
   }
 
