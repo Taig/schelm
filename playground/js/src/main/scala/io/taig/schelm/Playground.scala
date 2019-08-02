@@ -15,7 +15,9 @@ object Playground extends IOApp {
       container <- xxx.getElementById("main").map(_.get)
       schelm = Schelm(
         WidgetRenderer[IO, Event, dom.Node](xxx),
-        StyledReferenceAttacher[IO, Event, dom.Node](xxx)
+        StyledReferenceAttacher[IO, Event, dom.Node](xxx),
+        StyledHtmlDiffer[Event],
+        ???
       )
       _ <- schelm.start[State, Command](
         container,

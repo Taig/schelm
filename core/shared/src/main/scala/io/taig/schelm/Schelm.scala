@@ -4,9 +4,11 @@ import cats._
 import cats.implicits._
 import fs2.Stream
 
-final class Schelm[F[_]: Monad, Event, Node, A, B](
+final class Schelm[F[_]: Monad, Event, Node, A, B, C](
     renderer: Renderer[F, A, B],
-    attacher: Attacher[F, Node, B]
+    attacher: Attacher[F, Node, B],
+    differ: Differ[A, C],
+    patcher: Patcher[F, B, C]
 ) {
 //  final def start[State, Command](
 //      id: String,
@@ -37,9 +39,11 @@ final class Schelm[F[_]: Monad, Event, Node, A, B](
 }
 
 object Schelm {
-  def apply[F[_]: Monad, Event, Node, A, B](
+  def apply[F[_]: Monad, Event, Node, A, B, C](
       renderer: Renderer[F, A, B],
-      attacher: Attacher[F, Node, B]
-  ): Schelm[F, Event, Node, A, B] =
-    new Schelm[F, Event, Node, A, B](renderer, attacher)
+      attacher: Attacher[F, Node, B],
+      differ: Differ[A, C],
+      patcher: Patcher[F, B, C]
+  ): Schelm[F, Event, Node, A, B, C] =
+    new Schelm[F, Event, Node, A, B, C](renderer, attacher, differ, patcher)
 }
