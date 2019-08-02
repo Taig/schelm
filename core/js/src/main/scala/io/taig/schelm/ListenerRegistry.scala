@@ -33,19 +33,19 @@ final class ListenerRegistry[F[_]](
       }
   }
 
-  def unregister(name: String, path: Path): F[Unit] = {
+  def unregister(name: String, path: Path): F[js.Function1[dom.Event, _]] = {
     val key = (name, path)
 
     registry
       .modify { registry =>
         registry.get(key) match {
-          case Some(_) => (registry - key, true)
-          case None    => (registry, false)
+          case Some(listener) => (registry - key, listener.some)
+          case None           => (registry, None)
         }
       }
       .flatMap {
-        case true => F.unit
-        case false =>
+        case Some(listener) => listener.pure[F]
+        case None =>
           val message = s"No Listener registered for $name: $path"
           F.raiseError(new RuntimeException(message))
       }

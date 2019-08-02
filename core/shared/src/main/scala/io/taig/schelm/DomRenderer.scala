@@ -50,11 +50,8 @@ final class DomRenderer[F[_], A, B](dom: Dom[F, A, B])(implicit F: Monad[F])
       path: Path,
       key: String,
       listener: Listener[A]
-  ): F[Unit] = {
-    // TODO ListenerRegister
-    val trigger = dom.lift(listener)
-    dom.addEventListener(element, key, trigger)
-  }
+  ): F[Unit] =
+    dom.addEventListener(element, key, path, dom.lift(listener))
 
   def segment(key: Key): String = s"[$key]"
 }

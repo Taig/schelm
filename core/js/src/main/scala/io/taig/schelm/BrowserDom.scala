@@ -9,12 +9,11 @@ import org.scalajs.dom.raw.HTMLInputElement
 
 import scala.scalajs.js
 
-final class BrowserDom[F[_], A](send: A => Unit)(implicit F: Sync[F])
-    extends Dom[F, A, dom.Node] {
+final class BrowserDom[F[_], A](registry: ListenerRegistry[F], send: A => Unit)(
+    implicit F: Sync[F]
+) extends Dom[F, A, dom.Node] {
   override type Element = dom.Element
-
   override type Text = dom.Text
-
   override type Notify = js.Function1[dom.Event, _]
 
   override def lift(listener: Listener[A]): js.Function1[dom.Event, _] =
@@ -44,9 +43,12 @@ final class BrowserDom[F[_], A](send: A => Unit)(implicit F: Sync[F])
   override def addEventListener(
       node: dom.Node,
       name: String,
+      path: Path,
       listener: Notify
-  ): F[Unit] =
-    F.delay(node.addEventListener(name, listener))
+  ): F[Unit] = {
+    registry.register(name, path, listener) *>
+      F.delay(node.addEventListener(name, listener))
+  }
 
   override def appendChild(parent: dom.Element, child: dom.Node): F[Unit] =
     F.delay(parent.appendChild(child)).void
@@ -74,6 +76,15 @@ final class BrowserDom[F[_], A](send: A => Unit)(implicit F: Sync[F])
   override def removeAttribute(element: Element, key: String): F[Unit] =
     F.delay(element.removeAttribute(key))
 
+  override def removeEventListener(
+      node: dom.Node,
+      name: String,
+      path: Path
+  ): F[Unit] =
+    registry.unregister(name, path).flatMap { register =>
+      F.delay(node.removeEventListener(name, register))
+    }
+
   override def setAttribute(
       element: Element,
       key: String,
@@ -83,6 +94,6 @@ final class BrowserDom[F[_], A](send: A => Unit)(implicit F: Sync[F])
 }
 
 object BrowserDom {
-  def apply[F[_]: Sync, A](send: A => Unit): Dom[F, A, dom.Node] =
-    new BrowserDom[F, A](send)
+  def apply[F[_]: Sync, A](send: A => Unit): F[Dom[F, A, dom.Node]] =
+    ListenerRegistry[F].map(new BrowserDom[F, A](_, send))
 }

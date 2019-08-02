@@ -16,7 +16,12 @@ abstract class Dom[F[_], A, Node] {
 
   def text(value: Node): F[Text]
 
-  def addEventListener(node: Node, name: String, notify: Notify): F[Unit]
+  def addEventListener(
+      node: Node,
+      name: String,
+      path: Path,
+      notify: Notify
+  ): F[Unit]
 
   def appendChild(parent: Element, child: Node): F[Unit]
 
@@ -48,6 +53,8 @@ abstract class Dom[F[_], A, Node] {
       implicit F: Applicative[F]
   ): F[Unit] =
     children.traverse_(removeChild(parent, _))
+
+  def removeEventListener(node: Node, name: String, path: Path): F[Unit]
 
   def setAttribute(element: Element, key: String, value: String): F[Unit]
 }

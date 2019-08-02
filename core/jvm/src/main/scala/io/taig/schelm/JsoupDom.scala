@@ -32,6 +32,7 @@ final class JsoupDom[F[_], A](document: JDocument)(implicit F: Sync[F])
   override def addEventListener(
       node: JNode,
       name: String,
+      path: Path,
       notify: Unit
   ): F[Unit] = F.unit
 
@@ -60,6 +61,12 @@ final class JsoupDom[F[_], A](document: JDocument)(implicit F: Sync[F])
 
   override def removeAttribute(element: JElement, key: String): F[Unit] =
     F.delay(element.removeAttr(key)).void
+
+  override def removeEventListener(
+      node: JNode,
+      name: String,
+      path: Path
+  ): F[Unit] = F.unit
 
   override def setAttribute(
       element: JElement,

@@ -12,7 +12,7 @@ object Playground extends IOApp {
       send = { action: Event =>
         queue.enqueue1(action).runAsync(_ => IO.unit).unsafeRunSync()
       }
-      dom = BrowserDom[IO, Event](send)
+      dom <- BrowserDom[IO, Event](send)
       render <- Css.enable(globals, dom, App.widget)
       _ <- Schelm.start("main", dom, queue)(
         State(),
