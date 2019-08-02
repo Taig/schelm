@@ -10,7 +10,7 @@ import org.jsoup.nodes.{
   Document => JDocument
 }
 
-final class JsoupDom[F[_], A](document: JDocument)(implicit F: Sync[F])
+final class ServerDom[F[_], A](document: JDocument)(implicit F: Sync[F])
     extends Dom[F, A, JNode] {
   override type Element = JElement
   override type Text = JText
@@ -76,10 +76,10 @@ final class JsoupDom[F[_], A](document: JDocument)(implicit F: Sync[F])
     F.delay(element.attr(key, value)).void
 }
 
-object JsoupDom {
+object ServerDom {
   def apply[F[_]: Sync, A](document: JDocument): Dom[F, A, JNode] =
-    new JsoupDom[F, A](document)
+    new ServerDom[F, A](document)
 
   def apply[F[_], A](implicit F: Sync[F]): F[Dom[F, A, JNode]] =
-    F.delay(new JDocument("/")).map(JsoupDom[F, A])
+    F.delay(new JDocument("/")).map(ServerDom[F, A])
 }

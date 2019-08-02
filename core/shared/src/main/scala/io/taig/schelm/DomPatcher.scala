@@ -37,7 +37,7 @@ final class DomPatcher[F[_]: Sync, A, B](
         } *> node.updateAttributes(_.updated(key, value)).pure[F]
       case (node, Diff.UpdateChild(key, diff)) =>
         EffectHelpers
-          .get[F, Node[A, B]](
+          .get[F](
             node.children.get(key),
             s"No child at key $key. Dom out of sync?"
           )
@@ -49,7 +49,7 @@ final class DomPatcher[F[_]: Sync, A, B](
     }
 
   def extract(node: Node[A, B]): F[B] =
-    EffectHelpers.get[F, B](node.head, "No node available. Dom out of sync?")
+    EffectHelpers.get[F](node.head, "No node available. Dom out of sync?")
 }
 
 object DomPatcher {

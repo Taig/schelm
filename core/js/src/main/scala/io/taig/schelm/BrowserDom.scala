@@ -9,7 +9,10 @@ import org.scalajs.dom.raw.HTMLInputElement
 
 import scala.scalajs.js
 
-final class BrowserDom[F[_], A](registry: ListenerRegistry[F], send: A => Unit)(
+final class BrowserDom[F[_], A](
+    registry: ListenerRegistry[F],
+    manager: EventManager[F, A]
+)(
     implicit F: Sync[F]
 ) extends Dom[F, A, dom.Node] {
   override type Element = dom.Element
@@ -21,11 +24,11 @@ final class BrowserDom[F[_], A](registry: ListenerRegistry[F], send: A => Unit)(
       case Listener.Pure(event) =>
         e =>
           e.preventDefault()
-          send(event)
+          manager.submitUnsafe(event)
       case Listener.Input(event) =>
         e =>
           val value = e.target.asInstanceOf[HTMLInputElement].value
-          send(event(value))
+          manager.submitUnsafe(event(value))
     }
 
   override def element(value: dom.Node): F[Element] =
@@ -94,6 +97,8 @@ final class BrowserDom[F[_], A](registry: ListenerRegistry[F], send: A => Unit)(
 }
 
 object BrowserDom {
-  def apply[F[_]: Sync, A](send: A => Unit): F[Dom[F, A, dom.Node]] =
-    ListenerRegistry[F].map(new BrowserDom[F, A](_, send))
+  def apply[F[_]: Sync, A](
+      manager: EventManager[F, A]
+  ): F[Dom[F, A, dom.Node]] =
+    ListenerRegistry[F].map(new BrowserDom[F, A](_, manager))
 }

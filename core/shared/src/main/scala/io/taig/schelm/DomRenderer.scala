@@ -3,11 +3,12 @@ package io.taig.schelm
 import cats.Monad
 import cats.implicits._
 
-final class DomRenderer[F[_], A, B](dom: Dom[F, A, B])(implicit F: Monad[F])
-    extends Renderer[F, A, B] {
-  override def render(html: Html[A], path: Path): F[Node[A, B]] =
+final class DomRenderer[F[_], Event, B](dom: Dom[F, Event, B])(
+    implicit F: Monad[F]
+) extends Renderer[F, Event, B] {
+  override def render(html: Html[Event], path: Path): F[Node[Event, B]] =
     html.value match {
-      case component: Component.Element[Html[A], A] =>
+      case component: Component.Element[Html[Event], Event] =>
         for {
           element <- dom.createElement(component.name)
           _ <- component.attributes.traverse_(register(element, path, _))
@@ -16,7 +17,7 @@ final class DomRenderer[F[_], A, B](dom: Dom[F, A, B])(implicit F: Monad[F])
           }
           _ <- dom.appendChildren(element, children.values.flatMap(_.root))
         } yield Node(component.copy(children = children), element.some)
-      case component: Component.Fragment[Html[A], A] =>
+      case component: Component.Fragment[Html[Event], Event] =>
         component.children
           .traverse((key, html) => render(html, path / segment(key)))
           .map(children => Node(Component.Fragment(children), None))
@@ -29,10 +30,10 @@ final class DomRenderer[F[_], A, B](dom: Dom[F, A, B])(implicit F: Monad[F])
   def register(
       element: dom.Element,
       path: Path,
-      attribute: Attribute[A]
+      attribute: Attribute[Event]
   ): F[Unit] = attribute match {
     case Attribute(key, value: Value) => register(element, key, value)
-    case Attribute(key, listener: Listener[A]) =>
+    case Attribute(key, listener: Listener[Event]) =>
       register(element, path, key, listener)
   }
 
@@ -49,7 +50,7 @@ final class DomRenderer[F[_], A, B](dom: Dom[F, A, B])(implicit F: Monad[F])
       element: dom.Element,
       path: Path,
       key: String,
-      listener: Listener[A]
+      listener: Listener[Event]
   ): F[Unit] =
     dom.addEventListener(element, key, path, dom.lift(listener))
 

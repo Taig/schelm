@@ -1,11 +1,10 @@
 package io.taig.schelm
 
-import cats.Eq
 import cats.data.Ior
 import cats.implicits._
 
 object Differ {
-  def diff[A: Eq](previous: Html[A], next: Html[A]): Option[Diff[A]] =
+  def diff[A](previous: Html[A], next: Html[A]): Option[Diff[A]] =
     (previous.value, next.value) match {
       case (previous: Component.Text, next: Component.Text) =>
         text(previous.value, next.value)
@@ -22,7 +21,7 @@ object Differ {
       case (_, next) => Diff.Replace(Html(next)).some
     }
 
-  def node[A: Eq](
+  def node[A](
       previous: Component.Element[Html[A], A],
       next: Component.Element[Html[A], A]
   ): Option[Diff[A]] =
@@ -36,7 +35,7 @@ object Differ {
       Diff.from(diffs)
     }
 
-  def attributes[A: Eq](
+  def attributes[A](
       previous: Attributes[A],
       next: Attributes[A]
   ): Option[Diff[A]] =
@@ -46,13 +45,13 @@ object Differ {
       Diff.from(previous.map(attribute => Diff.RemoveAttribute(attribute.key)))
     else compareAttributes(previous, next)
 
-  def compareAttributes[A: Eq](
+  def compareAttributes[A](
       previous: Attributes[A],
       next: Attributes[A]
   ): Option[Diff[A]] = {
     val diffs = (previous zipAll next).mapFilter {
       case (key, Ior.Both(previous, next)) =>
-        if (previous === next) None
+        if (previous == next) None
         else Diff.UpdateAttribute(Attribute(key, next)).some
       case (key, Ior.Left(_)) => Diff.RemoveAttribute(key).some
       case (key, Ior.Right(next)) =>
@@ -62,7 +61,7 @@ object Differ {
     Diff.from(diffs)
   }
 
-  def children[A: Eq](
+  def children[A](
       previous: Children[Html[A]],
       next: Children[Html[A]]
   ): Option[Diff[A]] =
@@ -73,7 +72,7 @@ object Differ {
       Diff.from(previous.keys.map(Diff.RemoveChild))
     else compareChildren(previous, next)
 
-  def compareChildren[A: Eq](
+  def compareChildren[A](
       previous: Children[Html[A]],
       next: Children[Html[A]]
   ): Option[Diff[A]] = {
@@ -88,5 +87,5 @@ object Differ {
   }
 
   def text[A](previous: String, next: String): Option[Diff[A]] =
-    if (previous =!= next) Diff.UpdateText(next).some else None
+    if (previous != next) Diff.UpdateText(next).some else None
 }
