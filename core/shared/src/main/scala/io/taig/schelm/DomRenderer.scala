@@ -3,10 +3,13 @@ package io.taig.schelm
 import cats.Monad
 import cats.implicits._
 
-final class DomRenderer[F[_], Event, B](dom: Dom[F, Event, B])(
+final class DomRenderer[F[_], Event, Node](dom: Dom[F, Event, Node])(
     implicit F: Monad[F]
-) extends Renderer[F, Event, B] {
-  override def render(html: Html[Event], path: Path): F[Reference[Event, B]] =
+) extends Renderer[F, Event, Node] {
+  override def render(
+      html: Html[Event],
+      path: Path
+  ): F[Reference[Event, Node]] =
     html.value match {
       case component: Component.Element[Html[Event], Event] =>
         for {
@@ -16,15 +19,15 @@ final class DomRenderer[F[_], Event, B](dom: Dom[F, Event, B])(
             render(html, path / segment(key))
           }
           _ <- dom.appendChildren(element, children.values.flatMap(_.root))
-        } yield Node(component.copy(children = children), element.some)
-      case component: Component.Fragment[Html[Event], Event] =>
+        } yield Reference(component.copy(children = children), element.some)
+      case component: Component.Fragment[Html[Event]] =>
         component.children
           .traverse((key, html) => render(html, path / segment(key)))
-          .map(children => Node(Component.Fragment(children), None))
+          .map(children => Reference(Component.Fragment(children), None))
       case component: Component.Text =>
         dom
           .createTextNode(component.value)
-          .map(node => Node(component, node.some))
+          .map(node => Reference(component, node.some))
     }
 
   def register(

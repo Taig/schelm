@@ -1,6 +1,5 @@
 package io.taig.schelm
 
-import cats._
 import cats.implicits._
 
 package object css extends NormalizeCss {
@@ -40,7 +39,7 @@ package object css extends NormalizeCss {
           val b = stylesheet ++ y.combineAll
 
           (a, b)
-        case component: Component.Fragment[Widget[A], A] =>
+        case component: Component.Fragment[Widget[A]] =>
           val x = component.children.map((_, widget) => render(widget))
           val y = x.map { case (_, (html, _))     => html }
           val z = x.values.map { case (_, styles) => styles }
@@ -55,7 +54,7 @@ package object css extends NormalizeCss {
 
     def html[A](widget: Widget[A]): Html[A] =
       widget.tail match {
-        case component: Component.Fragment[Widget[A], A] =>
+        case component: Component.Fragment[Widget[A]] =>
           Html(
             Component
               .Fragment(component.children.map((_, child) => html[A](child)))

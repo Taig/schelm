@@ -5,11 +5,11 @@ import cats.effect.implicits._
 import cats.implicits._
 import fs2.Stream
 
-final class HtmlSchelm[F[_], Event, B](
-    val dom: Dom[F, Event, B],
+final class HtmlSchelm[F[_], Event, Node](
+    val dom: Dom[F, Event, Node],
     manager: EventManager[F, Event]
 )(implicit F: Concurrent[F])
-    extends Schelm[F, Event, B] {
+    extends Schelm[F, Event, Node] {
   override def start[State, Command](
       container: dom.Element,
       initial: State,
@@ -37,10 +37,10 @@ final class HtmlSchelm[F[_], Event, B](
   }
 
   def patch[State, Command](
-      patcher: Patcher[F, Event, B]
+      patcher: Patcher[F, Event, Node]
   )(
       initial: Html[Event],
-      node: Reference[Event, B],
+      node: Reference[Event, Node],
       htmls: Stream[F, Html[Event]]
   ): F[Unit] =
     htmls

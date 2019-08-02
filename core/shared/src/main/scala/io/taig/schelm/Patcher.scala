@@ -1,5 +1,8 @@
 package io.taig.schelm
 
-abstract class Patcher[F[_], A, B] {
-  def patch(node: Reference[A, B], diff: Diff[A]): F[Reference[A, B]]
+abstract class Patcher[F[_], Event, Node] {
+  def patch(
+      node: Reference[Event, Node],
+      diff: Diff[Event]
+  ): F[Reference[Event, Node]]
 }

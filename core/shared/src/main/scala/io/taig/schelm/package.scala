@@ -4,7 +4,7 @@ package object schelm {
   final case class Fix[+F[+_]](value: F[Fix[F]])
   final case class Cofree[+F[+_], +A](head: A, tail: F[Cofree[F, A]])
 
-  type Html[+A] = Fix[Component[+?, A]]
+  type Html[+Event] = Fix[Component[+?, Event]]
 
   object Html {
     def apply[A](component: Component[Html[A], A]): Html[A] =
@@ -18,9 +18,9 @@ package object schelm {
         (component, _) => Html(component)
       )
 
-  type Reference[+A, B] = Cofree[Component[+?, A], Option[B]]
+  type Reference[+Event, Node] = Cofree[Component[+?, Event], Option[Node]]
 
-  object Node {
+  object Reference {
     def apply[A, B](
         component: Component[Reference[A, B], A],
         node: Option[B]
@@ -28,15 +28,15 @@ package object schelm {
       Cofree[Component[+?, A], Option[B]](node, component)
   }
 
-  implicit final class ReferenceSyntax[A, B](node: Reference[A, B])
-      extends ComponentOps[Reference[?, B], A](
-        node,
+  implicit final class ReferenceSyntax[A, Node](reference: Reference[A, Node])
+      extends ComponentOps[Reference[?, Node], A](
+        reference,
         _.tail,
-        (component, node) => Node(component, node.head)
+        (component, node) => Reference(component, node.head)
       ) {
-    def root: List[B] = (node.head, node.tail) match {
+    def root: List[Node] = (reference.head, reference.tail) match {
       case (Some(node), _) => List(node)
-      case (None, component: Component.Fragment[Reference[A, B], A]) =>
+      case (None, component: Component.Fragment[Reference[A, Node]]) =>
         component.children.values.flatMap(_.root)
       case (None, _) => List.empty
     }

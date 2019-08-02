@@ -17,9 +17,9 @@ abstract class ComponentOps[F[_], A](
 
   final def children: Children[F[A]] =
     extract(component) match {
-      case element: Component.Element[F[A], A]   => element.children
-      case fragment: Component.Fragment[F[A], A] => fragment.children
-      case _: Component.Text                     => Children.empty
+      case element: Component.Element[F[A], A] => element.children
+      case fragment: Component.Fragment[F[A]]  => fragment.children
+      case _: Component.Text                   => Children.empty
     }
 
   final def setChildren(children: Children[F[A]]): F[A] =
@@ -29,7 +29,7 @@ abstract class ComponentOps[F[_], A](
     extract(component) match {
       case element: Component.Element[F[A], A] =>
         inject(element.copy(children = f(element.children)), component)
-      case fragment: Component.Fragment[F[A], A] =>
+      case fragment: Component.Fragment[F[A]] =>
         inject(fragment.copy(children = f(fragment.children)), component)
       case _ => component
     }

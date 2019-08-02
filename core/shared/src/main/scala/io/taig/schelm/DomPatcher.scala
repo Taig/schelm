@@ -4,13 +4,16 @@ import cats.effect.Sync
 import cats.implicits._
 import io.taig.schelm.internal.EffectHelpers
 
-final class DomPatcher[F[_]: Sync, A, B](
-    renderer: Renderer[F, A, B],
-    dom: Dom[F, A, B]
-) extends Patcher[F, A, B] {
-  override def patch(node: Reference[A, B], diff: Diff[A]): F[Reference[A, B]] =
+final class DomPatcher[F[_]: Sync, Event, Node](
+    renderer: Renderer[F, Event, Node],
+    dom: Dom[F, Event, Node]
+) extends Patcher[F, Event, Node] {
+  override def patch(
+      node: Reference[Event, Node],
+      diff: Diff[Event]
+  ): F[Reference[Event, Node]] =
     (node, diff) match {
-      case (node, diff: Diff.AddChild[A]) =>
+      case (node, diff: Diff.AddChild[Event]) =>
         for {
           element <- extract(node).flatMap(dom.element)
           child <- renderer.render(diff.child)
@@ -48,7 +51,7 @@ final class DomPatcher[F[_]: Sync, A, B](
         EffectHelpers.fail[F](message)
     }
 
-  def extract(node: Reference[A, B]): F[B] =
+  def extract(node: Reference[Event, Node]): F[Node] =
     EffectHelpers.get[F](node.head, "No node available. Dom out of sync?")
 }
 

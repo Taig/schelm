@@ -9,8 +9,8 @@ object Differ {
       case (previous: Component.Text, next: Component.Text) =>
         text(previous.value, next.value)
       case (
-          previous: Component.Fragment[Html[A], A],
-          next: Component.Fragment[Html[A], A]
+          previous: Component.Fragment[Html[A]],
+          next: Component.Fragment[Html[A]]
           ) =>
         children(previous.children, next.children)
       case (
