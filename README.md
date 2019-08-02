@@ -35,7 +35,7 @@ Steps to build the documentation locally, but within a docker container.
 
   3. Now inside the container, generate the microsite
      ```
-     sbt docs
+     sbt website/makeMicrosite
      ```
 
   4. Start the Jekyll server
