@@ -9,7 +9,7 @@ final case class Declarations(values: List[Declaration]) extends AnyVal {
   def ++(declarations: Declarations): Declarations =
     Declarations(values ++ declarations.values)
 
-  def rows: List[String] = values.map(_ + ";")
+  def rows: List[String] = values.map(_.toString + ";")
 
   override def toString: String = rows.mkString("\n")
 }

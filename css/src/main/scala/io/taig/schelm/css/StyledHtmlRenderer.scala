@@ -9,9 +9,8 @@ final class StyledHtmlRenderer[F[_]: Functor, Event, Node](
 ) extends Renderer[F, StyledHtml[Event], StyledReference[Event, Node]] {
   override def render(
       value: StyledHtml[Event]
-  ): F[StyledReference[Event, Node]] = {
+  ): F[StyledReference[Event, Node]] =
     renderer.render(value.html).map(StyledReference(_, value.stylesheet))
-  }
 }
 
 object StyledHtmlRenderer {

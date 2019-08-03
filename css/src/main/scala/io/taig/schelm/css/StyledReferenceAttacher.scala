@@ -12,13 +12,12 @@ final class StyledReferenceAttacher[F[_]: Sync, Event, Node](
   override def attach(
       parent: Node,
       child: StyledReference[Event, Node]
-  ): F[Unit] = {
+  ): F[Unit] =
     for {
       style <- StyleHelpers.getOrCreateStyleElement(dom)
       _ <- dom.innerHtml(style, s"\n${child.stylesheet}\n")
       _ <- attacher.attach(parent, child.reference)
     } yield ()
-  }
 }
 
 object StyledReferenceAttacher {

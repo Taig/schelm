@@ -4,14 +4,29 @@ import cats.effect.implicits._
 import cats.effect.{Concurrent, ConcurrentEffect}
 import cats.implicits._
 import fs2.Stream
+import io.taig.schelm.internal.EffectHelpers
 
 final class Schelm[F[_], Event, Node, Component, Reference, Diff](
+    dom: Dom[F, Event, Node],
     manager: EventManager[F, Event],
     renderer: Renderer[F, Component, Reference],
     attacher: Attacher[F, Node, Reference],
     differ: Differ[Component, Diff],
     patcher: Patcher[F, Reference, Diff]
 )(implicit F: ConcurrentEffect[F]) {
+  def start[State, Command](
+      id: String,
+      initial: State,
+      render: State => Component,
+      events: EventHandler[State, Event, Command],
+      commands: CommandHandler[F, Command, Event],
+      subscriptions: Stream[F, Event]
+  ): F[Unit] =
+    dom
+      .getElementById(id)
+      .flatMap(EffectHelpers.get[F](_, s"No element exists for id '$id'"))
+      .flatMap(start(_, initial, render, events, commands, subscriptions))
+
   def start[State, Command](
       container: Node,
       initial: State,
@@ -74,6 +89,7 @@ final class Schelm[F[_], Event, Node, Component, Reference, Diff](
 
 object Schelm {
   def apply[F[_]: ConcurrentEffect, Event, Node, Component, Reference, Diff](
+      dom: Dom[F, Event, Node],
       manager: EventManager[F, Event],
       renderer: Renderer[F, Component, Reference],
       attacher: Attacher[F, Node, Reference],
@@ -81,6 +97,7 @@ object Schelm {
       patcher: Patcher[F, Reference, Diff]
   ): Schelm[F, Event, Node, Component, Reference, Diff] =
     new Schelm[F, Event, Node, Component, Reference, Diff](
+      dom,
       manager,
       renderer,
       attacher,
