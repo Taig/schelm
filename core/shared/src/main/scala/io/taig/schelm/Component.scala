@@ -1,15 +1,21 @@
 package io.taig.schelm
 
-sealed abstract class Component[+A, +B] extends Product with Serializable
+import cats.Eval
+
+sealed abstract class Component[+A, +Event] extends Product with Serializable
 
 object Component {
-  final case class Element[A, B](
+  final case class Element[A, Event](
       name: String,
-      attributes: Attributes[B],
+      attributes: Attributes[Event],
       children: Children[A]
-  ) extends Component[A, B]
+  ) extends Component[A, Event]
 
-  final case class Fragment[A, B](children: Children[A]) extends Component[A, B]
+  final case class Fragment[A](children: Children[A])
+      extends Component[A, Nothing]
+
+  final case class Lazy[A, Event](component: Eval[A], hash: Int)
+      extends Component[A, Event]
 
   final case class Text(value: String) extends Component[Nothing, Nothing]
 }

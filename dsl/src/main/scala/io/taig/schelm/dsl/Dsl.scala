@@ -1,7 +1,5 @@
 package io.taig.schelm.dsl
 
-trait Dsl[A] extends CssDsl[A] with PropertiesDsl[A] with WidgetDsl[A] {}
+trait Dsl extends CssDsl with PropertiesDsl with WidgetDsl
 
-object Dsl {
-  def apply[A]: Dsl[A] = new Dsl[A] {}
-}
+object Dsl extends Dsl

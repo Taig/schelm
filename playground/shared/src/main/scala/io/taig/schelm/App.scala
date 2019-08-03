@@ -1,15 +1,18 @@
 package io.taig.schelm
 
-import cats.Eq
+import cats.{Eq, Eval}
 import cats.effect.IO
 import cats.implicits._
 import io.taig.schelm.css._
-import io.taig.schelm.dsl._
+import io.taig.schelm.dsl.Dsl
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-object App extends Dsl[Event] {
+object App extends Dsl {
+  def lzy[A](value: A)(component: A => Html[Event]): Html[Event] =
+    Html(Component.Lazy(Eval.later(component(value)), value.hashCode))
+
   def widget(state: State): Widget[Event] =
     css(
       div(

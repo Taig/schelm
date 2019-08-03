@@ -30,6 +30,18 @@ sealed abstract class Children[A] extends Product with Serializable {
         })
     }
 
+  def collect[B](f: PartialFunction[(Key, A), B]): Children[B] =
+    this match {
+      case Children.Indexed(raw) =>
+        Children.indexed(raw.zipWithIndex.mapFilter {
+          case (value, index) => f.lift(Key.Index(index), value)
+        })
+      case Children.Identified(raw) =>
+        Children.identified(raw.toList.mapFilter {
+          case (key, value) => f.lift(Key.Identifier(key), value).tupleLeft(key)
+        })
+    }
+
   def append(key: Key, value: A): Children[A] =
     (key, this) match {
       case (_, Children.Indexed(raw)) => Children.Indexed(raw :+ value)
@@ -71,6 +83,18 @@ sealed abstract class Children[A] extends Product with Serializable {
             case (key, value) => f(Key.Identifier(key), value).tupleLeft(key)
           }
           .map(Children.identified)
+    }
+
+  def traverse_[G[_]: Applicative, B](f: (Key, A) => G[B]): G[Unit] =
+    this match {
+      case Children.Indexed(values) =>
+        values.zipWithIndex.traverse_ {
+          case (value, index) => f(Key.Index(index), value)
+        }
+      case Children.Identified(values) =>
+        values.toList.traverse_ {
+          case (key, value) => f(Key.Identifier(key), value).tupleLeft(key)
+        }
     }
 
   def get(key: Key): Option[A] = (key, this) match {

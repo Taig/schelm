@@ -2,7 +2,10 @@ package io.taig.schelm
 
 import cats.implicits._
 
-final class Result[+A, +B](val state: Option[A], val commands: List[B])
+final class Result[+State, +Command](
+    val state: Option[State],
+    val commands: List[Command]
+)
 
 object Result {
   val Empty: Result[Nothing, Nothing] = new Result(None, List.empty)

@@ -36,7 +36,7 @@ test-docs:
   stage: test
   image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
   script:
-  - sbt makeMicrosite
+  - sbt website/makeMicrosite
 
 publish-artifacts:
   stage: publish
@@ -53,4 +53,4 @@ publish-docs:
   only:
   - tags
   script:
-  - sbt publishMicrosite
+  - sbt website/publishMicrosite

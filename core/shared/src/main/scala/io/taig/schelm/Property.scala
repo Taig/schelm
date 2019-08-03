@@ -1,29 +1,10 @@
 package io.taig.schelm
 
-import cats.{Eq, Semigroup}
-import cats.implicits._
+import cats.Semigroup
 
-sealed abstract class Property[+A] extends Product with Serializable
+sealed abstract class Property[+Event] extends Product with Serializable
 
-object Property {
-  implicit def eq[A: Eq]: Eq[Property[A]] = new Eq[Property[A]] {
-    override def eqv(x: Property[A], y: Property[A]): Boolean =
-      PartialFunction.cond((x, y)) {
-        case (x: Value, y: Value)             => x == y
-        case (x: Listener[A], y: Listener[A]) => x === y
-      }
-  }
-}
-
-sealed abstract class Value extends Property[Nothing] {
-  final def render: Option[String] = this match {
-    case Value.Multiple(values, accumulator) =>
-      values.mkString(accumulator.value).some
-    case Value.One(value)  => value.some
-    case Value.Flag(true)  => "".some
-    case Value.Flag(false) => None
-  }
-}
+sealed abstract class Value extends Property[Nothing]
 
 object Value {
   final case class Flag(value: Boolean) extends Value
@@ -40,18 +21,9 @@ object Value {
   }
 }
 
-sealed abstract class Listener[A] extends Property[A]
+sealed abstract class Listener[Event] extends Property[Event]
 
 object Listener {
-  final case class Pure[A](event: A) extends Listener[A]
-  final case class Input[A](event: String => A) extends Listener[A]
-
-  implicit def eq[A: Eq]: Eq[Listener[A]] =
-    new Eq[Listener[A]] {
-      override def eqv(x: Listener[A], y: Listener[A]): Boolean =
-        PartialFunction.cond((x, y)) {
-          case (Pure(x), Pure(y))   => x === y
-          case (Input(x), Input(y)) => x == y
-        }
-    }
+  final case class Pure[Event](event: Event) extends Listener[Event]
+  final case class Input[Event](event: String => Event) extends Listener[Event]
 }

@@ -12,6 +12,7 @@
 - [x] CSS support
 - [x] Fully featured DSL for HTML, attributes, listeners and CSS
 - [ ] Documentation & project website
+- [ ] Support for Html.lazy
 - [ ] Dom parsing (e.g. for SSR continuation)
 - [ ] Test suite
 
@@ -35,7 +36,7 @@ Steps to build the documentation locally, but within a docker container.
 
   3. Now inside the container, generate the microsite
      ```
-     sbt docs
+     sbt website/makeMicrosite
      ```
 
   4. Start the Jekyll server

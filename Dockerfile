@@ -30,7 +30,7 @@ ADD         ./project ./cache/project/
 ADD         ./build.sbt ./cache/
 RUN         mkdir ./cache/docs/
 RUN         touch ./cache/docs/index.md
-RUN         cd ./cache/ && sbt -v ";set every sourceGenerators := List.empty;+test:compile;makeMicrosite"
+RUN         cd ./cache/ && sbt -v ";set every sourceGenerators := List.empty;+compile;website/makeMicrosite"
 
 # Clean cache
 RUN         rm -r ./cache/
