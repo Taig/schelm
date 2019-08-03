@@ -12,6 +12,7 @@
 - [x] CSS support
 - [x] Fully featured DSL for HTML, attributes, listeners and CSS
 - [ ] Documentation & project website
+- [ ] Support for Html.lazy
 - [ ] Dom parsing (e.g. for SSR continuation)
 - [ ] Test suite
 

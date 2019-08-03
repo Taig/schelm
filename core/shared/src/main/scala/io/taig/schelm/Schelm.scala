@@ -1,8 +1,7 @@
 package io.taig.schelm
 
-import cats._
-import cats.effect.{Concurrent, ConcurrentEffect}
 import cats.effect.implicits._
+import cats.effect.{Concurrent, ConcurrentEffect}
 import cats.implicits._
 import fs2.Stream
 
@@ -74,14 +73,14 @@ final class Schelm[F[_], Event, Node, Component, Reference, Diff](
 }
 
 object Schelm {
-  def apply[F[_]: ConcurrentEffect, Event, Node, Component, Reference, C](
+  def apply[F[_]: ConcurrentEffect, Event, Node, Component, Reference, Diff](
       manager: EventManager[F, Event],
       renderer: Renderer[F, Component, Reference],
       attacher: Attacher[F, Node, Reference],
-      differ: Differ[Component, C],
-      patcher: Patcher[F, Reference, C]
-  ): Schelm[F, Event, Node, Component, Reference, C] =
-    new Schelm[F, Event, Node, Component, Reference, C](
+      differ: Differ[Component, Diff],
+      patcher: Patcher[F, Reference, Diff]
+  ): Schelm[F, Event, Node, Component, Reference, Diff] =
+    new Schelm[F, Event, Node, Component, Reference, Diff](
       manager,
       renderer,
       attacher,
