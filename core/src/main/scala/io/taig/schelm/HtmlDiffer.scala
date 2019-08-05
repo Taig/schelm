@@ -18,8 +18,7 @@ final class HtmlDiffer[A] extends Differ[Html[A], Diff[A]] {
           next: Component.Element[Html[A], A]
           ) =>
         element(previous, next)
-      case (previous: Component.Lazy[Html[A]], next: Component.Lazy[Html[A]]
-          ) =>
+      case (previous: Component.Lazy[Html[A]], next: Component.Lazy[Html[A]]) =>
         lzy(previous, next)
       case (_, next) => Diff.Replace(Html(next)).some
     }
