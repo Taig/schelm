@@ -1,9 +1,6 @@
 package io.taig
 
 package object schelm {
-  final case class Fix[+F[+_]](value: F[Fix[F]])
-  final case class Cofree[+F[+_], +A](head: A, tail: F[Cofree[F, A]])
-
   type Html[+Event] = Fix[Component[+?, Event]]
 
   object Html {
