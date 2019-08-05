@@ -1,8 +1,11 @@
 package io.taig.schelm
 
+import cats.data.Ior
 import cats.implicits._
 
 package object css extends NormalizeCss {
+  type StyledHtmlDiff[+Event] = Ior[HtmlDiff[Event], StylesheetDiff]
+
   type Widget[+Event] = Cofree[Component[+?, Event], Styles]
 
   object Widget {
@@ -66,6 +69,9 @@ package object css extends NormalizeCss {
       case component: Component.Text =>
         StyledHtml(component, Stylesheet.Empty)
     }
+
+  type StyledReference[+Event, Node] =
+    Cofree[Component[+?, Event], (Stylesheet, Node)]
 
   private def cls[A](values: List[String]): Attribute[A] =
     Attribute("class", Value.Multiple(values, Accumulator.Whitespace))

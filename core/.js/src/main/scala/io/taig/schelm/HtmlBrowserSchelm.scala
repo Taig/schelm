@@ -12,7 +12,7 @@ object HtmlBrowserSchelm {
       dom.Node,
       Html[Event],
       Reference[Event, dom.Node],
-      Diff[Event]
+      HtmlDiff[Event]
     ]
   ] =
     for {

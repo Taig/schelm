@@ -6,7 +6,9 @@ object HtmlSchelm {
   def apply[F[_]: ConcurrentEffect, Event, Node](
       manager: EventManager[F, Event],
       dom: Dom[F, Event, Node]
-  ): Schelm[F, Event, Node, Html[Event], Reference[Event, Node], Diff[Event]] =
+  ): Schelm[F, Event, Node, Html[Event], Reference[Event, Node], HtmlDiff[
+    Event
+  ]] =
     Schelm(
       dom,
       manager,

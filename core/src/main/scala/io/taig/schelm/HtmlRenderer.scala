@@ -6,10 +6,7 @@ import cats.implicits._
 final class HtmlRenderer[F[_], Event, Node](dom: Dom[F, Event, Node])(
     implicit F: Monad[F]
 ) extends Renderer[F, Html[Event], Reference[Event, Node]] {
-  override def render(html: Html[Event]): F[Reference[Event, Node]] =
-    render(html, Path.Empty)
-
-  def render(
+  override def render(
       html: Html[Event],
       path: Path
   ): F[Reference[Event, Node]] =

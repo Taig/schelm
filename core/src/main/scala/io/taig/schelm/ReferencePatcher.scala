@@ -7,28 +7,32 @@ import io.taig.schelm.internal.EffectHelpers
 final class ReferencePatcher[F[_]: Sync, Event, Node](
     renderer: Renderer[F, Html[Event], Reference[Event, Node]],
     dom: Dom[F, Event, Node]
-) extends Patcher[F, Reference[Event, Node], Diff[Event]] {
+) extends Patcher[F, Reference[Event, Node], HtmlDiff[Event]] {
   override def patch(
       reference: Reference[Event, Node],
-      diff: Diff[Event]
+      diff: HtmlDiff[Event]
   ): F[Reference[Event, Node]] =
     (reference, diff) match {
-      case (reference, diff: Diff.AddChild[Event]) =>
+      case (reference, diff: HtmlDiff.AddChild[Event]) =>
         for {
           element <- node(reference).flatMap(dom.element)
-          child <- renderer.render(diff.child)
+          child <- renderer.render(diff.child, ???)
           _ <- dom.appendChildren(element, child.root)
         } yield reference.updateChildren(_.append(diff.key, child))
-      case (reference, Diff.Group(diffs)) => diffs.foldLeftM(reference)(patch)
-      case (reference, Diff.RemoveChild(key)) =>
+      case (reference, HtmlDiff.Group(diffs)) =>
+        diffs.foldLeftM(reference)(patch)
+      case (reference, HtmlDiff.RemoveChild(key)) =>
         node(reference).flatMap(dom.element).flatMap { parent =>
           val children = reference.children.get(key).toList.flatMap(_.head)
           dom.removeChildren(parent, children)
         } *> reference.updateChildren(_.remove(key)).pure[F]
-      case (reference, Diff.UpdateText(value)) =>
+      case (reference, HtmlDiff.UpdateText(value)) =>
         node(reference).flatMap(dom.text).flatMap(dom.data(_, value)) *>
           reference.setText(value).pure[F]
-      case (reference, Diff.UpdateAttribute(Attribute(key, value: Value))) =>
+      case (
+          reference,
+          HtmlDiff.UpdateAttribute(Attribute(key, value: Value))
+          ) =>
         node(reference).flatMap(dom.element).flatMap { element =>
           value match {
             case Value.Flag(true)  => dom.setAttribute(element, key, "")
@@ -38,7 +42,7 @@ final class ReferencePatcher[F[_]: Sync, Event, Node](
             case Value.One(value) => dom.setAttribute(element, key, value)
           }
         } *> reference.updateAttributes(_.updated(key, value)).pure[F]
-      case (reference, Diff.UpdateChild(key, diff)) =>
+      case (reference, HtmlDiff.UpdateChild(key, diff)) =>
         EffectHelpers
           .get[F](
             reference.children.get(key),
@@ -59,6 +63,6 @@ object ReferencePatcher {
   def apply[F[_]: Sync, Event, Node](
       renderer: Renderer[F, Html[Event], Reference[Event, Node]],
       dom: Dom[F, Event, Node]
-  ): Patcher[F, Reference[Event, Node], Diff[Event]] =
+  ): Patcher[F, Reference[Event, Node], HtmlDiff[Event]] =
     new ReferencePatcher(renderer, dom)
 }

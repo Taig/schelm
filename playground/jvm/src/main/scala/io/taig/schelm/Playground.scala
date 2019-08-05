@@ -9,7 +9,9 @@ object Playground extends IOApp {
       val widget = App.widget(State())
       val html = toHtml(widget)
       val renderer = HtmlRenderer(dom)
-      renderer.render(html).flatMap(node => IO(println(node.head))) *>
+      renderer
+        .render(html, Path.Empty)
+        .flatMap(node => IO(println(node.head))) *>
         IO(ExitCode.Success)
     }
 }

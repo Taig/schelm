@@ -1,19 +1,26 @@
-//package io.taig.schelm.css
-//
-//import io.taig.schelm.{Diff, Differ, Html, HtmlDiffer}
-//
-//final class StyledHtmlDiffer[A](differ: Differ[Html[A], Diff[A]])
-//    extends Differ[StyledHtml[A], StyledDiff[A]] {
-//  override def diff(
-//      previous: StyledHtml[A],
-//      next: StyledHtml[A]
-//  ): Option[StyledDiff[A]] =
-//    differ.diff(previous.html, next.html).map { diff =>
-//      StyledDiff(diff, next.stylesheet)
-//    }
-//}
-//
-//object StyledHtmlDiffer {
-//  def apply[A]: Differ[StyledHtml[A], StyledDiff[A]] =
-//    new StyledHtmlDiffer[A](HtmlDiffer[A])
-//}
+package io.taig.schelm.css
+
+import cats.data.Ior
+import cats.implicits._
+import io.taig.schelm._
+
+final class StyledHtmlDiffer[A](
+    html: Differ[Html[A], HtmlDiff[A]],
+    stylesheet: Differ[StyledHtml[A], StylesheetDiff]
+) extends Differ[StyledHtml[A], StyledHtmlDiff[A]] {
+  override def diff(
+      previous: StyledHtml[A],
+      next: StyledHtml[A]
+  ): Option[StyledHtmlDiff[A]] =
+    (html.diff(toHtml(previous), toHtml(next)), stylesheet.diff(previous, next)) match {
+      case (Some(html), Some(styles)) => Ior.both(html, styles).some
+      case (Some(html), None)         => Ior.left(html).some
+      case (None, Some(html))         => Ior.right(html).some
+      case (None, None)               => None
+    }
+}
+
+object StyledHtmlDiffer {
+  def apply[A]: Differ[StyledHtml[A], StyledHtmlDiff[A]] =
+    new StyledHtmlDiffer[A](HtmlDiffer[A], StylesheetDiffer[A])
+}

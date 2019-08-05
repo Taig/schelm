@@ -12,7 +12,7 @@ object HtmlServerSchelm {
       JNode,
       Html[Event],
       Reference[Event, JNode],
-      Diff[Event]
+      HtmlDiff[Event]
     ]
   ] = ServerDom[F, Event].map(HtmlSchelm(EventManager.noop, _))
 }
