@@ -38,7 +38,7 @@ object ComponentOps {
     extract(component) match {
       case element: Component.Element[F[A], A] =>
         inject(element.copy(attributes = f(element.attributes)), component)
-      case lzy: Component.Lazy[F[A], A] =>
+      case lzy: Component.Lazy[F[A]] =>
         updateAttributes(lzy.component.value, extract, inject)(f)
       case _: Component.Fragment[F[A]] => component
       case _: Component.Text           => component
@@ -53,7 +53,7 @@ object ComponentOps {
     extract(component) match {
       case component: Component.Element[F[A], A] => component.children
       case component: Component.Fragment[F[A]]   => component.children
-      case component: Component.Lazy[F[A], A] =>
+      case component: Component.Lazy[F[A]] =>
         children(component.component.value, extract, inject)
       case _: Component.Text => Children.empty
     }
@@ -69,7 +69,7 @@ object ComponentOps {
         inject(element.copy(children = f(element.children)), component)
       case fragment: Component.Fragment[F[A]] =>
         inject(fragment.copy(children = f(fragment.children)), component)
-      case lzy: Component.Lazy[F[A], A] =>
+      case lzy: Component.Lazy[F[A]] =>
         updateChildren(lzy.component.value, extract, inject)(f)
       case _: Component.Text => component
     }
@@ -83,7 +83,7 @@ object ComponentOps {
     extract(component) match {
       case text: Component.Text =>
         inject(text.copy(value = f(text.value)), component)
-      case lzy: Component.Lazy[F[A], A] =>
+      case lzy: Component.Lazy[F[A]] =>
         updateText(lzy.component.value, extract, inject)(f)
       case _: Component.Element[F[A], A] => component
       case _: Component.Fragment[F[A]]   => component

@@ -18,9 +18,7 @@ final class HtmlDiffer[A] extends Differ[Html[A], Diff[A]] {
           next: Component.Element[Html[A], A]
           ) =>
         element(previous, next)
-      case (
-          previous: Component.Lazy[Html[A], A],
-          next: Component.Lazy[Html[A], A]
+      case (previous: Component.Lazy[Html[A]], next: Component.Lazy[Html[A]]
           ) =>
         lzy(previous, next)
       case (_, next) => Diff.Replace(Html(next)).some
@@ -98,8 +96,8 @@ final class HtmlDiffer[A] extends Differ[Html[A], Diff[A]] {
     children(previous.children, next.children)
 
   def lzy(
-      previous: Component.Lazy[Html[A], A],
-      next: Component.Lazy[Html[A], A]
+      previous: Component.Lazy[Html[A]],
+      next: Component.Lazy[Html[A]]
   ): Option[Diff[A]] =
     if (previous.hash == next.hash) None
     else diff(previous.component.value, next.component.value)

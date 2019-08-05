@@ -48,7 +48,7 @@ package object css extends NormalizeCss {
           val b = z.combineAll
 
           (a, b)
-        case component: Component.Lazy[Widget[A], A] =>
+        case component: Component.Lazy[Widget[A]] =>
           component.component.map { widget =>
             render[A](widget)
           }
@@ -65,7 +65,7 @@ package object css extends NormalizeCss {
         case component: Component.Element[Widget[A], A] =>
           val children = component.children.map((_, child) => html[A](child))
           Html(component.copy(children = children))
-        case component: Component.Lazy[Widget[A], A] =>
+        case component: Component.Lazy[Widget[A]] =>
           Html(Component.Lazy(component.component.map(html(_)), component.hash))
         case component: Component.Text => Html(component)
       }
