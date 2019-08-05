@@ -27,7 +27,8 @@ final class HtmlRenderer[F[_], Event, Node](dom: Dom[F, Event, Node])(
         component.children
           .traverse((key, html) => render(html, path / segment(key)))
           .map(children => Reference(Component.Fragment(children), None))
-      case component: Component.Lazy[Html[Event], Event] => ???
+      case component: Component.Lazy[Html[Event], Event] =>
+        render(component.component.value, path)
       case component: Component.Text =>
         dom
           .createTextNode(component.value)

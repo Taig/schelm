@@ -7,21 +7,26 @@ final class HtmlDiffer[A] extends Differ[Html[A], Diff[A]] {
   override def diff(previous: Html[A], next: Html[A]): Option[Diff[A]] =
     (previous.value, next.value) match {
       case (previous: Component.Text, next: Component.Text) =>
-        text(previous.value, next.value)
+        text(previous, next)
       case (
           previous: Component.Fragment[Html[A]],
           next: Component.Fragment[Html[A]]
           ) =>
-        children(previous.children, next.children)
+        fragment(previous, next)
       case (
           previous: Component.Element[Html[A], A],
           next: Component.Element[Html[A], A]
           ) =>
-        node(previous, next)
+        element(previous, next)
+      case (
+          previous: Component.Lazy[Html[A], A],
+          next: Component.Lazy[Html[A], A]
+          ) =>
+        lzy(previous, next)
       case (_, next) => Diff.Replace(Html(next)).some
     }
 
-  def node(
+  def element(
       previous: Component.Element[Html[A], A],
       next: Component.Element[Html[A], A]
   ): Option[Diff[A]] =
@@ -86,8 +91,21 @@ final class HtmlDiffer[A] extends Differ[Html[A], Diff[A]] {
     Diff.from(diffs)
   }
 
-  def text(previous: String, next: String): Option[Diff[A]] =
-    if (previous != next) Diff.UpdateText(next).some else None
+  def fragment(
+      previous: Component.Fragment[Html[A]],
+      next: Component.Fragment[Html[A]]
+  ): Option[Diff[A]] =
+    children(previous.children, next.children)
+
+  def lzy(
+      previous: Component.Lazy[Html[A], A],
+      next: Component.Lazy[Html[A], A]
+  ): Option[Diff[A]] =
+    if (previous.hash == next.hash) None
+    else diff(previous.component.value, next.component.value)
+
+  def text(previous: Component.Text, next: Component.Text): Option[Diff[A]] =
+    if (previous.value != next.value) Diff.UpdateText(next.value).some else None
 }
 
 object HtmlDiffer {
