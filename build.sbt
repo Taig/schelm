@@ -18,6 +18,7 @@ lazy val root = project
   )
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Pure)
   .settings(sonatypePublishSettings)
   .settings(
     libraryDependencies ++=
