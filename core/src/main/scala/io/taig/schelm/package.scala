@@ -1,5 +1,7 @@
 package io.taig
 
+import cats.implicits._
+
 package object schelm {
   type Html[+Event] = Fix[Component[+?, Event]]
 
@@ -38,6 +40,23 @@ package object schelm {
       case (None, _) => List.empty
     }
   }
+
+  def toHtml[Event, A](value: Cofree[Component[+?, Event], A]): Html[Event] =
+    value.tail match {
+      case Component.Element(name, attributes, children) =>
+        Html(
+          Component.Element(
+            name,
+            attributes,
+            children.map((_, value) => toHtml(value))
+          )
+        )
+      case Component.Fragment(children) =>
+        Html(Component.Fragment(children.map((_, value) => toHtml(value))))
+      case Component.Lazy(component, hash) =>
+        Html(Component.Lazy(component.map(toHtml[Event, A]), hash))
+      case component: Component.Text => Html(component)
+    }
 
   type CommandHandler[F[_], Command, Event] = Command => F[Option[Event]]
 

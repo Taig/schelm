@@ -1,6 +1,7 @@
 package io.taig.schelm
 
-import cats.{Eval, Functor}
+import cats._
+import cats.implicits._
 
 sealed abstract class Component[+A, +Event] extends Product with Serializable
 
