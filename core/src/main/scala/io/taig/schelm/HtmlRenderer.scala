@@ -5,31 +5,31 @@ import cats.implicits._
 
 final class HtmlRenderer[F[_], Event, Node](dom: Dom[F, Event, Node])(
     implicit F: Monad[F]
-) extends Renderer[F, Html[Event], Reference[Event, Node]] {
+) extends Renderer[F, Html[Event], List[Node]] {
   override def render(
       html: Html[Event],
       path: Path
-  ): F[Reference[Event, Node]] =
+  ): F[List[Node]] =
     html.value match {
       case component: Component.Element[Html[Event], Event] =>
         for {
           element <- dom.createElement(component.name)
           _ <- component.attributes.traverse_(register(element, path, _))
-          children <- component.children.traverse { (key, html) =>
-            render(html, path / segment(key))
-          }
-          _ <- dom.appendChildren(element, children.values.flatMap(_.root))
-        } yield Reference(component.copy(children = children), element.some)
+          children <- component.children.flatTraverse(
+            (key, child) => render(child, path / key)
+          )
+          _ <- dom.appendChildren(element, children)
+        } yield List(element)
       case component: Component.Fragment[Html[Event]] =>
-        component.children
-          .traverse((key, html) => render(html, path / segment(key)))
-          .map(children => Reference(Component.Fragment(children), None))
+        component.children.flatTraverse(
+          (key, child) => render(child, path / key)
+        )
       case component: Component.Lazy[Html[Event]] =>
-        render(component.component.value, path)
+        render(component.eval.value, path)
       case component: Component.Text =>
         dom
           .createTextNode(component.value)
-          .map(node => Reference(component, node.some))
+          .map(node => List(node))
     }
 
   def register(
@@ -58,13 +58,11 @@ final class HtmlRenderer[F[_], Event, Node](dom: Dom[F, Event, Node])(
       listener: Listener[Event]
   ): F[Unit] =
     dom.addEventListener(element, key, path, dom.lift(listener))
-
-  def segment(key: Key): String = s"[$key]"
 }
 
 object HtmlRenderer {
   def apply[F[_]: Monad, Event, Node](
       dom: Dom[F, Event, Node]
-  ): Renderer[F, Html[Event], Reference[Event, Node]] =
+  ): Renderer[F, Html[Event], List[Node]] =
     new HtmlRenderer[F, Event, Node](dom)
 }

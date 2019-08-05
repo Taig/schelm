@@ -1,11 +1,8 @@
 package io.taig.schelm
 
-import cats.data.Ior
 import cats.implicits._
 
 package object css extends NormalizeCss {
-  type StyledHtmlDiff[+Event] = Ior[HtmlDiff[Event], StylesheetDiff]
-
   type Widget[+Event] = Cofree[Component[+?, Event], Styles]
 
   object Widget {
@@ -32,6 +29,11 @@ package object css extends NormalizeCss {
         stylesheet: Stylesheet
     ): StyledHtml[Event] =
       Cofree[Component[+?, Event], Stylesheet](stylesheet, component)
+
+    def empty[Event](
+        component: Component[StyledHtml[Event], Event]
+    ): StyledHtml[Event] =
+      StyledHtml(component, Stylesheet.Empty)
   }
 
   def toStyledHtml[Event](widget: Widget[Event]): StyledHtml[Event] =
@@ -56,22 +58,15 @@ package object css extends NormalizeCss {
           component.copy(attributes = attributes, children = children),
           stylesheet
         )
-      case Component.Fragment(children) =>
-        StyledHtml(
-          Component.Fragment(children.map((_, child) => toStyledHtml(child))),
-          Stylesheet.Empty
-        )
-      case Component.Lazy(component, hash) =>
-        StyledHtml(
-          Component.Lazy(component.map(toStyledHtml[Event]), hash),
-          Stylesheet.Empty
-        )
+      case component: Component.Fragment[Widget[Event]] =>
+        val children = component.children.map((_, child) => toStyledHtml(child))
+        StyledHtml.empty(component.copy(children = children))
+      case component: Component.Lazy[Widget[Event]] =>
+        val eval = component.eval.map(toStyledHtml[Event])
+        StyledHtml.empty(component.copy(eval = eval))
       case component: Component.Text =>
         StyledHtml(component, Stylesheet.Empty)
     }
-
-  type StyledReference[+Event, Node] =
-    Cofree[Component[+?, Event], (Stylesheet, Node)]
 
   private def cls[A](values: List[String]): Attribute[A] =
     Attribute("class", Value.Multiple(values, Accumulator.Whitespace))

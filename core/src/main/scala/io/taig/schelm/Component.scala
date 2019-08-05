@@ -15,7 +15,7 @@ object Component {
   final case class Fragment[A](children: Children[A])
       extends Component[A, Nothing]
 
-  final case class Lazy[A](component: Eval[A], hash: Int)
+  final case class Lazy[A](eval: Eval[A], hash: Int)
       extends Component[A, Nothing]
 
   final case class Text(value: String) extends Component[Nothing, Nothing]

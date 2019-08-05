@@ -97,6 +97,11 @@ sealed abstract class Children[A] extends Product with Serializable {
         }
     }
 
+  def flatTraverse[G[_]: Applicative, B](
+      f: (Key, A) => G[List[B]]
+  ): G[List[B]] =
+    toList.flatTraverse { case (key, child) => f(key, child) }
+
   def get(key: Key): Option[A] = (key, this) match {
     case (Key.Index(index), Children.Indexed(values)) => values.lift(index)
     case (Key.Identifier(identifier), Children.Identified(values)) =>

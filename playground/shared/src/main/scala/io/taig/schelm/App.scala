@@ -10,8 +10,15 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 object App extends Dsl {
-  def lzy[A](value: A)(component: A => Html[Event]): Html[Event] =
-    Html(Component.Lazy(Eval.later(component(value)), value.hashCode))
+  val html: Html[Event] =
+    Html(
+      Component.Fragment(
+        Children.of(
+          Html(Component.Text("Hello World")),
+          Html(Component.Text("Hello World"))
+        )
+      )
+    )
 
   def widget(state: State): Widget[Event] =
     css(

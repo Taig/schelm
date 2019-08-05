@@ -48,6 +48,9 @@ final class ServerDom[F[_], A](document: JDocument)(implicit F: Sync[F])
   override def data(text: JText, value: String): F[Unit] =
     F.delay(text.text(value)).void
 
+  override def getAttribute(element: JElement, key: String): F[Option[String]] =
+    F.delay(Some(element.attr(key)).filter(_.nonEmpty))
+
   override def getElementById(id: String): F[Option[Element]] =
     F.delay(Option(document.getElementById(id)))
 

@@ -36,6 +36,8 @@ abstract class Dom[F[_], Event, Node] {
 
   def data(text: Text, value: String): F[Unit]
 
+  def getAttribute(element: Element, key: String): F[Option[String]]
+
   def getElementById(id: String): F[Option[Element]]
 
   def head: F[Element]

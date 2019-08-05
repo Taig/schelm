@@ -7,7 +7,7 @@ final case class Path(values: Chain[String]) extends AnyVal {
   def /(segment: String): Path =
     if (segment.isEmpty) this else Path(values.append(segment))
 
-  def /(index: Int): Path = this / s"[$index]"
+  def /(key: Key): Path = this / s"[$key]"
 
   def render: String = values.mkString_(" / ")
 }

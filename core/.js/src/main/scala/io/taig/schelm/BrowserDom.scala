@@ -65,6 +65,9 @@ final class BrowserDom[F[_], Event](
   override def data(text: Text, value: String): F[Unit] =
     F.delay(text.data = value)
 
+  override def getAttribute(element: Element, key: String): F[Option[String]] =
+    F.delay(Option(element.getAttribute(key)).filter(_.nonEmpty))
+
   override def getElementById(id: String): F[Option[Element]] =
     F.delay(Option(document.getElementById(id)))
 
