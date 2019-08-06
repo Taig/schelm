@@ -24,4 +24,32 @@ object Reference {
 
   final case class Text(component: Component.Text, node: SText)
       extends Reference[Nothing]
+
+  def extract[A](reference: Reference[A]): Component[Reference[A], A] =
+    reference match {
+      case Reference.Element(component, _) => component
+      case Reference.Fragment(component)   => component
+      case Reference.Text(component, _)    => component
+    }
+
+  def inject[A](
+      component: Component[Reference[A], A],
+      reference: Reference[A]
+  ): Reference[A] = {
+    (component, reference) match {
+      case (component: Component.Element[Reference[A], A], Element(_, node)) =>
+        Element(component, node)
+      case (component: Component.Fragment[Reference[A]], Fragment(_)) =>
+        Fragment(component)
+      case (component: Component.Text, Text(_, node)) => Text(component, node)
+      case _                                          => reference
+    }
+  }
+
+  implicit class ReferenceSyntax[A](reference: Reference[A])
+      extends ComponentOps[Reference, A](
+        reference,
+        extract[A],
+        inject[A]
+      )
 }

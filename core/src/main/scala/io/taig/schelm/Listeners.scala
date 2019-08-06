@@ -15,4 +15,11 @@ final case class Listeners[Event](values: Map[String, Action[Event]])
 
 object Listeners {
   def empty[Event]: Listeners[Event] = Listeners(Map.empty)
+
+  def of[A](values: Listener[A]*): Listeners[A] = from(values)
+
+  def from[A](values: Iterable[Listener[A]]): Listeners[A] =
+    Listeners(
+      Map(values.map(listener => listener.event -> listener.action).toSeq: _*)
+    )
 }

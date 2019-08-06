@@ -1,9 +1,16 @@
 package io.taig.schelm.dsl
 
+import cats.implicits._
 import io.taig.schelm.css.{Declaration, Declarations}
 import io.taig.schelm._
 
 trait PropertiesDsl {
+  implicit def attributeToProperty[A](attribute: Attribute): Property[A] =
+    attribute.asLeft
+
+  implicit def listenerToProperty[A](listener: Listener[A]): Property[A] =
+    listener.asRight
+
   def attr(key: String, value: String): Attribute =
     Attribute(key, Value.One(value))
 

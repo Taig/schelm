@@ -33,22 +33,6 @@ package object schelm extends internal.Nodes {
     ): Document[Event, A] = Cofree[Component[+?, Event], A](value, component)
   }
 
-  //  type Reference[+Event, Node] = Document[Event, Option[Node]]
-  //
-  //  object Reference {
-  //    def apply[A, B](
-  //        component: Component[Reference[A, B], A],
-  //        node: Option[B]
-  //    ): Reference[A, B] = Document(component, node)
-  //  }
-  //
-  //  implicit final class ReferenceSyntax[A, Node](reference: Reference[A, Node])
-  //      extends ComponentOps[Reference[?, Node], A](
-  //        reference,
-  //        _.tail,
-  //        (component, node) => Reference(component, node.head)
-  //      )
-
   def toHtml[Event](value: Document[Event, _]): Html[Event] =
     value.tail match {
       case component: Component.Element[Document[Event, _], Event] =>

@@ -17,9 +17,6 @@ trait WidgetDsl {
   ): Widget[A] =
     builder.widget
 
-  implicit def tagBuilderToWidget[A](builder: TagBuilder[A]): Widget[A] =
-    builder.widget
-
   implicit def textToWidget[A](value: String): Widget[A] = text(value)
 
   def widget[A](name: String): Widget[A] =

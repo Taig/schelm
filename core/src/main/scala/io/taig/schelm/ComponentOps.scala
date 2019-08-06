@@ -13,6 +13,12 @@ abstract class ComponentOps[F[_], A](
   final def updateAttributes(f: Attributes => Attributes): F[A] =
     ComponentOps.updateAttributes(component, extract, inject)(f)
 
+  final def setListeners(listeners: Listeners[A]): F[A] =
+    updateListeners(_ => listeners)
+
+  final def updateListeners(f: Listeners[A] => Listeners[A]): F[A] =
+    ComponentOps.updateListeners(component, extract, inject)(f)
+
   final def children: Children[F[A]] =
     ComponentOps.children(component, extract, inject)
 
@@ -40,6 +46,21 @@ object ComponentOps {
         inject(element.copy(attributes = f(element.attributes)), component)
       case lzy: Component.Lazy[F[A]] =>
         updateAttributes(lzy.eval.value, extract, inject)(f)
+      case _: Component.Fragment[F[A]] => component
+      case _: Component.Text           => component
+    }
+
+  @tailrec
+  final def updateListeners[F[_], A](
+      component: F[A],
+      extract: F[A] => Component[F[A], A],
+      inject: (Component[F[A], A], F[A]) => F[A]
+  )(f: Listeners[A] => Listeners[A]): F[A] =
+    extract(component) match {
+      case element: Component.Element[F[A], A] =>
+        inject(element.copy(listeners = f(element.listeners)), component)
+      case lzy: Component.Lazy[F[A]] =>
+        updateListeners(lzy.eval.value, extract, inject)(f)
       case _: Component.Fragment[F[A]] => component
       case _: Component.Text           => component
     }
