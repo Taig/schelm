@@ -1,6 +1,6 @@
 package io.taig.schelm
 
-import cats.{Eq, Eval}
+import cats.Eq
 import cats.effect.IO
 import cats.implicits._
 import io.taig.schelm.css._

@@ -34,6 +34,10 @@ abstract class Dom[F[_], Event, Node] {
 
   def createTextNode(value: String): F[Text]
 
+  def childAt(element: Element, index: Int): F[Option[Node]]
+
+  def children(element: Element): F[List[Node]]
+
   def data(text: Text, value: String): F[Unit]
 
   def getAttribute(element: Element, key: String): F[Option[String]]

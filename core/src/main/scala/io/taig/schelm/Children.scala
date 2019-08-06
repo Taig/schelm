@@ -18,57 +18,70 @@ sealed abstract class Children[A] extends Product with Serializable {
     case Children.Identified(values) => values.size
   }
 
+  def indexOf(key: Key): Option[Int] =
+    (key, this) match {
+      case (Key.Index(index), _) => index.some
+      case (Key.Identifier(identifier), Children.Identified(values)) =>
+        values.keysIterator.indexOf(identifier).some
+      case (Key.Identifier(_), Children.Indexed(_)) => None
+    }
+
   def map[B](f: (Key, A) => B): Children[B] =
     this match {
-      case Children.Indexed(raw) =>
-        Children.indexed(raw.zipWithIndex.map {
+      case Children.Indexed(values) =>
+        Children.indexed(values.zipWithIndex.map {
           case (value, index) => f(Key.Index(index), value)
         })
-      case Children.Identified(raw) =>
-        Children.identified(raw.map {
+      case Children.Identified(values) =>
+        Children.identified(values.map {
           case (key, value) => (key, f(Key.Identifier(key), value))
         })
     }
 
   def collect[B](f: PartialFunction[(Key, A), B]): Children[B] =
     this match {
-      case Children.Indexed(raw) =>
-        Children.indexed(raw.zipWithIndex.mapFilter {
+      case Children.Indexed(values) =>
+        Children.indexed(values.zipWithIndex.mapFilter {
           case (value, index) => f.lift(Key.Index(index), value)
         })
-      case Children.Identified(raw) =>
-        Children.identified(raw.toList.mapFilter {
+      case Children.Identified(values) =>
+        Children.identified(values.toList.mapFilter {
           case (key, value) => f.lift(Key.Identifier(key), value).tupleLeft(key)
         })
     }
 
   def append(key: Key, value: A): Children[A] =
     (key, this) match {
-      case (_, Children.Indexed(raw)) => Children.Indexed(raw :+ value)
-      case (Key.Identifier(identifier), Children.Identified(raw)) =>
-        Children.Identified(raw.updated(identifier, value))
+      case (_, Children.Indexed(values)) => Children.Indexed(values :+ value)
+      case (Key.Identifier(identifier), Children.Identified(values)) =>
+        Children.Identified(values.updated(identifier, value))
       case _ => this
     }
 
   def updated(key: Key, value: A): Children[A] =
     (key, this) match {
-      case (Key.Index(index), Children.Indexed(raw)) =>
-        try Children.Indexed(raw.updated(index, value))
+      case (Key.Index(index), Children.Indexed(values)) =>
+        try Children.Indexed(values.updated(index, value))
         catch {
           case _: IndexOutOfBoundsException => this
         }
-      case (Key.Identifier(identifier), Children.Identified(raw)) =>
-        Children.Identified(raw.updated(identifier, value))
+      case (Key.Identifier(identifier), Children.Identified(values)) =>
+        Children.Identified(values.updated(identifier, value))
       case _ => this
     }
 
   def remove(key: Key): Children[A] =
     (key, this) match {
-      case (Key.Index(index), Children.Indexed(raw)) =>
-        Children.Indexed(raw.patch(index, Nil, 1))
-      case (Key.Identifier(identifier), Children.Identified(raw)) =>
-        Children.Identified(raw - identifier)
+      case (Key.Index(index), Children.Indexed(values)) =>
+        Children.Indexed(values.patch(index, Nil, 1))
+      case (Key.Identifier(identifier), Children.Identified(values)) =>
+        Children.Identified(values - identifier)
       case _ => this
+    }
+
+  def foldLeft[B](initial: B)(f: (B, Key, A) => B): B =
+    toList.foldLeft(initial) {
+      case (result, (key, value)) => f(result, key, value)
     }
 
   def traverse[G[_]: Applicative, B](f: (Key, A) => G[B]): G[Children[B]] =
@@ -121,11 +134,11 @@ sealed abstract class Children[A] extends Product with Serializable {
   }
 
   def keys: List[Key] = this match {
-    case Children.Indexed(raw) =>
-      raw.zipWithIndex.map {
+    case Children.Indexed(values) =>
+      values.zipWithIndex.map {
         case (_, index) => Key.Index(index)
       }
-    case Children.Identified(raw) => raw.keys.toList.map(Key.Identifier)
+    case Children.Identified(values) => values.keys.toList.map(Key.Identifier)
   }
 
   def values: List[A] = this match {

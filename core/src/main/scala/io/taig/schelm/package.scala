@@ -1,7 +1,5 @@
 package io.taig
 
-import cats.implicits._
-
 package object schelm {
   type CommandHandler[F[_], Command, Event] = Command => F[Option[Event]]
 
@@ -22,11 +20,25 @@ package object schelm {
         (component, _) => Html(component)
       )
 
-  def toHtml[Event, A](value: Cofree[Component[+?, Event], A]): Html[A] =
+  type Document[+Event, A] = Cofree[Component[+?, Event], A]
+
+  object Document {
+    def apply[Event, A](
+        component: Component[Document[Event, A], Event],
+        value: A
+    ): Document[Event, A] = Cofree[Component[+?, Event], A](value, component)
+  }
+
+  def toHtml[Event](value: Document[Event, _]): Html[Event] =
     value.tail match {
-      case Component.Element(name, attributes, children) => ???
-      case Component.Fragment(children) => ???
-      case Component.Lazy(eval, hash) => ???
+      case component: Component.Element[Document[Event, _], Event] =>
+        val children = component.children.map((_, child) => toHtml(child))
+        Html(Component.Element(component.name, component.attributes, children))
+      case component: Component.Fragment[Document[Event, _]] =>
+        val children = component.children.map((_, child) => toHtml(child))
+        Html(Component.Fragment(children))
+      case component: Component.Lazy[Document[Event, _]] =>
+        Html(component.copy(eval = component.eval.map(toHtml)))
       case component: Component.Text => Html(component)
     }
 }

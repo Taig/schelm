@@ -9,6 +9,7 @@ import org.jsoup.nodes.{
   TextNode => JText,
   Document => JDocument
 }
+import scala.collection.JavaConverters._
 
 final class ServerDom[F[_], A](document: JDocument)(implicit F: Sync[F])
     extends Dom[F, A, JNode] {
@@ -47,6 +48,15 @@ final class ServerDom[F[_], A](document: JDocument)(implicit F: Sync[F])
 
   override def data(text: JText, value: String): F[Unit] =
     F.delay(text.text(value)).void
+
+  override def childAt(element: JElement, index: Int): F[Option[JNode]] =
+    F.delay(
+      try element.child(index).some
+      catch { case _: IndexOutOfBoundsException => None }
+    )
+
+  override def children(element: JElement): F[List[JNode]] =
+    F.delay(element.childNodes().asScala.toList)
 
   override def getAttribute(element: JElement, key: String): F[Option[String]] =
     F.delay(Some(element.attr(key)).filter(_.nonEmpty))

@@ -11,9 +11,25 @@ object Playground extends IOApp {
       manager <- EventManager.unbounded[IO, Event]
       dom <- BrowserDom[IO, Event](manager)
       renderer = HtmlRenderer(dom)
-      html = toStyledHtml(App.widget(State()))
-      nodes <- renderer.render(App.html, Path.Empty)
-      _ <- nodes.traverse_(node => IO(org.scalajs.dom.console.dir(node)))
+      attacher = StyledNodesAttacher(dom)
+      differ = StyledHtmlDiffer[Event]
+      patcher = StyledHtmlPatcher(renderer, dom)
+      schelm = Schelm(
+        dom,
+        manager,
+        StyledHtmlRenderer(renderer),
+        attacher,
+        differ,
+        patcher
+      )
+      _ <- schelm.start(
+        "main",
+        State(),
+        (state: State) => toStyledHtml(App.widget(state)),
+        App.events,
+        App.commands,
+        Stream.empty
+      )
     } yield ExitCode.Success
   }
 }

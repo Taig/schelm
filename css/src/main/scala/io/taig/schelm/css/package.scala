@@ -1,15 +1,16 @@
 package io.taig.schelm
 
+import cats.data.Ior
 import cats.implicits._
 
 package object css extends NormalizeCss {
-  type Widget[+Event] = Cofree[Component[+?, Event], Styles]
+  type Widget[+Event] = Document[Event, Styles]
 
   object Widget {
     def apply[Event](
         component: Component[Widget[Event], Event],
         styles: Styles
-    ): Widget[Event] = Cofree[Component[+?, Event], Styles](styles, component)
+    ): Widget[Event] = Document(component, styles)
   }
 
   implicit final class WidgetSyntax[A](widget: Widget[A])
@@ -21,14 +22,14 @@ package object css extends NormalizeCss {
     def setStyles(styles: Styles): Widget[A] = Widget(widget.tail, styles)
   }
 
-  type StyledHtml[+Event] = Cofree[Component[+?, Event], Stylesheet]
+  type StyledHtml[+Event] = Document[Event, Stylesheet]
 
   object StyledHtml {
     def apply[Event](
         component: Component[StyledHtml[Event], Event],
         stylesheet: Stylesheet
     ): StyledHtml[Event] =
-      Cofree[Component[+?, Event], Stylesheet](stylesheet, component)
+      Document(component, stylesheet)
 
     def empty[Event](
         component: Component[StyledHtml[Event], Event]
@@ -67,6 +68,23 @@ package object css extends NormalizeCss {
       case component: Component.Text =>
         StyledHtml(component, Stylesheet.Empty)
     }
+
+  def toStylesheet(html: StyledHtml[_]): Stylesheet =
+    html.tail match {
+      case component: Component.Element[StyledHtml[_], _] =>
+        component.children.foldLeft(html.head) { (stylesheet, _, html) =>
+          stylesheet |+| toStylesheet(html)
+        }
+      case component: Component.Fragment[StyledHtml[_]] =>
+        component.children.foldLeft(Stylesheet.Empty) { (stylesheet, _, html) =>
+          stylesheet |+| toStylesheet(html)
+        }
+      case component: Component.Lazy[StyledHtml[_]] =>
+        toStylesheet(component.eval.value)
+      case _: Component.Text => Stylesheet.Empty
+    }
+
+  type StyledHtmlDiff[A] = Ior[HtmlDiff[A], StylesheetDiff]
 
   private def cls[A](values: List[String]): Attribute[A] =
     Attribute("class", Value.Multiple(values, Accumulator.Whitespace))

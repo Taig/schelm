@@ -4,7 +4,7 @@ import cats.effect.Sync
 import cats.implicits._
 import io.taig.schelm.internal.EffectHelpers
 import org.scalajs.dom
-import org.scalajs.dom.document
+import org.scalajs.dom.{document, Node}
 import org.scalajs.dom.raw.HTMLInputElement
 
 import scala.scalajs.js
@@ -64,6 +64,14 @@ final class BrowserDom[F[_], Event](
 
   override def data(text: Text, value: String): F[Unit] =
     F.delay(text.data = value)
+
+  override def childAt(element: Element, index: Int): F[Option[Node]] =
+    F.delay(Option(element.childNodes.apply(index)))
+
+  override def children(element: Element): F[List[Node]] =
+    F.delay(element.childNodes).map { children =>
+      (0 until children.length).foldLeft(List.empty[Node])(_ :+ children(_))
+    }
 
   override def getAttribute(element: Element, key: String): F[Option[String]] =
     F.delay(Option(element.getAttribute(key)).filter(_.nonEmpty))
