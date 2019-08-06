@@ -7,7 +7,8 @@ sealed abstract class Component[+A, +Event] extends Product with Serializable
 object Component {
   final case class Element[A, Event](
       name: String,
-      attributes: Attributes[Event],
+      attributes: Attributes,
+      listeners: Listeners[Event],
       children: Children[A]
   ) extends Component[A, Event]
 
@@ -25,8 +26,13 @@ object Component {
           fa: Component[A, Event]
       )(f: A => B): Component[B, Event] =
         fa match {
-          case Element(name, attributes, children) =>
-            Element(name, attributes, children.map((_, value) => f(value)))
+          case Element(name, attributes, listeners, children) =>
+            Element(
+              name,
+              attributes,
+              listeners,
+              children.map((_, value) => f(value))
+            )
           case Fragment(children) =>
             Fragment(children.map((_, value) => f(value)))
           case Lazy(component, hash) =>

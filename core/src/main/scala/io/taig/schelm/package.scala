@@ -1,6 +1,10 @@
 package io.taig
 
-package object schelm {
+package object schelm extends internal.Nodes {
+  type Node
+  type Element <: Node
+  type Text <: Text
+
   type CommandHandler[F[_], Command, Event] = Command => F[Option[Event]]
 
   type EventHandler[State, Event, Command] =
@@ -29,11 +33,34 @@ package object schelm {
     ): Document[Event, A] = Cofree[Component[+?, Event], A](value, component)
   }
 
+  //  type Reference[+Event, Node] = Document[Event, Option[Node]]
+  //
+  //  object Reference {
+  //    def apply[A, B](
+  //        component: Component[Reference[A, B], A],
+  //        node: Option[B]
+  //    ): Reference[A, B] = Document(component, node)
+  //  }
+  //
+  //  implicit final class ReferenceSyntax[A, Node](reference: Reference[A, Node])
+  //      extends ComponentOps[Reference[?, Node], A](
+  //        reference,
+  //        _.tail,
+  //        (component, node) => Reference(component, node.head)
+  //      )
+
   def toHtml[Event](value: Document[Event, _]): Html[Event] =
     value.tail match {
       case component: Component.Element[Document[Event, _], Event] =>
         val children = component.children.map((_, child) => toHtml(child))
-        Html(Component.Element(component.name, component.attributes, children))
+        Html(
+          Component.Element(
+            component.name,
+            component.attributes,
+            component.listeners,
+            children
+          )
+        )
       case component: Component.Fragment[Document[Event, _]] =>
         val children = component.children.map((_, child) => toHtml(child))
         Html(Component.Fragment(children))

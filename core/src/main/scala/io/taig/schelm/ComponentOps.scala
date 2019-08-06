@@ -7,10 +7,10 @@ abstract class ComponentOps[F[_], A](
     extract: F[A] => Component[F[A], A],
     inject: (Component[F[A], A], F[A]) => F[A]
 ) {
-  final def setAttributes(attributes: Attributes[A]): F[A] =
+  final def setAttributes(attributes: Attributes): F[A] =
     updateAttributes(_ => attributes)
 
-  final def updateAttributes(f: Attributes[A] => Attributes[A]): F[A] =
+  final def updateAttributes(f: Attributes => Attributes): F[A] =
     ComponentOps.updateAttributes(component, extract, inject)(f)
 
   final def children: Children[F[A]] =
@@ -34,7 +34,7 @@ object ComponentOps {
       component: F[A],
       extract: F[A] => Component[F[A], A],
       inject: (Component[F[A], A], F[A]) => F[A]
-  )(f: Attributes[A] => Attributes[A]): F[A] =
+  )(f: Attributes => Attributes): F[A] =
     extract(component) match {
       case element: Component.Element[F[A], A] =>
         inject(element.copy(attributes = f(element.attributes)), component)

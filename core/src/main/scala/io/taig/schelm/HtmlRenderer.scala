@@ -3,66 +3,66 @@ package io.taig.schelm
 import cats.Monad
 import cats.implicits._
 
-final class HtmlRenderer[F[_], Event, Node](dom: Dom[F, Event, Node])(
+final class HtmlRenderer[F[_], Event](dom: Dom[F, Event])(
     implicit F: Monad[F]
-) extends Renderer[F, Html[Event], List[Node]] {
+) extends Renderer[F, Html[Event], Reference[Event]] {
   override def render(
       html: Html[Event],
       path: Path
-  ): F[List[Node]] =
+  ): F[Reference[Event]] =
     html.value match {
       case component: Component.Element[Html[Event], Event] =>
         for {
           element <- dom.createElement(component.name)
-          _ <- component.attributes.traverse_(register(element, path, _))
-          children <- component.children.flatTraverse(
+          _ <- component.attributes.traverse_(register(element, _))
+          _ <- component.listeners.traverse_(register(element, path, _))
+          children <- component.children.traverse(
             (key, child) => render(child, path / key)
           )
-          _ <- dom.appendChildren(element, children)
-        } yield List(element)
+          _ <- dom.appendChildren(element, children.values.flatMap(_.root))
+        } yield Reference.Element(component.copy(children = children), element)
       case component: Component.Fragment[Html[Event]] =>
-        component.children.flatTraverse(
-          (key, child) => render(child, path / key)
-        )
+        component.children
+          .traverse((key, child) => render(child, path / key))
+          .map(component.copy)
+          .map(Reference.Fragment.apply)
       case component: Component.Lazy[Html[Event]] =>
         render(component.eval.value, path)
       case component: Component.Text =>
         dom
           .createTextNode(component.value)
-          .map(node => List(node))
+          .map(Reference.Text(component, _))
     }
 
-  def register(
-      element: dom.Element,
-      path: Path,
-      attribute: Attribute[Event]
-  ): F[Unit] = attribute match {
-    case Attribute(key, value: Value) => register(element, key, value)
-    case Attribute(key, listener: Listener[Event]) =>
-      register(element, path, key, listener)
-  }
-
-  def register(element: dom.Element, key: String, value: Value): F[Unit] =
-    value match {
-      case Value.Flag(true)  => dom.setAttribute(element, key, "")
+  def register(element: Element, attribute: Attribute): F[Unit] =
+    attribute.value match {
+      case Value.Flag(true)  => dom.setAttribute(element, attribute.key, "")
       case Value.Flag(false) => F.unit
       case Value.Multiple(values, accumulator) =>
-        dom.setAttribute(element, key, values.mkString(accumulator.value))
-      case Value.One(value) => dom.setAttribute(element, key, value)
+        dom.setAttribute(
+          element,
+          attribute.key,
+          values.mkString(accumulator.value)
+        )
+      case Value.One(value) => dom.setAttribute(element, attribute.key, value)
     }
 
   def register(
-      element: dom.Element,
+      element: Element,
       path: Path,
-      key: String,
       listener: Listener[Event]
   ): F[Unit] =
-    dom.addEventListener(element, key, path, dom.lift(listener))
+    dom.addEventListener(
+      element,
+      path,
+      listener.event,
+      dom.lift(listener.action)
+    )
 }
 
 object HtmlRenderer {
-  def apply[F[_]: Monad, Event, Node](
-      dom: Dom[F, Event, Node]
-  ): Renderer[F, Html[Event], List[Node]] =
-    new HtmlRenderer[F, Event, Node](dom)
+  def apply[F[_]: Monad, Event](
+      dom: Dom[F, Event]
+  ): Renderer[F, Html[Event], Reference[Event]] =
+    new HtmlRenderer[F, Event](dom)
 }

@@ -2,9 +2,7 @@ package io.taig.schelm
 
 import cats.Semigroup
 
-sealed abstract class Property[+Event] extends Product with Serializable
-
-sealed abstract class Value extends Property[Nothing]
+sealed abstract class Value extends Product with Serializable
 
 object Value {
   final case class Flag(value: Boolean) extends Value
@@ -19,11 +17,4 @@ object Value {
       case (value, _) => value
     }
   }
-}
-
-sealed abstract class Listener[Event] extends Property[Event]
-
-object Listener {
-  final case class Pure[Event](event: Event) extends Listener[Event]
-  final case class Input[Event](event: String => Event) extends Listener[Event]
 }

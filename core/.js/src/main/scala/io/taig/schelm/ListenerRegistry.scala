@@ -28,7 +28,7 @@ final class ListenerRegistry[F[_]](
       .flatMap {
         case true => F.unit
         case false =>
-          val message = s"Listener already registered for $name: $path"
+          val message = s"Action already registered for $name: $path"
           F.raiseError(new RuntimeException(message))
       }
   }
@@ -46,7 +46,7 @@ final class ListenerRegistry[F[_]](
       .flatMap {
         case Some(listener) => listener.pure[F]
         case None =>
-          val message = s"No Listener registered for $name: $path"
+          val message = s"No Action registered for $name: $path"
           F.raiseError(new RuntimeException(message))
       }
   }

@@ -1,6 +1,5 @@
 package io.taig.schelm
 
-import cats.data.Ior
 import cats.implicits._
 
 package object css extends NormalizeCss {
@@ -84,8 +83,6 @@ package object css extends NormalizeCss {
       case _: Component.Text => Stylesheet.Empty
     }
 
-  type StyledHtmlDiff[A] = Ior[HtmlDiff[A], StylesheetDiff]
-
-  private def cls[A](values: List[String]): Attribute[A] =
+  private def cls(values: List[String]): Attribute =
     Attribute("class", Value.Multiple(values, Accumulator.Whitespace))
 }

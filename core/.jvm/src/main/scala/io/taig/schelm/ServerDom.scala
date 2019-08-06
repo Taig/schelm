@@ -11,36 +11,34 @@ import org.jsoup.nodes.{
 }
 import scala.collection.JavaConverters._
 
-final class ServerDom[F[_], A](document: JDocument)(implicit F: Sync[F])
-    extends Dom[F, A, JNode] {
-  override type Element = JElement
-  override type Text = JText
+final class ServerDom[F[_], Event](document: JDocument)(implicit F: Sync[F])
+    extends Dom[F, Event] {
   override type Notify = Unit
 
-  override def lift(listener: Listener[A]): Unit = ()
+  override def lift(listener: Action[Event]): Unit = ()
 
-  override def element(value: JNode): F[Element] = value match {
-    case element: Element => element.pure[F]
-    case _                => EffectHelpers.fail[F]("Not an Element. Dom out of sync?")
+  override def element(value: JNode): F[JElement] = value match {
+    case element: JElement => element.pure[F]
+    case _                 => EffectHelpers.fail[F]("Not an Element. Dom out of sync?")
   }
 
   override def text(value: JNode): F[JText] =
     value match {
-      case text: Text => text.pure[F]
-      case _          => EffectHelpers.fail[F]("Not a Text. Dom out of sync?")
+      case text: JText => text.pure[F]
+      case _           => EffectHelpers.fail[F]("Not a Text. Dom out of sync?")
     }
 
   override def addEventListener(
       node: JNode,
-      name: String,
       path: Path,
+      event: String,
       notify: Unit
   ): F[Unit] = F.unit
 
   override def appendChild(parent: JElement, child: JNode): F[Unit] =
     F.delay(parent.appendChild(child)).void
 
-  override def createElement(name: String): F[Element] =
+  override def createElement(name: String): F[JElement] =
     F.delay(new JElement(name))
 
   override def createTextNode(value: String): F[JText] =
@@ -61,10 +59,10 @@ final class ServerDom[F[_], A](document: JDocument)(implicit F: Sync[F])
   override def getAttribute(element: JElement, key: String): F[Option[String]] =
     F.delay(Some(element.attr(key)).filter(_.nonEmpty))
 
-  override def getElementById(id: String): F[Option[Element]] =
+  override def getElementById(id: String): F[Option[JElement]] =
     F.delay(Option(document.getElementById(id)))
 
-  override def head: F[Element] = F.delay(document.head)
+  override def head: F[JElement] = F.delay(document.head)
 
   override def innerHtml(element: JElement, value: String): F[Unit] =
     F.delay(element.wrap(value)).void
@@ -90,9 +88,9 @@ final class ServerDom[F[_], A](document: JDocument)(implicit F: Sync[F])
 }
 
 object ServerDom {
-  def apply[F[_]: Sync, A](document: JDocument): Dom[F, A, JNode] =
-    new ServerDom[F, A](document)
+  def apply[F[_]: Sync, Event](document: JDocument): Dom[F, Event] =
+    new ServerDom[F, Event](document)
 
-  def apply[F[_], A](implicit F: Sync[F]): F[Dom[F, A, JNode]] =
-    F.delay(new JDocument("/")).map(ServerDom[F, A])
+  def apply[F[_], Event](implicit F: Sync[F]): F[Dom[F, Event]] =
+    F.delay(new JDocument("/")).map(ServerDom[F, Event])
 }

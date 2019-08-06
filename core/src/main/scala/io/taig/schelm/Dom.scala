@@ -3,14 +3,10 @@ package io.taig.schelm
 import cats.Applicative
 import cats.implicits._
 
-abstract class Dom[F[_], Event, Node] {
-  type Element <: Node
-
-  type Text <: Node
-
+abstract class Dom[F[_], Event] {
   type Notify
 
-  def lift(listener: Listener[Event]): Notify
+  def lift(listener: Action[Event]): Notify
 
   def element(value: Node): F[Element]
 
@@ -18,8 +14,8 @@ abstract class Dom[F[_], Event, Node] {
 
   def addEventListener(
       node: Node,
-      name: String,
       path: Path,
+      name: String,
       notify: Notify
   ): F[Unit]
 

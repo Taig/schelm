@@ -6,8 +6,8 @@ import io.taig.schelm.Children
 
 final class NodeBuilder[A](val widget: Widget[A]) extends AnyVal {
   def apply(
-      property: Attribute[A],
-      properties: Attribute[A]*
+      property: Attribute,
+      properties: Attribute*
   ): ChildrenBuilder[A] =
     new ChildrenBuilder(
       widget.setAttributes(Attributes.from(property +: properties))
@@ -21,7 +21,7 @@ final class NodeBuilder[A](val widget: Widget[A]) extends AnyVal {
 }
 
 final class TagBuilder[A](val widget: Widget[A]) extends AnyVal {
-  def apply(property: Attribute[A], properties: Attribute[A]*): Widget[A] =
+  def apply(property: Attribute, properties: Attribute*): Widget[A] =
     widget.setAttributes(Attributes.from(property +: properties))
 }
 

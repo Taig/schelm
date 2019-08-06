@@ -9,9 +9,11 @@ final case class Path(values: Chain[String]) extends AnyVal {
 
   def /(key: Key): Path = this / s"[$key]"
 
-  def render: String = values.mkString_(" / ")
+  override def toString: String = values.mkString_(" / ")
 }
 
 object Path {
   val Empty: Path = Path(Chain.empty)
+
+  val Root: Path = Path(Chain.one("root"))
 }
