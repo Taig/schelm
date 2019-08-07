@@ -1,25 +1,32 @@
 package io.taig.schelm.css
 
-import cats.{Functor, MonadError}
-import cats.implicits._
+import cats._
 import cats.data.Ior
+import cats.implicits._
 import io.taig.schelm._
+import io.taig.schelm.css.internal.StyleHelpers
 
-final class StyledReferencePatcher[F[_]: Functor, Event](
-    patcher: Patcher[F, Reference[Event], HtmlDiff[Event]]
-) extends Patcher[F, StyledReference[Event], StyledHtmlDiff[Event]] {
+final class StyledReferencePatcher[F[_]: Monad, A](
+    style: Element,
+    html: Patcher[F, Reference[A], HtmlDiff[A]],
+    stylesheet: StylesheetPatcher[F, A]
+) extends Patcher[F, StyledReference[A], StyledHtmlDiff[A]] {
   override def patch(
-      reference: StyledReference[Event],
-      diff: StyledHtmlDiff[Event],
+      reference: StyledReference[A],
+      diff: StyledHtmlDiff[A],
       path: Path
-  ): F[StyledReference[Event]] = {
+  ): F[StyledReference[A]] = {
     diff match {
       case Ior.Left(html) =>
-        patcher
+        this.html
           .patch(reference.reference, html, path)
           .map(StyledReference(_, reference.stylesheet))
-      case Ior.Right(stylesheet)      => ???
-      case Ior.Both(html, stylesheet) => ???
+      case Ior.Right(stylesheet) => ???
+      case Ior.Both(left, right) =>
+        for {
+          html <- html.patch(reference.reference, left, path)
+          stylesheet <- stylesheet.patch(style, reference.stylesheet, right)
+        } yield StyledReference(html, stylesheet)
     }
   }
 }
@@ -28,6 +35,12 @@ object StyledReferencePatcher {
   def apply[F[_]: MonadError[?[_], Throwable], Event](
       dom: Dom[F, Event],
       renderer: Renderer[F, Html[Event], Reference[Event]]
-  ): Patcher[F, StyledReference[Event], StyledHtmlDiff[Event]] =
-    new StyledReferencePatcher[F, Event](ReferencePatcher(dom, renderer))
+  ): F[Patcher[F, StyledReference[Event], StyledHtmlDiff[Event]]] =
+    StyleHelpers.getOrCreateStyleElement(dom).map { style =>
+      new StyledReferencePatcher[F, Event](
+        style,
+        ReferencePatcher(dom, renderer),
+        StylesheetPatcher(dom)
+      )
+    }
 }

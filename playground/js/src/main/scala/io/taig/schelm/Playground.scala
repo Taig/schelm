@@ -12,13 +12,14 @@ object Playground extends IOApp {
       dom <- BrowserDom[IO, Event](manager)
       renderer = HtmlRenderer(dom)
       attacher = StyledReferenceAttacher(dom)
+      patcher <- StyledReferencePatcher(dom, renderer)
       schelm = Schelm(
         dom,
         manager,
         StyledHtmlRenderer(renderer),
         attacher,
         StyledHtmlDiffer[Event],
-        StyledReferencePatcher(dom, renderer)
+        patcher
       )
       _ <- schelm.start(
         "main",

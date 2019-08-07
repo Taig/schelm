@@ -2,23 +2,23 @@ package io.taig.schelm.css
 
 import cats.Monoid
 
-final case class Stylesheet(values: List[Rule]) {
-  def +:(rule: Rule): Stylesheet = Stylesheet(rule +: values)
-
-  def :+(rule: Rule): Stylesheet = Stylesheet(values :+ rule)
+final case class Stylesheet(values: Set[Rule]) {
+  def +(rule: Rule): Stylesheet = Stylesheet(values + rule)
 
   def ++(stylesheet: Stylesheet): Stylesheet =
     Stylesheet(values ++ stylesheet.values)
+
+  def toSet: Set[Rule] = values
 
   override def toString: String = values.map(_.toString).mkString("\n")
 }
 
 object Stylesheet {
-  val Empty: Stylesheet = Stylesheet(List.empty)
+  val Empty: Stylesheet = Stylesheet(Set.empty)
 
   def of(rules: Rule*): Stylesheet = from(rules)
 
-  def from(rules: Iterable[Rule]): Stylesheet = Stylesheet(rules.toList)
+  def from(rules: Iterable[Rule]): Stylesheet = Stylesheet(rules.toSet)
 
   implicit val monoid: Monoid[Stylesheet] = new Monoid[Stylesheet] {
     override def empty: Stylesheet = Empty

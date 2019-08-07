@@ -1,9 +1,8 @@
 package io.taig.schelm
 
-import cats.implicits._
 import io.taig.schelm.{Element => SElement, Node => SNode, Text => SText}
 
-sealed abstract class Reference[+Event] extends Product with Serializable {
+sealed abstract class Reference[+A] extends Product with Serializable {
   final def root: List[SNode] = this match {
     case Reference.Element(_, node) => List(node)
     case Reference.Fragment(component) =>
@@ -13,14 +12,14 @@ sealed abstract class Reference[+Event] extends Product with Serializable {
 }
 
 object Reference {
-  final case class Element[Event](
-      component: Component.Element[Reference[Event], Event],
+  final case class Element[A](
+      component: Component.Element[Reference[A], A],
       node: SElement
-  ) extends Reference[Event]
+  ) extends Reference[A]
 
-  final case class Fragment[Event](
-      component: Component.Fragment[Reference[Event]]
-  ) extends Reference[Event]
+  final case class Fragment[A](
+      component: Component.Fragment[Reference[A]]
+  ) extends Reference[A]
 
   final case class Text(component: Component.Text, node: SText)
       extends Reference[Nothing]

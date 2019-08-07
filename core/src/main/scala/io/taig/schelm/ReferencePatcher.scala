@@ -4,33 +4,21 @@ import cats._
 import cats.implicits._
 import io.taig.schelm.internal.EffectHelpers
 
-final class ReferencePatcher[F[_], Event](
-    dom: Dom[F, Event],
-    renderer: Renderer[F, Html[Event], Reference[Event]]
+final class ReferencePatcher[F[_], A](
+    dom: Dom[F, A],
+    renderer: Renderer[F, Html[A], Reference[A]]
 )(implicit F: MonadError[F, Throwable])
-    extends Patcher[F, Reference[Event], HtmlDiff[Event]] {
+    extends Patcher[F, Reference[A], HtmlDiff[A]] {
   override def patch(
-      reference: Reference[Event],
-      diff: HtmlDiff[Event],
+      reference: Reference[A],
+      diff: HtmlDiff[A],
       path: Path
-  ): F[Reference[Event]] =
+  ): F[Reference[A]] =
     // format: off
     (reference, diff) match {
-      case (_, HtmlDiff.Group(diffs)) =>
-        diffs.foldLeftM(reference)(patch(_, _, path))
-      case (element@Reference.Element(_, node), HtmlDiff.AddAttribute(attribute)) =>
-        val key = attribute.key
-        val update = attribute.value match {
-          case Value.Flag(true) => dom.setAttribute(node, key, "")
-          case Value.Flag(false) => F.unit
-          case Value.Multiple(values, accumulator) =>
-            dom.setAttribute(node, key, values.mkString(accumulator.value))
-          case Value.One(value) => dom.setAttribute(node, key, value)
-        }
-        update *> element.updateAttributes(_ + attribute).pure[F]
-      case (element@Reference.Element(_, node), HtmlDiff.RemoveAttribute(key)) =>
-        dom.removeAttribute(node, key) *>
-        element.updateAttributes(_ - key).pure[F]
+      case (_, diff: HtmlDiff.Group[A]) => group(reference, diff, path)
+      case (reference: Reference.Element[A], diff: HtmlDiff.AddAttribute) => addAttribute(reference, diff)
+      case (reference: Reference.Element[A], diff: HtmlDiff.RemoveAttribute) => removeAttribute(reference, diff)
       case (element@Reference.Element(_, node), HtmlDiff.RemoveListener(event)) =>
         dom.removeEventListener(node, event, path) *>
         element.updateListeners(_ - event).pure[F]
@@ -66,10 +54,42 @@ final class ReferencePatcher[F[_], Event](
     }
     // format: on
 
+  def addAttribute(
+      reference: Reference.Element[A],
+      diff: HtmlDiff.AddAttribute
+  ): F[Reference[A]] = {
+    val node = reference.node
+    val key = diff.attribute.key
+
+    val update = diff.attribute.value match {
+      case Value.Flag(true)  => dom.setAttribute(node, key, "")
+      case Value.Flag(false) => F.unit
+      case Value.Multiple(values, accumulator) =>
+        dom.setAttribute(node, key, values.mkString(accumulator.value))
+      case Value.One(value) => dom.setAttribute(node, key, value)
+    }
+
+    update *> reference.updateAttributes(_ + diff.attribute).pure[F]
+  }
+
+  def removeAttribute(
+      reference: Reference.Element[A],
+      diff: HtmlDiff.RemoveAttribute
+  ): F[Reference[A]] =
+    dom.removeAttribute(reference.node, diff.key) *>
+      reference.updateAttributes(_ - diff.key).pure[F]
+
+  def group(
+      reference: Reference[A],
+      diff: HtmlDiff.Group[A],
+      path: Path
+  ): F[Reference[A]] =
+    diff.diffs.foldLeftM(reference)(patch(_, _, path))
+
   def child(
-      children: Children[Reference[Event]],
+      children: Children[Reference[A]],
       key: Key
-  ): F[Reference[Event]] =
+  ): F[Reference[A]] =
     EffectHelpers
       .get[F](children.get(key), s"No child for key $key. Dom out of sync?")
 }
