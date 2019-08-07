@@ -10,16 +10,6 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 object App extends Dsl {
-  val html: Html[Event] =
-    Html(
-      Component.Fragment(
-        Children.of(
-          Html(Component.Text("Hello World")),
-          Html(Component.Text("Hello World"))
-        )
-      )
-    )
-
   def widget(state: State): Widget[Event] =
     css(
       div(
@@ -29,7 +19,8 @@ object App extends Dsl {
         br,
         button(
           style(cursor(pointer)),
-          if (state.clicks < 5) onClick(Event.Increment(1)).some else None
+          if (state.clicks < 5) onClick(Event.Increment(1))
+          else onClick(Event.Increment(5))
         )(
           s"Does this work?: ${state.clicks}"
         )

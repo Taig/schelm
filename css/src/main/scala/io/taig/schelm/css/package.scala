@@ -1,8 +1,11 @@
 package io.taig.schelm
 
+import cats.data.Ior
 import cats.implicits._
 
 package object css extends NormalizeCss {
+  type StyledHtmlDiff[A] = Ior[HtmlDiff[A], StylesheetDiff]
+
   type Widget[+Event] = Document[Event, Styles]
 
   object Widget {

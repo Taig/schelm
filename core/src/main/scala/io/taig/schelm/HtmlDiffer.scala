@@ -101,7 +101,9 @@ class HtmlDiffer[A] extends Differ[Html[A], HtmlDiff[A]] {
   def children(
       previous: Children.Identified[Html[A]],
       next: Children.Identified[Html[A]]
-  ): Option[HtmlDiff[A]] = None
+  ): Option[HtmlDiff[A]] =
+    // TODO
+    None
 
   def listeners(
       previous: Listeners[A],

@@ -5,7 +5,7 @@ import cats.implicits._
 import io.taig.schelm.css.internal.StyleHelpers
 import io.taig.schelm._
 
-final class StyledNodesAttacher[F[_]: Monad, Event](
+final class StyledReferenceAttacher[F[_]: Monad, Event](
     dom: Dom[F, Event],
     attacher: Attacher[F, Reference[Event]]
 ) extends Attacher[F, StyledReference[Event]] {
@@ -22,9 +22,9 @@ final class StyledNodesAttacher[F[_]: Monad, Event](
   }
 }
 
-object StyledNodesAttacher {
+object StyledReferenceAttacher {
   def apply[F[_]: Monad, Event](
       dom: Dom[F, Event]
   ): Attacher[F, StyledReference[Event]] =
-    new StyledNodesAttacher[F, Event](dom, ReferenceAttacher(dom))
+    new StyledReferenceAttacher[F, Event](dom, ReferenceAttacher(dom))
 }

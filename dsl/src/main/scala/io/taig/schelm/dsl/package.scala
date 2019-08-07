@@ -9,12 +9,14 @@ package object dsl {
   type DeclarationOrPseudo = Either[Declaration, PseudoDeclaration]
 
   @tailrec
-  private [dsl] def flatten[A](optional: Property.Optional[A]): Option[Either[Attribute, Listener[A]]] =
+  private[dsl] def flatten[A](
+      optional: Property.Optional[A]
+  ): Option[Either[Attribute, Listener[A]]] =
     optional.property match {
-      case Some(Property.Attribute(value)) => value.asLeft.some
+      case Some(Property.Attribute(value))      => value.asLeft.some
       case Some(listener: Property.Listener[A]) => listener.value.asRight.some
       case Some(optional: Property.Optional[A]) => flatten(optional)
-      case None => None
+      case None                                 => None
     }
 
   private[dsl] def split[A](
@@ -24,13 +26,13 @@ package object dsl {
     val listeners = collection.mutable.ListBuffer.empty[Listener[A]]
 
     properties.foreach {
-      case Property.Attribute(attribute) => attributes += attribute
+      case Property.Attribute(attribute)  => attributes += attribute
       case listener: Property.Listener[A] => listeners += listener.value
       case optional: Property.Optional[A] =>
         flatten(optional) match {
           case Some(Left(attribute)) => attributes += attribute
           case Some(Right(listener)) => listeners += listener
-          case None => //
+          case None                  => //
         }
     }
 

@@ -11,19 +11,19 @@ object Playground extends IOApp {
       manager <- EventManager.unbounded[IO, Event]
       dom <- BrowserDom[IO, Event](manager)
       renderer = HtmlRenderer(dom)
-      attacher = ReferenceAttacher(dom)
+      attacher = StyledReferenceAttacher(dom)
       schelm = Schelm(
         dom,
         manager,
-        renderer,
+        StyledHtmlRenderer(renderer),
         attacher,
-        HtmlDiffer[Event],
-        ReferencePatcher(dom, renderer)
+        StyledHtmlDiffer[Event],
+        StyledReferencePatcher(dom, renderer)
       )
       _ <- schelm.start(
         "main",
         State(),
-        (state: State) => toHtml(toStyledHtml(App.widget(state))),
+        (state: State) => toStyledHtml(App.widget(state)),
         App.events,
         App.commands,
         Stream.empty
