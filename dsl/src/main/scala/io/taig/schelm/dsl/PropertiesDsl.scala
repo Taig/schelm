@@ -5,11 +5,16 @@ import io.taig.schelm.css.{Declaration, Declarations}
 import io.taig.schelm._
 
 trait PropertiesDsl {
-  implicit def attributeToProperty[A](attribute: Attribute): Property[A] =
-    attribute.asLeft
+  implicit def attributeToProperty(attribute: Attribute): Property[Nothing] = Property(attribute)
+
+  implicit def attributeOptionToProperty(attribute: Option[Attribute]): Property[Nothing] =
+    Property.optional(attribute.map(attributeToProperty))
 
   implicit def listenerToProperty[A](listener: Listener[A]): Property[A] =
-    listener.asRight
+    Property(listener)
+
+  implicit def listenerOptionToProperty[A](listener: Option[Listener[A]]): Property[A] =
+    Property.optional(listener.map(listenerToProperty))
 
   def attr(key: String, value: String): Attribute =
     Attribute(key, Value.One(value))

@@ -56,7 +56,7 @@ abstract class Dom[F[_], Event] {
   ): F[Unit] =
     children.traverse_(removeChild(parent, _))
 
-  def removeEventListener(node: Node, name: String, path: Path): F[Unit]
+  def removeEventListener(node: Node, event: String, path: Path): F[Unit]
 
   def setAttribute(element: Element, key: String, value: String): F[Unit]
 }

@@ -17,6 +17,9 @@ final class ReferencePatcher[F[_]: MonadError[?[_], Throwable], Event](
     (reference, diff) match {
       case (_, HtmlDiff.Group(diffs)) =>
         diffs.foldLeftM(reference)(patch(_, _, path))
+      case (element@Reference.Element(_, node), HtmlDiff.RemoveListener(event)) =>
+        dom.removeEventListener(node, event, path) *>
+        element.updateListeners(_ - event).pure[F]
       case (parent@Reference.Element(component, _), HtmlDiff.UpdateChild(key, diff)) =>
         for {
           reference <- child(component.children, key)

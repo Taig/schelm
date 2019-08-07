@@ -4,7 +4,7 @@ import cats.Eq
 import cats.effect.IO
 import cats.implicits._
 import io.taig.schelm.css._
-import io.taig.schelm.dsl.Dsl
+import io.taig.schelm.dsl.{Dsl, Property}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -29,8 +29,7 @@ object App extends Dsl {
         br,
         button(
           style(cursor(pointer)),
-          if (state.clicks > 3) onClick(Event.Increment(5))
-          else onClick(Event.Increment(1))
+          if (state.clicks < 5) onClick(Event.Increment(1)).some else None
         )(
           s"Does this work?: ${state.clicks}"
         )

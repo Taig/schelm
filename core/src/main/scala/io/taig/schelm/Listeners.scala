@@ -7,11 +7,9 @@ import cats.implicits._
 import scala.collection.mutable
 
 final case class Listeners[A](values: Map[String, Action[A]]) extends AnyVal {
-  final def isEmpty: Boolean = values.isEmpty
+  def isEmpty: Boolean = values.isEmpty
 
-  def toList: List[Listener[A]] = values.toList.map {
-    case (event, action) => Listener(event, action)
-  }
+  def -(event: String): Listeners[A] = Listeners(values - event)
 
   def updated(event: String, action: Action[A]): Listeners[A] =
     Listeners(values.updated(event, action))
@@ -20,6 +18,10 @@ final case class Listeners[A](values: Map[String, Action[A]]) extends AnyVal {
 
   def traverse_[F[_]: Applicative, B](f: Listener[A] => F[B]): F[Unit] =
     toList.traverse_(f)
+
+  def toList: List[Listener[A]] = values.toList.map {
+    case (event, action) => Listener(event, action)
+  }
 
   def zipAll(
       listeners: Listeners[A]
