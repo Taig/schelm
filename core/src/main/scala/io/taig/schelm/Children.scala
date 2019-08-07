@@ -145,26 +145,6 @@ sealed abstract class Children[A] extends Product with Serializable {
     case Children.Indexed(values)    => values
     case Children.Identified(values) => values.values.toList
   }
-
-  def zipAll(children: Children[A]): List[(Key, Ior[A, A])] = {
-    val result = mutable.LinkedHashMap.empty[Key, Ior[A, A]]
-
-    this.toList.foreach {
-      case (key, value) => result.put(key, Ior.left(value))
-    }
-
-    children.toList.foreach {
-      case (key, value) =>
-        val update = result
-          .get(key)
-          .map(_.putRight(value))
-          .getOrElse(Ior.right(value))
-
-        result.put(key, update)
-    }
-
-    result.toList
-  }
 }
 
 object Children {

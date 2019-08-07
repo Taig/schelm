@@ -18,7 +18,7 @@ object Playground extends IOApp {
         renderer,
         attacher,
         HtmlDiffer[Event],
-        ReferencePatcher(renderer)
+        ReferencePatcher(dom, renderer)
       )
       _ <- schelm.start(
         "main",

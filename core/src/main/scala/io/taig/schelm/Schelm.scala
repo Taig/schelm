@@ -38,7 +38,7 @@ final class Schelm[F[_], Event, Component, Reference, Diff](
     val component = render(initial)
 
     for {
-      reference <- renderer.render(component, Path.Empty)
+      reference <- renderer.render(component, Path.Root)
       _ <- attacher.attach(container, reference)
       htmls = (manager.subscription merge subscriptions)
         .evalScan(initial) { (state, event) =>
@@ -61,7 +61,7 @@ final class Schelm[F[_], Event, Component, Reference, Diff](
       .evalScan((initial, reference)) {
         case (data @ (previous, reference), next) =>
           differ.diff(previous, next).fold(data.pure[F]) { diff =>
-            patcher.patch(reference, diff, Path.Empty).map((next, _))
+            patcher.patch(reference, diff, Path.Root).map((next, _))
           }
       }
       .compile

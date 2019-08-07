@@ -21,12 +21,16 @@ class HtmlDiffer[A] extends Differ[Html[A], HtmlDiff[A]] {
   def element(
       previous: Component.Element[Html[A], A],
       next: Component.Element[Html[A], A]
-  ): Option[HtmlDiff[A]] = None
+  ): Option[HtmlDiff[A]] = {
+    if (previous.name != next.name) HtmlDiff.Replace(Html(next)).some
+    else children(previous.children, next.children)
+  }
 
   def fragment(
       previous: Component.Fragment[Html[A]],
       next: Component.Fragment[Html[A]]
-  ): Option[HtmlDiff[A]] = None
+  ): Option[HtmlDiff[A]] =
+    children(previous.children, next.children)
 
   def lzy(
       previous: Component.Lazy[Html[A]],
@@ -38,9 +42,67 @@ class HtmlDiffer[A] extends Differ[Html[A], HtmlDiff[A]] {
   def text(
       previous: Component.Text,
       next: Component.Text
-  ): Option[HtmlDiff[A]] =
+  ): Option[HtmlDiff[A]] = {
     if (previous.value != next.value) HtmlDiff.UpdateText(next.value).some
     else None
+  }
+
+  def children(
+      previous: Children[Html[A]],
+      next: Children[Html[A]]
+  ): Option[HtmlDiff[A]] =
+    if (previous.isEmpty && next.isEmpty) None
+    else if (previous.isEmpty)
+      HtmlDiff.from(next.toList.map(HtmlDiff.addChild))
+    else if (next.isEmpty)
+      HtmlDiff.from(previous.keys.map(HtmlDiff.RemoveChild))
+    else compare(previous, next)
+
+  def compare(
+      previous: Children[Html[A]],
+      next: Children[Html[A]]
+  ): Option[HtmlDiff[A]] =
+    // format: off
+    (previous, next) match {
+      case (previous: Children.Indexed[Html[A]], next: Children.Indexed[Html[A]]) =>
+        compare(previous, next)
+      case (previous: Children.Identified[Html[A]], next: Children.Identified[Html[A]]) =>
+        compare(previous, next)
+      case (_, next) =>
+        HtmlDiff.from(HtmlDiff.Clear +: next.toList.map(HtmlDiff.addChild))
+    }
+    // format: on
+
+  def compare(
+      previous: Children.Indexed[Html[A]],
+      next: Children.Indexed[Html[A]]
+  ): Option[HtmlDiff[A]] = {
+    val left = previous.values
+    val right = next.values
+    val diffs = (left zip right).zipWithIndex.mapFilter {
+      case ((previous, next), index) =>
+        diff(previous, next).map(HtmlDiff.Select(Key.Index(index), _))
+    }
+
+    if (left.length < right.length) {
+      val adds = right.zipWithIndex.drop(left.length).map {
+        case (html, index) => HtmlDiff.AddChild(Key.Index(index), html)
+      }
+      HtmlDiff.from(diffs ++ adds)
+    } else if (left.length > right.length) {
+      val removes = left.indices
+        .drop(right.length)
+        .map(Key.Index)
+        .map(HtmlDiff.RemoveChild)
+      HtmlDiff.from(diffs ++ removes)
+    } else HtmlDiff.from(diffs)
+  }
+
+  def compare(
+      previous: Children.Identified[Html[A]],
+      next: Children.Identified[Html[A]]
+  ): Option[HtmlDiff[A]] = None
+
 }
 
 object HtmlDiffer {

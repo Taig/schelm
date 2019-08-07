@@ -5,28 +5,34 @@ import cats.implicits._
 import io.taig.schelm.internal.EffectHelpers
 
 final class ReferencePatcher[F[_]: MonadError[?[_], Throwable], Event](
+    dom: Dom[F, Event],
     renderer: Renderer[F, Html[Event], Reference[Event]]
 ) extends Patcher[F, Reference[Event], HtmlDiff[Event]] {
   override def patch(
       reference: Reference[Event],
       diff: HtmlDiff[Event],
       path: Path
-  ): F[Reference[Event]] = {
+  ): F[Reference[Event]] =
+    // format: off
     (reference, diff) match {
-      case (Reference.Element(component, _), HtmlDiff.Select(key, diff)) =>
+      case (parent@Reference.Element(component, _), HtmlDiff.Select(key, diff)) =>
         for {
           reference <- child(component.children, key)
           child <- patch(reference, diff, path / key)
-        } yield reference.updateChildren(_.updated(key, child))
-      case (Reference.Fragment(component), HtmlDiff.Select(key, diff)) =>
+        } yield parent.updateChildren(_.updated(key, child))
+      case (parent@Reference.Fragment(component), HtmlDiff.Select(key, diff)) =>
         for {
           reference <- child(component.children, key)
           child <- patch(reference, diff, path / key)
-        } yield reference.updateChildren(_.updated(key, child))
+        } yield parent.updateChildren(_.updated(key, child))
       case (_, HtmlDiff.Replace(html)) => renderer.render(html, path)
-      case _                           => EffectHelpers.fail[F](s"Can not apply patch for $diff")
+      case (reference @ Reference.Text(_, node), HtmlDiff.UpdateText(value)) =>
+        dom.data(node, value) *> reference.pure[F].widen
+      case _ =>
+        val component = Reference.extract(reference)
+        EffectHelpers.fail[F](s"Can not apply patch $diff for $component")
     }
-  }
+    // format: on
 
   def child(
       children: Children[Reference[Event]],
@@ -38,7 +44,8 @@ final class ReferencePatcher[F[_]: MonadError[?[_], Throwable], Event](
 
 object ReferencePatcher {
   def apply[F[_]: MonadError[?[_], Throwable], Event](
+      dom: Dom[F, Event],
       renderer: Renderer[F, Html[Event], Reference[Event]]
   ): Patcher[F, Reference[Event], HtmlDiff[Event]] =
-    new ReferencePatcher[F, Event](renderer)
+    new ReferencePatcher[F, Event](dom, renderer)
 }
