@@ -54,9 +54,9 @@ final class HtmlRenderer[F[_], Event](dom: Dom[F, Event])(
   ): F[Unit] =
     dom.addEventListener(
       element,
-      path,
       listener.event,
-      dom.lift(listener.action)
+      dom.lift(listener.action),
+      path
     )
 }
 

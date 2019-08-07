@@ -135,9 +135,7 @@ sealed abstract class Children[A] extends Product with Serializable {
 
   def keys: List[Key] = this match {
     case Children.Indexed(values) =>
-      values.zipWithIndex.map {
-        case (_, index) => Key.Index(index)
-      }
+      values.zipWithIndex.map { case (_, index) => Key.Index(index) }
     case Children.Identified(values) => values.keys.toList.map(Key.Identifier)
   }
 

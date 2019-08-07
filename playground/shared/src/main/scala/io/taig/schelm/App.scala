@@ -27,7 +27,11 @@ object App extends Dsl {
       )(
         p("Hello World"),
         br,
-        button(style(cursor(pointer)), onClick(Event.Increment(1)))(
+        button(
+          style(cursor(pointer)),
+          if (state.clicks > 3) onClick(Event.Increment(5))
+          else onClick(Event.Increment(1))
+        )(
           s"Does this work?: ${state.clicks}"
         )
       ),

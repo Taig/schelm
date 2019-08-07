@@ -43,9 +43,9 @@ final class BrowserDom[F[_], Event](
 
   override def addEventListener(
       node: dom.Node,
-      path: Path,
       event: String,
-      listener: Notify
+      listener: Notify,
+      path: Path
   ): F[Unit] = {
     registry.register(event, path, listener) *>
       F.delay(node.addEventListener(event, listener))

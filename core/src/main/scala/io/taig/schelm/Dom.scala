@@ -14,9 +14,9 @@ abstract class Dom[F[_], Event] {
 
   def addEventListener(
       node: Node,
-      path: Path,
-      name: String,
-      notify: Notify
+      event: String,
+      notify: Notify,
+      path: Path
   ): F[Unit]
 
   def appendChild(parent: Element, child: Node): F[Unit]

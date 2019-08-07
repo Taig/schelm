@@ -44,7 +44,7 @@ final case class Attributes(
     val result =
       mutable.LinkedHashMap.empty[String, Ior[Value, Value]]
 
-    this.values
+    values
       .foreach { case (key, property) => result.put(key, Ior.left(property)) }
 
     attributes.values.foreach {

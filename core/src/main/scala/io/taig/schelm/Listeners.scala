@@ -1,20 +1,51 @@
 package io.taig.schelm
 
 import cats.Applicative
+import cats.data.Ior
 import cats.implicits._
 
-final case class Listeners[Event](values: Map[String, Action[Event]])
-    extends AnyVal {
-  def toList: List[Listener[Event]] = values.toList.map {
+import scala.collection.mutable
+
+final case class Listeners[A](values: Map[String, Action[A]]) extends AnyVal {
+  final def isEmpty: Boolean = values.isEmpty
+
+  def toList: List[Listener[A]] = values.toList.map {
     case (event, action) => Listener(event, action)
   }
 
-  def traverse_[F[_]: Applicative, B](f: Listener[Event] => F[B]): F[Unit] =
+  def updated(event: String, action: Action[A]): Listeners[A] =
+    Listeners(values.updated(event, action))
+
+  def events: List[String] = values.keys.toList
+
+  def traverse_[F[_]: Applicative, B](f: Listener[A] => F[B]): F[Unit] =
     toList.traverse_(f)
+
+  def zipAll(
+      listeners: Listeners[A]
+  ): List[(String, Ior[Action[A], Action[A]])] = {
+    val result = mutable.HashMap.empty[String, Ior[Action[A], Action[A]]]
+
+    this.values.foreach {
+      case (event, action) => result.put(event, Ior.left(action))
+    }
+
+    listeners.values.foreach {
+      case (key, property) =>
+        val update = result
+          .get(key)
+          .map(_.putRight(property))
+          .getOrElse(Ior.right(property))
+
+        result.put(key, update)
+    }
+
+    result.toList
+  }
 }
 
 object Listeners {
-  def empty[Event]: Listeners[Event] = Listeners(Map.empty)
+  def empty[A]: Listeners[A] = Listeners(Map.empty)
 
   def of[A](values: Listener[A]*): Listeners[A] = from(values)
 

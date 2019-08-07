@@ -1,5 +1,6 @@
 package io.taig.schelm
 
+import cats.data.Ior
 import cats.implicits._
 
 class HtmlDiffer[A] extends Differ[Html[A], HtmlDiff[A]] {
@@ -23,7 +24,11 @@ class HtmlDiffer[A] extends Differ[Html[A], HtmlDiff[A]] {
       next: Component.Element[Html[A], A]
   ): Option[HtmlDiff[A]] = {
     if (previous.name != next.name) HtmlDiff.Replace(Html(next)).some
-    else children(previous.children, next.children)
+    else {
+      val diffs = listeners(previous.listeners, next.listeners).toList ++
+        children(previous.children, next.children).toList
+      HtmlDiff.from(diffs)
+    }
   }
 
   def fragment(
@@ -56,24 +61,19 @@ class HtmlDiffer[A] extends Differ[Html[A], HtmlDiff[A]] {
       HtmlDiff.from(next.toList.map(HtmlDiff.addChild))
     else if (next.isEmpty)
       HtmlDiff.from(previous.keys.map(HtmlDiff.RemoveChild))
-    else compare(previous, next)
+    else
+      // format: off
+      (previous, next) match {
+        case (previous: Children.Indexed[Html[A]], next: Children.Indexed[Html[A]]) =>
+          children(previous, next)
+        case (previous: Children.Identified[Html[A]], next: Children.Identified[Html[A]]) =>
+          children(previous, next)
+        case (_, next) =>
+          HtmlDiff.from(HtmlDiff.Clear +: next.toList.map(HtmlDiff.addChild))
+      }
+      // format: on
 
-  def compare(
-      previous: Children[Html[A]],
-      next: Children[Html[A]]
-  ): Option[HtmlDiff[A]] =
-    // format: off
-    (previous, next) match {
-      case (previous: Children.Indexed[Html[A]], next: Children.Indexed[Html[A]]) =>
-        compare(previous, next)
-      case (previous: Children.Identified[Html[A]], next: Children.Identified[Html[A]]) =>
-        compare(previous, next)
-      case (_, next) =>
-        HtmlDiff.from(HtmlDiff.Clear +: next.toList.map(HtmlDiff.addChild))
-    }
-    // format: on
-
-  def compare(
+  def children(
       previous: Children.Indexed[Html[A]],
       next: Children.Indexed[Html[A]]
   ): Option[HtmlDiff[A]] = {
@@ -81,7 +81,7 @@ class HtmlDiffer[A] extends Differ[Html[A], HtmlDiff[A]] {
     val right = next.values
     val diffs = (left zip right).zipWithIndex.mapFilter {
       case ((previous, next), index) =>
-        diff(previous, next).map(HtmlDiff.Select(Key.Index(index), _))
+        diff(previous, next).map(HtmlDiff.UpdateChild(Key.Index(index), _))
     }
 
     if (left.length < right.length) {
@@ -98,11 +98,28 @@ class HtmlDiffer[A] extends Differ[Html[A], HtmlDiff[A]] {
     } else HtmlDiff.from(diffs)
   }
 
-  def compare(
+  def children(
       previous: Children.Identified[Html[A]],
       next: Children.Identified[Html[A]]
   ): Option[HtmlDiff[A]] = None
 
+  def listeners(
+      previous: Listeners[A],
+      next: Listeners[A]
+  ): Option[HtmlDiff[A]] =
+    if (previous.isEmpty && next.isEmpty) None
+    else {
+      val diffs = (previous zipAll next).mapFilter {
+        case (event, Ior.Both(previous, next)) =>
+          if (previous == next) None
+          else HtmlDiff.UpdateListener(event, next).some
+        case (event, Ior.Left(_)) => HtmlDiff.RemoveListener(event).some
+        case (event, Ior.Right(next)) =>
+          HtmlDiff.AddListener(Listener(event, next)).some
+      }
+
+      HtmlDiff.from(diffs)
+    }
 }
 
 object HtmlDiffer {

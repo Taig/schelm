@@ -30,9 +30,9 @@ final class ServerDom[F[_], Event](document: JDocument)(implicit F: Sync[F])
 
   override def addEventListener(
       node: JNode,
-      path: Path,
       event: String,
-      notify: Unit
+      notify: Unit,
+      path: Path
   ): F[Unit] = F.unit
 
   override def appendChild(parent: JElement, child: JNode): F[Unit] =

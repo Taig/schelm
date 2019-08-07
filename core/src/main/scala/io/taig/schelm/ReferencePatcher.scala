@@ -15,12 +15,18 @@ final class ReferencePatcher[F[_]: MonadError[?[_], Throwable], Event](
   ): F[Reference[Event]] =
     // format: off
     (reference, diff) match {
-      case (parent@Reference.Element(component, _), HtmlDiff.Select(key, diff)) =>
+      case (_, HtmlDiff.Group(diffs)) =>
+        diffs.foldLeftM(reference)(patch(_, _, path))
+      case (parent@Reference.Element(component, _), HtmlDiff.UpdateChild(key, diff)) =>
         for {
           reference <- child(component.children, key)
           child <- patch(reference, diff, path / key)
         } yield parent.updateChildren(_.updated(key, child))
-      case (parent@Reference.Fragment(component), HtmlDiff.Select(key, diff)) =>
+      case (element@Reference.Element(_, node), HtmlDiff.UpdateListener(event, action)) =>
+        dom.removeEventListener(node, event, path) *>
+        dom.addEventListener(node, event, dom.lift(action), path) *>
+        element.updateListeners(_.updated(event, action)).pure[F]
+      case (parent@Reference.Fragment(component), HtmlDiff.UpdateChild(key, diff)) =>
         for {
           reference <- child(component.children, key)
           child <- patch(reference, diff, path / key)
