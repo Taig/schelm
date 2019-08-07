@@ -20,6 +20,8 @@ final case class Attributes(
   def ++(properties: Attributes): Attributes =
     Attributes(values ++ properties.values)
 
+  def -(key: String): Attributes = Attributes(values - key)
+
   def map[B](f: Attribute => B): List[B] = toList.map(f)
 
   /**
@@ -72,7 +74,9 @@ object Attributes {
   def of(values: Attribute*): Attributes = from(values)
 
   def from(values: Iterable[Attribute]): Attributes =
-    Attributes(Map(values.map(attribute => attribute.key -> attribute.value).toSeq: _*))
+    Attributes(
+      Map(values.map(attribute => attribute.key -> attribute.value).toSeq: _*)
+    )
 
   implicit val monoid: Monoid[Attributes] = new Monoid[Attributes] {
     override def empty: Attributes = Empty

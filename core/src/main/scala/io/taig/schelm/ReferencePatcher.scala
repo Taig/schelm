@@ -4,10 +4,11 @@ import cats._
 import cats.implicits._
 import io.taig.schelm.internal.EffectHelpers
 
-final class ReferencePatcher[F[_]: MonadError[?[_], Throwable], Event](
+final class ReferencePatcher[F[_], Event](
     dom: Dom[F, Event],
     renderer: Renderer[F, Html[Event], Reference[Event]]
-) extends Patcher[F, Reference[Event], HtmlDiff[Event]] {
+)(implicit F: MonadError[F, Throwable])
+    extends Patcher[F, Reference[Event], HtmlDiff[Event]] {
   override def patch(
       reference: Reference[Event],
       diff: HtmlDiff[Event],
@@ -17,6 +18,19 @@ final class ReferencePatcher[F[_]: MonadError[?[_], Throwable], Event](
     (reference, diff) match {
       case (_, HtmlDiff.Group(diffs)) =>
         diffs.foldLeftM(reference)(patch(_, _, path))
+      case (element@Reference.Element(_, node), HtmlDiff.AddAttribute(attribute)) =>
+        val key = attribute.key
+        val update = attribute.value match {
+          case Value.Flag(true) => dom.setAttribute(node, key, "")
+          case Value.Flag(false) => F.unit
+          case Value.Multiple(values, accumulator) =>
+            dom.setAttribute(node, key, values.mkString(accumulator.value))
+          case Value.One(value) => dom.setAttribute(node, key, value)
+        }
+        update *> element.updateAttributes(_ + attribute).pure[F]
+      case (element@Reference.Element(_, node), HtmlDiff.RemoveAttribute(key)) =>
+        dom.removeAttribute(node, key) *>
+        element.updateAttributes(_ - key).pure[F]
       case (element@Reference.Element(_, node), HtmlDiff.RemoveListener(event)) =>
         dom.removeEventListener(node, event, path) *>
         element.updateListeners(_ - event).pure[F]
@@ -25,6 +39,15 @@ final class ReferencePatcher[F[_]: MonadError[?[_], Throwable], Event](
           reference <- child(component.children, key)
           child <- patch(reference, diff, path / key)
         } yield parent.updateChildren(_.updated(key, child))
+      case (element@Reference.Element(_, node), HtmlDiff.UpdateAttribute(key, value)) =>
+        val update = value match {
+          case Value.Flag(true) => dom.setAttribute(node, key, "")
+          case Value.Flag(false) => dom.removeAttribute(node, key)
+          case Value.Multiple(values, accumulator) =>
+            dom.setAttribute(node, key, values.mkString(accumulator.value))
+          case Value.One(value) => dom.setAttribute(node, key, value)
+        }
+        update *> element.updateAttributes(_.updated(key, value)).pure[F]
       case (element@Reference.Element(_, node), HtmlDiff.UpdateListener(event, action)) =>
         dom.removeEventListener(node, event, path) *>
         dom.addEventListener(node, event, dom.lift(action), path) *>
