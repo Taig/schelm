@@ -4,11 +4,10 @@ import cats._
 import cats.data.Ior
 import cats.implicits._
 
-import scala.collection.immutable.ListMap
 import scala.collection.mutable
 
 final case class Attributes(
-    values: ListMap[String, Value]
+    values: Map[String, Value]
 ) extends AnyVal {
   def isEmpty: Boolean = values.isEmpty
 
@@ -68,16 +67,12 @@ final case class Attributes(
 }
 
 object Attributes {
-  val Empty: Attributes = Attributes(ListMap.empty)
+  val Empty: Attributes = Attributes(Map.empty)
 
   def of(values: Attribute*): Attributes = from(values)
 
   def from(values: Iterable[Attribute]): Attributes =
-    Attributes(
-      ListMap(
-        values.map(attribute => attribute.key -> attribute.value).toSeq: _*
-      )
-    )
+    Attributes(Map(values.map(attribute => attribute.key -> attribute.value).toSeq: _*))
 
   implicit val monoid: Monoid[Attributes] = new Monoid[Attributes] {
     override def empty: Attributes = Empty

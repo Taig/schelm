@@ -6,20 +6,21 @@ import cats.implicits._
 sealed abstract class HtmlDiff[+A] extends Product with Serializable
 
 object HtmlDiff {
-  final case class AddChild[A](key: Key, html: Html[A]) extends HtmlDiff[A]
-  final case class AddListener[A](listener: Listener[A])
-      extends HtmlDiff[Nothing]
-  final case object Clear extends HtmlDiff[Nothing]
-  final case class Group[A](diffs: NonEmptyList[HtmlDiff[A]])
-      extends HtmlDiff[A]
-  final case class Replace[A](html: Html[A]) extends HtmlDiff[A]
-  final case class RemoveChild(key: Key) extends HtmlDiff[Nothing]
-  final case class RemoveListener(event: String) extends HtmlDiff[Nothing]
-  final case class UpdateChild[A](key: Key, diff: HtmlDiff[A])
-      extends HtmlDiff[A]
-  final case class UpdateListener[A](event: String, action: Action[A])
-      extends HtmlDiff[A]
-  final case class UpdateText(value: String) extends HtmlDiff[Nothing]
+  // format: off
+  final case class AddAttribute(attribute: Attribute)                   extends HtmlDiff[Nothing]
+  final case class AddChild[A](key: Key, html: Html[A])                 extends HtmlDiff[A]
+  final case class AddListener[A](listener: Listener[A])                extends HtmlDiff[A]
+  final case object Clear                                               extends HtmlDiff[Nothing]
+  final case class Group[A](diffs: NonEmptyList[HtmlDiff[A]])           extends HtmlDiff[A]
+  final case class Replace[A](html: Html[A])                            extends HtmlDiff[A]
+  final case class RemoveAttribute(key: String)                         extends HtmlDiff[Nothing]
+  final case class RemoveChild(key: Key)                                extends HtmlDiff[Nothing]
+  final case class RemoveListener(event: String)                        extends HtmlDiff[Nothing]
+  final case class UpdateAttribute(key: String, value: Value)           extends HtmlDiff[Nothing]
+  final case class UpdateChild[A](key: Key, diff: HtmlDiff[A])          extends HtmlDiff[A]
+  final case class UpdateListener[A](event: String, action: Action[A])  extends HtmlDiff[A]
+  final case class UpdateText(value: String)                            extends HtmlDiff[Nothing]
+  // format: on
 
   def addChild[A](t: (Key, Html[A])): HtmlDiff[A] = AddChild(t._1, t._2)
 

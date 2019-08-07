@@ -25,7 +25,8 @@ class HtmlDiffer[A] extends Differ[Html[A], HtmlDiff[A]] {
   ): Option[HtmlDiff[A]] = {
     if (previous.name != next.name) HtmlDiff.Replace(Html(next)).some
     else {
-      val diffs = listeners(previous.listeners, next.listeners).toList ++
+      val diffs = attributes(previous.attributes, next.attributes).toList ++
+        listeners(previous.listeners, next.listeners).toList ++
         children(previous.children, next.children).toList
       HtmlDiff.from(diffs)
     }
@@ -104,6 +105,21 @@ class HtmlDiffer[A] extends Differ[Html[A], HtmlDiff[A]] {
   ): Option[HtmlDiff[A]] =
     // TODO
     None
+
+  def attributes(previous: Attributes, next: Attributes): Option[HtmlDiff[A]] =
+    if (previous.isEmpty && next.isEmpty) None
+    else {
+      val diffs = (previous zipAll next).mapFilter {
+        case (key, Ior.Both(previous, next)) =>
+          if (previous == next) None
+          else HtmlDiff.UpdateAttribute(key, next).some
+        case (key, Ior.Left(_)) => HtmlDiff.RemoveAttribute(key).some
+        case (key, Ior.Right(next)) =>
+          HtmlDiff.AddAttribute(Attribute(key, next)).some
+      }
+
+      HtmlDiff.from(diffs)
+    }
 
   def listeners(
       previous: Listeners[A],
