@@ -11,9 +11,10 @@
 - [x] Rendering on JVM (SSR)
 - [x] CSS support
 - [x] Fully featured DSL for HTML, attributes, listeners and CSS
-- [ ] Documentation & project website
-- [ ] Support for Html.lazy
+- [x] Support for Html.lazy
+- [ ] Keyed children diffing
 - [ ] Dom parsing (e.g. for SSR continuation)
+- [ ] Documentation & project website
 - [ ] Test suite
 
 ## Documentation

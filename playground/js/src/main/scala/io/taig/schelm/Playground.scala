@@ -6,15 +6,24 @@ import io.taig.schelm.css._
 
 object Playground extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
-    val globals = Stylesheet.of(normalize)
-
     for {
-      schelm <- WidgetBrowserSchelm[IO, Event]
+      manager <- EventManager.unbounded[IO, Event]
+      dom <- BrowserDom[IO, Event](manager)
+      renderer = HtmlRenderer(dom)
+      attacher = StyledReferenceAttacher(dom)
+      patcher <- StyledReferencePatcher(dom, renderer)
+      schelm = Schelm(
+        dom,
+        manager,
+        StyledHtmlRenderer(renderer),
+        attacher,
+        StyledHtmlDiffer[Event],
+        patcher
+      )
       _ <- schelm.start(
         "main",
         State(),
-        (state: State) =>
-          (StyledHtml.apply[Event] _ tupled)(App.widget(state).render),
+        (state: State) => toStyledHtml(App.widget(state)),
         App.events,
         App.commands,
         Stream.empty

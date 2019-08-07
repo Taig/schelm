@@ -1,29 +1,30 @@
 package io.taig.schelm.css
 
-import cats.effect.Sync
+import cats.Monad
 import cats.implicits._
 import io.taig.schelm.css.internal.StyleHelpers
-import io.taig.schelm.{Attacher, Dom, Reference, ReferenceAttacher}
+import io.taig.schelm._
 
-final class StyledReferenceAttacher[F[_]: Sync, Event, Node](
-    val dom: Dom[F, Event, Node],
-    attacher: Attacher[F, Node, Reference[Event, Node]]
-) extends Attacher[F, Node, StyledReference[Event, Node]] {
+final class StyledReferenceAttacher[F[_]: Monad, Event](
+    dom: Dom[F, Event],
+    attacher: Attacher[F, Reference[Event]]
+) extends Attacher[F, StyledReference[Event]] {
   override def attach(
-      parent: Node,
-      child: StyledReference[Event, Node]
-  ): F[Unit] =
+      container: Element,
+      reference: StyledReference[Event]
+  ): F[Unit] = {
     for {
+      _ <- attacher.attach(container, reference.reference)
       style <- StyleHelpers.getOrCreateStyleElement(dom)
-      _ <- dom.innerHtml(style, s"\n${child.stylesheet}\n")
-      _ <- attacher.attach(parent, child.reference)
+      css = reference.stylesheet.toString
+      _ <- dom.innerHtml(style, css)
     } yield ()
+  }
 }
 
 object StyledReferenceAttacher {
-  def apply[F[_]: Sync, Event, Node](dom: Dom[F, Event, Node]) =
-    new StyledReferenceAttacher[F, Event, Node](
-      dom,
-      ReferenceAttacher[F, Event, Node](dom)
-    )
+  def apply[F[_]: Monad, Event](
+      dom: Dom[F, Event]
+  ): Attacher[F, StyledReference[Event]] =
+    new StyledReferenceAttacher[F, Event](dom, ReferenceAttacher(dom))
 }

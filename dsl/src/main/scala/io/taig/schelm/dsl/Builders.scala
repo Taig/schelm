@@ -6,23 +6,21 @@ import io.taig.schelm.Children
 
 final class NodeBuilder[A](val widget: Widget[A]) extends AnyVal {
   def apply(
-      property: Attribute[A],
-      properties: Attribute[A]*
-  ): ChildrenBuilder[A] =
-    new ChildrenBuilder(
-      widget.setAttributes(Attributes.from(property +: properties))
-    )
+      property: Property[A],
+      properties: Property[A]*
+  ): ChildrenBuilder[A] = {
+    val (attributes, listeners) = split(property +: properties)
+    val update = widget
+      .setAttributes(Attributes.from(attributes))
+      .setListeners(Listeners.from(listeners))
+    new ChildrenBuilder(update)
+  }
 
   def apply(child: Widget[A], children: Widget[A]*): Widget[A] =
     new ChildrenBuilder(widget)(child, children: _*)
 
   def apply(children: List[(String, Widget[A])]): Widget[A] =
     new ChildrenBuilder(widget)(children)
-}
-
-final class TagBuilder[A](val widget: Widget[A]) extends AnyVal {
-  def apply(property: Attribute[A], properties: Attribute[A]*): Widget[A] =
-    widget.setAttributes(Attributes.from(property +: properties))
 }
 
 final class ChildrenBuilder[A](val widget: Widget[A]) extends AnyVal {

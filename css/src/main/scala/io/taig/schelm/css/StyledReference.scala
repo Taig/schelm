@@ -2,7 +2,7 @@ package io.taig.schelm.css
 
 import io.taig.schelm.Reference
 
-final case class StyledReference[Event, Node](
-    reference: Reference[Event, Node],
+case class StyledReference[A](
+    reference: Reference[A],
     stylesheet: Stylesheet
 )

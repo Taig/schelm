@@ -1,6 +1,6 @@
 package io.taig.schelm
 
-import cats.{Eq, Eval}
+import cats.Eq
 import cats.effect.IO
 import cats.implicits._
 import io.taig.schelm.css._
@@ -10,9 +10,6 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 object App extends Dsl {
-  def lzy[A](value: A)(component: A => Html[Event]): Html[Event] =
-    Html(Component.Lazy(Eval.later(component(value)), value.hashCode))
-
   def widget(state: State): Widget[Event] =
     css(
       div(
@@ -20,7 +17,11 @@ object App extends Dsl {
       )(
         p("Hello World"),
         br,
-        button(style(cursor(pointer)), onClick(Event.Increment(1)))(
+        button(
+          style(cursor(pointer)),
+          if (state.clicks < 5) onClick(Event.Increment(1))
+          else onClick(Event.Increment(5))
+        )(
           s"Does this work?: ${state.clicks}"
         )
       ),

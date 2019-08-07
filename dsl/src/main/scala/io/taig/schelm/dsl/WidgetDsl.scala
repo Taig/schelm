@@ -1,8 +1,7 @@
 package io.taig.schelm.dsl
 
 import io.taig.schelm.css.{Styles, Widget}
-import io.taig.schelm.{Attributes, Children, Component}
-import io.taig.schelm.Children
+import io.taig.schelm.{Attributes, Children, Component, Listeners}
 
 trait WidgetDsl {
   implicit def childrenBuilderToWidget[A](
@@ -18,14 +17,12 @@ trait WidgetDsl {
   ): Widget[A] =
     builder.widget
 
-  implicit def tagBuilderToWidget[A](builder: TagBuilder[A]): Widget[A] =
-    builder.widget
-
   implicit def textToWidget[A](value: String): Widget[A] = text(value)
 
   def widget[A](name: String): Widget[A] =
     Widget[A](
-      Component.Element(name, Attributes.empty, Children.empty),
+      Component
+        .Element(name, Attributes.Empty, Listeners.empty, Children.empty),
       Styles.Empty
     )
 
