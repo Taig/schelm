@@ -6,8 +6,11 @@ import io.taig.schelm.{Attributes, Children, Component, Listeners}
 trait WidgetDsl {
   implicit def childrenBuilderToWidget[A](
       builder: ChildrenBuilder[A]
-  ): Widget[A] =
-    builder.widget
+  ): Widget[A] = builder.widget
+
+  implicit def childrenBuilderNothingToWidget[A](
+      builder: ChildrenBuilder[Nothing]
+  ): Widget[A] = builder.widget
 
   implicit def nodeBuilderToWidget[A](builder: NodeBuilder[A]): Widget[A] =
     builder.widget

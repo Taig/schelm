@@ -4,7 +4,7 @@ import cats.Eq
 import cats.effect.IO
 import cats.implicits._
 import io.taig.schelm.css._
-import io.taig.schelm.dsl.Dsl
+import io.taig.schelm.dsl.{ChildrenBuilder, Dsl}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -16,7 +16,7 @@ object App extends Dsl {
         id("asdf")
       )(
         p("Hello World"),
-        br,
+        br(cls("yolo")),
         button(
           style(cursor(pointer)),
           if (state.clicks < 5) onClick(Event.Increment(1))
