@@ -4,12 +4,13 @@ import cats.effect.Sync
 import cats.implicits._
 import io.taig.schelm.internal.EffectHelpers
 import org.jsoup.nodes.{
+  Document => JDocument,
   Element => JElement,
   Node => JNode,
-  TextNode => JText,
-  Document => JDocument
+  TextNode => JText
 }
-import scala.collection.JavaConverters._
+
+import scala.jdk.CollectionConverters._
 
 final class ServerDom[F[_], Event](document: JDocument)(implicit F: Sync[F])
     extends Dom[F, Event] {

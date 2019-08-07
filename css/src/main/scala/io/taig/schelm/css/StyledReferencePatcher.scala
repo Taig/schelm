@@ -15,20 +15,22 @@ final class StyledReferencePatcher[F[_]: Monad, A](
       reference: StyledReference[A],
       diff: StyledHtmlDiff[A],
       path: Path
-  ): F[StyledReference[A]] = {
+  ): F[StyledReference[A]] =
     diff match {
-      case Ior.Left(html) =>
-        this.html
-          .patch(reference.reference, html, path)
+      case Ior.Left(left) =>
+        html
+          .patch(reference.reference, left, path)
           .map(StyledReference(_, reference.stylesheet))
-      case Ior.Right(stylesheet) => ???
+      case Ior.Right(right) =>
+        stylesheet
+          .patch(style, reference.stylesheet, right)
+          .map(StyledReference(reference.reference, _))
       case Ior.Both(left, right) =>
         for {
           html <- html.patch(reference.reference, left, path)
           stylesheet <- stylesheet.patch(style, reference.stylesheet, right)
         } yield StyledReference(html, stylesheet)
     }
-  }
 }
 
 object StyledReferencePatcher {

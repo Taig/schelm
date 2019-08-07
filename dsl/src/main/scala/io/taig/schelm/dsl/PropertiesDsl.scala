@@ -1,7 +1,6 @@
 package io.taig.schelm.dsl
 
-import cats.implicits._
-import io.taig.schelm.css.{Declaration, Declarations}
+import io.taig.schelm.css._
 import io.taig.schelm._
 
 trait PropertiesDsl {

@@ -1,11 +1,9 @@
 package io.taig.schelm
 
 import cats._
-import cats.data.Ior
 import cats.implicits._
 
 import scala.collection.immutable.ListMap
-import scala.collection.mutable
 
 sealed abstract class Children[A] extends Product with Serializable {
   final def isEmpty: Boolean = this match {

@@ -1,7 +1,6 @@
 package io.taig.schelm
 
 import cats.effect.{ExitCode, IO, IOApp}
-import cats.implicits._
 import fs2.Stream
 import io.taig.schelm.css._
 
