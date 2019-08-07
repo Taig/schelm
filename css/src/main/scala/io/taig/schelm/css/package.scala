@@ -71,17 +71,17 @@ package object css extends NormalizeCss {
         StyledHtml(component, Stylesheet.Empty)
     }
 
-  def toStylesheet(html: StyledHtml[_]): Stylesheet =
+  def toStylesheet[A](html: StyledHtml[A]): Stylesheet =
     html.tail match {
-      case component: Component.Element[StyledHtml[_], _] =>
-        component.children.foldLeft(html.head) { (stylesheet, _, html) =>
+      case component: Component.Element[StyledHtml[A], A] =>
+        component.children.foldLeft(html.head) { (stylesheet, A, html) =>
           stylesheet |+| toStylesheet(html)
         }
-      case component: Component.Fragment[StyledHtml[_]] =>
+      case component: Component.Fragment[StyledHtml[A]] =>
         component.children.foldLeft(Stylesheet.Empty) { (stylesheet, _, html) =>
           stylesheet |+| toStylesheet(html)
         }
-      case component: Component.Lazy[StyledHtml[_]] =>
+      case component: Component.Lazy[StyledHtml[A]] =>
         toStylesheet(component.eval.value)
       case _: Component.Text => Stylesheet.Empty
     }
