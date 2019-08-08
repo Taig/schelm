@@ -20,6 +20,9 @@ trait PropertiesDsl {
   def flag(key: String, value: Boolean): Property[Nothing] =
     Property.fromAttribute(Attribute(key, Value.Flag(value)))
 
+  def on[A](event: String, action: Action[A]): Property[A] =
+    Property.fromListener(Listener(event, action))
+
   def cls(values: String*): Property[Nothing] =
     attrs("class", values.toList, Accumulator.Whitespace)
 
@@ -31,11 +34,9 @@ trait PropertiesDsl {
 
   def id(value: String): Property[Nothing] = attr("id", value)
 
-  def onClick[A](value: A): Property[A] =
-    Property.fromListener(Listener("click", Action.Pure(value)))
+  def onClick[A](value: A): Property[A] = on("click", Action.Pure(value))
 
-  def onSubmit[A](value: A): Property[A] =
-    Property.fromListener(Listener("submit", Action.Pure(value)))
+  def onSubmit[A](value: A): Property[A] = on("submit", Action.Pure(value))
 
   def style(declarations: Declarations): Property[Nothing] =
     attrs(
@@ -44,6 +45,9 @@ trait PropertiesDsl {
       Accumulator.Semicolon + Accumulator.Whitespace
     )
 
-  def style(declarations: Declaration*): Property[Nothing] =
-    style(Declarations.from(declarations))
+  def style(
+      declaration: Declaration,
+      declarations: Declaration*
+  ): Property[Nothing] =
+    style(Declarations.from(declaration +: declarations))
 }

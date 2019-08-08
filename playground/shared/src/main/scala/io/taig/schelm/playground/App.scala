@@ -1,19 +1,20 @@
-package io.taig.schelm
+package io.taig.schelm.playground
 
 import cats.Eq
 import cats.effect.IO
 import cats.implicits._
+import io.taig.schelm._
 import io.taig.schelm.css._
-import io.taig.schelm.dsl.Dsl
+import io.taig.schelm.dsl._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-object App extends Dsl {
+object App {
   def widget(state: State): Widget[Event] =
     div(
       id("asdf"),
-      css(
+      stylesheet(
         if (state.clicks % 2 == 0) backgroundColor("greenyellow")
         else backgroundColor("yellow"),
         maxWidth(500.px),

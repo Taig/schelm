@@ -121,7 +121,6 @@ trait WidgetDsl {
   def source[A]: NodeBuilder[A] = node("source")
   def span[A]: NodeBuilder[A] = node("span")
   def strong[A]: NodeBuilder[A] = node("strong")
-  def style[A]: NodeBuilder[A] = node("style")
   def sub[A]: NodeBuilder[A] = node("sub")
   def summary[A]: NodeBuilder[A] = node("summary")
   def sup[A]: NodeBuilder[A] = node("sup")

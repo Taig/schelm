@@ -2,7 +2,7 @@ package io.taig.schelm
 
 import io.taig.schelm.css._
 
-package object dsl {
+package object dsl extends CssDsl with PropertiesDsl with WidgetDsl {
   type DeclarationOrPseudo = Either[Declaration, PseudoDeclaration]
 
   private[dsl] def split[A](
