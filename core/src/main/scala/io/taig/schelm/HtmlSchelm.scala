@@ -1,20 +1,22 @@
-//package io.taig.schelm
-//
-//import cats.effect.ConcurrentEffect
-//
-//object HtmlSchelm {
-//  def apply[F[_]: ConcurrentEffect, Event, Node](
-//      manager: EventManager[F, Event],
-//      dom: Dom[F, Event, Node]
-//  ): Schelm[F, Event, Node, Html[Event], Reference[Event, Node], HtmlDiff[
-//    Event
-//  ]] =
-//    Schelm(
-//      dom,
-//      manager,
-//      HtmlRenderer(dom),
-//      ReferenceAttacher(dom),
-//      HtmlDiffer[Event],
-//      ReferencePatcher(HtmlRenderer(dom), dom)
-//    )
-//}
+package io.taig.schelm
+
+import cats.effect.ConcurrentEffect
+
+object HtmlSchelm {
+  def apply[F[_]: ConcurrentEffect, A](
+      manager: EventManager[F, A],
+      dom: Dom[F, A]
+  ): Schelm[F, A, Html[A], Reference[A], HtmlDiff[
+    A
+  ]] = {
+    val renderer = HtmlRenderer(dom)
+    Schelm(
+      dom,
+      manager,
+      renderer,
+      ReferenceAttacher(dom),
+      HtmlDiffer[A],
+      ReferencePatcher(dom, renderer)
+    )
+  }
+}
