@@ -48,6 +48,9 @@ trait PropertiesDsl {
 
   def onClick[A](value: A): Listener[A] = Listener("click", Action.Pure(value))
 
+  def onSubmit[A](value: A): Listener[A] =
+    Listener("submit", Action.Pure(value))
+
   def style(declarations: Declarations): Attribute =
     attrs(
       "style",
