@@ -38,11 +38,12 @@ final class StyledReferencePatcher[F[_]: Monad, A](
 object StyledReferencePatcher {
   def apply[F[_]: MonadError[?[_], Throwable], A](
       dom: Dom[F, A],
-      renderer: Renderer[F, Html[A], Reference[A]]
+      renderer: Renderer[F, Html[A], Reference[A]],
+      globals: Stylesheet
   ): Patcher[F, StyledReference[A], StyledHtmlDiff[A]] =
     new StyledReferencePatcher[F, A](
       dom,
       ReferencePatcher(dom, renderer),
-      StylesheetPatcher(dom)
+      StylesheetPatcher(dom, globals)
     )
 }

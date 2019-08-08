@@ -13,8 +13,10 @@ case object NormalizeCssGenerator {
       s"""package $pkg
          |
          |trait NormalizeCss {
-         |  val normalize: io.taig.schelm.css.Rule =
-         |    io.taig.schelm.css.Rule.Raw(\"\"\"${css(source)}\"\"\".stripMargin)
+         |  val normalize: io.taig.schelm.css.Stylesheet =
+         |    io.taig.schelm.css.Stylesheet.of(
+         |      io.taig.schelm.css.Rule.Raw(\"\"\"${css(source)}\"\"\".stripMargin)
+         |    )
          |}""".stripMargin
 
     IO.write(target, code)

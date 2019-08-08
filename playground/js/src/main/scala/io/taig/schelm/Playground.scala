@@ -10,7 +10,7 @@ object Playground extends IOApp {
     for {
       manager <- EventManager.unbounded[IO, Event]
       dom <- BrowserDom[IO, Event](manager)
-      schelm = CssSchelm(manager, dom)
+      schelm = CssSchelm(manager, dom, normalize)
       _ <- schelm.start(
         "main",
         State(),
