@@ -9,10 +9,16 @@ import scala.collection.mutable
 final case class Listeners[A](values: Map[String, Action[A]]) extends AnyVal {
   def isEmpty: Boolean = values.isEmpty
 
-  def -(event: String): Listeners[A] = Listeners(values - event)
+  def +(listener: Listener[A]): Listeners[A] =
+    updated(listener.event, listener.action)
 
   def updated(event: String, action: Action[A]): Listeners[A] =
     Listeners(values.updated(event, action))
+
+  def ++(listeners: Listeners[A]): Listeners[A] =
+    Listeners(values ++ listeners.values)
+
+  def -(event: String): Listeners[A] = Listeners(values - event)
 
   def events: List[String] = values.keys.toList
 

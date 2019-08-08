@@ -11,21 +11,9 @@ import scala.concurrent.duration._
 
 object App extends Dsl {
   def widget(state: State): Widget[Event] =
-    css(
-      div(
-        id("asdf")
-      )(
-        p("Hello World"),
-        br(id("yolo")),
-        button(
-          style(cursor(pointer)),
-          if (state.clicks < 5) onClick(Event.Increment(1))
-          else onClick(Event.Increment(5))
-        )(
-          s"Does this work?: ${state.clicks}"
-        )
-      ),
-      styles(
+    div(
+      id("asdf"),
+      css(
         if (state.clicks % 2 == 0) backgroundColor("greenyellow")
         else backgroundColor("yellow"),
         maxWidth(500.px),
@@ -37,6 +25,17 @@ object App extends Dsl {
           position(absolute),
           width(100.px)
         )
+      )
+    )(
+      p("Hello World"),
+      br(id("yolo")),
+      button(
+        style(cursor(pointer)),
+        id("yolo").some,
+        if (state.clicks < 5) onClick(Event.Increment(1))
+        else onClick(Event.Increment(5))
+      )(
+        s"Does this work?: ${state.clicks}"
       )
     )
 
