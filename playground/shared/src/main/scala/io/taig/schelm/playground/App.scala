@@ -24,7 +24,7 @@ object App {
           content("''"),
           height(100.px),
           position(absolute),
-          width(100.px)
+          width(100.%%)
         )
       )
     )(

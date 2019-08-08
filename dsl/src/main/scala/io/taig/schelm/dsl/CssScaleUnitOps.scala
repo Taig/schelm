@@ -15,5 +15,5 @@ final class CssScaleUnitOps(val value: String) extends AnyVal {
   def vh: String = value + "vh"
   def vmin: String = value + "vmin"
   def vmax: String = value + "vmax"
-  def % : String = value + "%"
+  def %% : String = value + "%"
 }
