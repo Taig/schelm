@@ -1,18 +1,18 @@
 package io.taig.schelm.dsl
 
-import io.taig.schelm._
-import io.taig.schelm.css.Widget
 import io.taig.schelm.Children
+import io.taig.schelm.css.Widget
 
 final class NodeBuilder[A](val widget: Widget[A]) extends AnyVal {
   def apply(
       property: Property[A],
       properties: Property[A]*
   ): ChildrenBuilder[A] = {
-    val (attributes, listeners) = split(property +: properties)
+    val (attributes, listeners, styles) = split(property +: properties)
     val update = widget
-      .setAttributes(Attributes.from(attributes))
-      .setListeners(Listeners.from(listeners))
+      .setAttributes(attributes)
+      .setListeners(listeners)
+      .setStyles(styles)
     new ChildrenBuilder(update)
   }
 

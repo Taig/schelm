@@ -1,31 +1,20 @@
-package io.taig.schelm
+package io.taig.schelm.playground
 
 import cats.Eq
 import cats.effect.IO
 import cats.implicits._
+import io.taig.schelm._
 import io.taig.schelm.css._
-import io.taig.schelm.dsl.Dsl
+import io.taig.schelm.dsl._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-object App extends Dsl {
+object App {
   def widget(state: State): Widget[Event] =
-    css(
-      div(
-        id("asdf")
-      )(
-        p("Hello World"),
-        br,
-        button(
-          style(cursor(pointer)),
-          if (state.clicks < 5) onClick(Event.Increment(1))
-          else onClick(Event.Increment(5))
-        )(
-          s"Does this work?: ${state.clicks}"
-        )
-      ),
-      styles(
+    div(
+      id("asdf"),
+      stylesheet(
         if (state.clicks % 2 == 0) backgroundColor("greenyellow")
         else backgroundColor("yellow"),
         maxWidth(500.px),
@@ -37,6 +26,17 @@ object App extends Dsl {
           position(absolute),
           width(100.px)
         )
+      )
+    )(
+      p("Hello World"),
+      br(id("yolo")),
+      button(
+        style(cursor(pointer)),
+        id("yolo").some,
+        if (state.clicks < 5) onClick(Event.Increment(1))
+        else onClick(Event.Increment(5))
+      )(
+        s"Does this work?: ${state.clicks}"
       )
     )
 

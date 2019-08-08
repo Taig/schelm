@@ -4,57 +4,50 @@ import io.taig.schelm.css._
 import io.taig.schelm._
 
 trait PropertiesDsl {
-  implicit def attributeToProperty(attribute: Attribute): Property[Nothing] =
-    Property(attribute)
-
-  implicit def attributeOptionToProperty(
-      attribute: Option[Attribute]
-  ): Property[Nothing] =
-    Property.optional(attribute.map(attributeToProperty))
-
-  implicit def listenerToProperty[A](listener: Listener[A]): Property[A] =
-    Property(listener)
-
-  implicit def listenerOptionToProperty[A](
-      listener: Option[Listener[A]]
-  ): Property[A] =
-    Property.optional(listener.map(listenerToProperty))
-
-  def attr(key: String, value: String): Attribute =
-    Attribute(key, Value.One(value))
+  def attr(key: String, value: String): Property[Nothing] =
+    Property.fromAttribute(Attribute(key, Value.One(value)))
 
   def attrs(
       key: String,
       values: List[String],
       accumulator: Accumulator
-  ): Attribute = Attribute(key, Value.Multiple(values, accumulator))
+  ): Property[Nothing] =
+    Property.fromAttribute(Attribute(key, Value.Multiple(values, accumulator)))
 
-  def data(key: String, value: String): Attribute =
+  def data(key: String, value: String): Property[Nothing] =
     attr(s"data-$key", value)
 
-  def flag(key: String, value: Boolean): Attribute =
-    Attribute(key, Value.Flag(value))
+  def flag(key: String, value: Boolean): Property[Nothing] =
+    Property.fromAttribute(Attribute(key, Value.Flag(value)))
 
-  def cls(values: String*): Attribute =
+  def on[A](event: String, action: Action[A]): Property[A] =
+    Property.fromListener(Listener(event, action))
+
+  def cls(values: String*): Property[Nothing] =
     attrs("class", values.toList, Accumulator.Whitespace)
 
-  def disabled(value: Boolean): Attribute = flag("disabled", value)
+  def disabled(value: Boolean): Property[Nothing] = flag("disabled", value)
 
-  val disabled: Attribute = disabled(true)
+  val disabled: Property[Nothing] = disabled(true)
 
-  def href(value: String): Attribute = attr("href", value)
+  def href(value: String): Property[Nothing] = attr("href", value)
 
-  def id(value: String): Attribute = attr("id", value)
+  def id(value: String): Property[Nothing] = attr("id", value)
 
-  def onClick[A](value: A): Listener[A] = Listener("click", Action.Pure(value))
+  def onClick[A](value: A): Property[A] = on("click", Action.Pure(value))
 
-  def style(declarations: Declarations): Attribute =
+  def onSubmit[A](value: A): Property[A] = on("submit", Action.Pure(value))
+
+  def style(declarations: Declarations): Property[Nothing] =
     attrs(
       "style",
       declarations.rows,
       Accumulator.Semicolon + Accumulator.Whitespace
     )
 
-  def style(declarations: Declaration*): Attribute =
-    style(Declarations.from(declarations))
+  def style(
+      declaration: Declaration,
+      declarations: Declaration*
+  ): Property[Nothing] =
+    style(Declarations.from(declaration +: declarations))
 }

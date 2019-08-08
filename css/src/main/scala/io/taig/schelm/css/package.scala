@@ -6,13 +6,13 @@ import cats.implicits._
 package object css extends NormalizeCss {
   type StyledHtmlDiff[A] = Ior[HtmlDiff[A], StylesheetDiff]
 
-  type Widget[+Event] = Document[Event, Styles]
+  type Widget[+A] = Document[A, Styles]
 
   object Widget {
-    def apply[Event](
-        component: Component[Widget[Event], Event],
+    def apply[A](
+        component: Component[Widget[A], A],
         styles: Styles
-    ): Widget[Event] = Document(component, styles)
+    ): Widget[A] = Document(component, styles)
   }
 
   implicit final class WidgetSyntax[A](widget: Widget[A])

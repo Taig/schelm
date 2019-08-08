@@ -18,18 +18,19 @@ trait CssDsl extends CssKeysDsl with CssValuesDsl {
   implicit def numericToTimeUnitsOps[B: Numeric](value: B): CssTimeUnitOps =
     new CssTimeUnitOps(value.toString)
 
-  def css[A](widget: Widget[A], styles: Styles): Widget[A] =
-    Widget(widget.tail, styles)
+  def stylesheet(styles: Styles): Property[Nothing] =
+    Property.fromStyles(styles)
 
-  def stylesheet(selector: String, selectors: String*)(
+  def stylesheet(
+      declaration: DeclarationOrPseudo,
       declarations: DeclarationOrPseudo*
-  ): Stylesheet =
-    reduce(declarations).toStylesheet(
-      Selectors.from(Selector(selector), selectors.map(Selector))
-    )
+  ): Property[Nothing] =
+    stylesheet(styles(declaration, declarations: _*))
 
-  def styles(declarations: DeclarationOrPseudo*): Styles =
-    Styles.of(reduce(declarations))
+  def styles(
+      declaration: DeclarationOrPseudo,
+      declarations: DeclarationOrPseudo*
+  ): Styles = Styles.of(reduce(declaration +: declarations))
 
   object & extends CssPseudoDsl
 }
