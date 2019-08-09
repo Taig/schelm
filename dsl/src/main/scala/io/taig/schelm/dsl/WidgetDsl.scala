@@ -1,13 +1,6 @@
 package io.taig.schelm.dsl
 
-import io.taig.schelm.{
-  Attribute,
-  Attributes,
-  Children,
-  Listener,
-  Listeners,
-  Widget
-}
+import io.taig.schelm._
 
 trait WidgetDsl[Context, Payload] { self =>
   def element(name: String): Widget[Nothing, Context, Payload]
@@ -27,22 +20,67 @@ trait WidgetDsl[Context, Payload] { self =>
       self.updateChildren[A](widget, _ ++ Children.indexed(children))
   }
 
-  def updateAttributes[A](
+  final def updateAttributes[A](
       widget: Widget[A, Context, Payload],
       f: Attributes => Attributes
-  ): Widget[A, Context, Payload]
+  ): Widget[A, Context, Payload] =
+    Widget(
+      widget.payload,
+      context =>
+        widget.render(context) match {
+          case component: Component.Element[Widget[A, Context, Payload], A] =>
+            component.copy(attributes = f(component.attributes))
+          case Component.Lazy(eval, hash) =>
+            Component.Lazy(eval.map(updateAttributes(_, f)), hash)
+          case Component.Fragment(children) =>
+            Component.Fragment(
+              children.map((_, child) => updateAttributes(child, f))
+            )
+          case component: Component.Text => component
+        }
+    )
 
-  def updateListeners[A](
+  final def updateListeners[A](
       widget: Widget[A, Context, Payload],
       f: Listeners[A] => Listeners[A]
-  ): Widget[A, Context, Payload]
+  ): Widget[A, Context, Payload] =
+    Widget(
+      widget.payload,
+      context =>
+        widget.render(context) match {
+          case component: Component.Element[Widget[A, Context, Payload], A] =>
+            component.copy(listeners = f(component.listeners))
+          case Component.Lazy(eval, hash) =>
+            Component.Lazy(eval.map(updateListeners(_, f)), hash)
+          case Component.Fragment(children) =>
+            Component.Fragment(
+              children.map((_, child) => updateListeners(child, f))
+            )
+          case component: Component.Text => component
+        }
+    )
 
-  def updateChildren[A](
+  final def updateChildren[A](
       widget: Widget[A, Context, Payload],
       f: Children[Widget[A, Context, Payload]] => Children[
         Widget[A, Context, Payload]
       ]
-  ): Widget[A, Context, Payload]
+  ): Widget[A, Context, Payload] =
+    Widget(
+      widget.payload,
+      context =>
+        widget.render(context) match {
+          case component: Component.Element[Widget[A, Context, Payload], A] =>
+            component.copy(children = f(component.children))
+          case Component.Lazy(eval, hash) =>
+            Component.Lazy(eval.map(updateChildren(_, f)), hash)
+          case Component.Fragment(children) =>
+            Component.Fragment(
+              children.map((_, child) => updateChildren(child, f))
+            )
+          case component: Component.Text => component
+        }
+    )
 
   final val a: Widget[Nothing, Context, Payload] = element("a")
   final val abbr: Widget[Nothing, Context, Payload] = element("abbr")
