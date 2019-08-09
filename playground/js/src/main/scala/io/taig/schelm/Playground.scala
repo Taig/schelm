@@ -14,7 +14,7 @@ object Playground extends IOApp {
       _ <- schelm.start(
         "main",
         State(),
-        (state: State) => toStyledHtml(App.widget(state)),
+        (state: State) => toStylesheetWidget(App.widget(state)),
         App.events,
         App.commands,
         Stream.empty

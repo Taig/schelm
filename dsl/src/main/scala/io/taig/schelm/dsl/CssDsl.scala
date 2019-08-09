@@ -1,9 +1,10 @@
 package io.taig.schelm.dsl
 
 import cats.implicits._
+import io.taig.schelm.Widget
 import io.taig.schelm.css._
 
-trait CssDsl[Component[+_]] extends CssKeysDsl with CssValuesDsl {
+trait CssDsl[Context, Payload] extends CssKeysDsl with CssValuesDsl {
   implicit def declarationToEither(
       declaration: Declaration
   ): DeclarationOrPseudo = declaration.asLeft
@@ -18,20 +19,21 @@ trait CssDsl[Component[+_]] extends CssKeysDsl with CssValuesDsl {
   implicit def numericToTimeUnitsOps[B: Numeric](value: B): CssTimeUnitOps =
     new CssTimeUnitOps(value.toString)
 
-  final implicit class CssBuilder[A](component: Component[A]) {
-    def css(styles: Styles): Component[A] = updateStyles(component, _ ++ styles)
+  final implicit class CssBuilder[A](component: Widget[A, Context, Payload]) {
+    def css(styles: Styles): Widget[A, Context, Payload] =
+      updateStyles(component, _ ++ styles)
 
     def css(
         declaration: DeclarationOrPseudo,
         declarations: DeclarationOrPseudo*
-    ): Component[A] =
+    ): Widget[A, Context, Payload] =
       css(styles(declaration, declarations: _*))
   }
 
-  protected def updateStyles[A](
-      component: Component[A],
+  def updateStyles[A](
+      widget: Widget[A, Context, Payload],
       f: Styles => Styles
-  ): Component[A]
+  ): Widget[A, Context, Payload]
 
   def styles(
       declaration: DeclarationOrPseudo,

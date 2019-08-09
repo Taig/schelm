@@ -11,5 +11,5 @@ package object dsl {
       case (style, Right(declaration)) => style :+ declaration
     }
 
-  val widget: WidgetDsl = WidgetDsl
+  val widget: StyledHtmlDsl = StyledHtmlDsl
 }

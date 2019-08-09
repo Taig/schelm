@@ -3,31 +3,32 @@ package io.taig.schelm.css
 import cats.implicits._
 import io.taig.schelm._
 
-final class StylesheetDiffer[A] extends Differ[StyledHtml[A], StylesheetDiff] {
+final class StylesheetDiffer[A]
+    extends Differ[StylesheetWidget[A], StylesheetDiff] {
   override def diff(
-      previous: StyledHtml[A],
-      next: StyledHtml[A]
+      previous: StylesheetWidget[A],
+      next: StylesheetWidget[A]
   ): Option[StylesheetDiff] = {
     val stylesheet = compare(previous, next)
     if (stylesheet.isEmpty) None else StylesheetDiff(stylesheet).some
   }
 
   def compare(
-      previous: StyledHtml[A],
-      next: StyledHtml[A]
+      previous: StylesheetWidget[A],
+      next: StylesheetWidget[A]
   ): Stylesheet = {
-    val node = next.head
+    val node = next.payload
 
     // format: off
-    val children = (previous.tail, next.tail) match {
-      case (previous: Component.Element[StyledHtml[A], A], next: Component.Element[StyledHtml[A], A]) =>
+    val children = (previous.component, next.component) match {
+      case (previous: Component.Element[StylesheetWidget[A], A], next: Component.Element[StylesheetWidget[A], A]) =>
         element(previous, next)
-      case (previous: Component.Fragment[StyledHtml[A]], next: Component.Fragment[StyledHtml[A]]) =>
+      case (previous: Component.Fragment[StylesheetWidget[A]], next: Component.Fragment[StylesheetWidget[A]]) =>
         fragment(previous, next)
-      case (previous: Component.Lazy[StyledHtml[A]], next: Component.Lazy[StyledHtml[A]]) =>
+      case (previous: Component.Lazy[StylesheetWidget[A]], next: Component.Lazy[StylesheetWidget[A]]) =>
         lzy(previous, next)
       case (_: Component.Text, _: Component.Text) => Stylesheet.Empty
-      case _ => toStylesheet(next)
+      case _ => Widget.payload(next)
     }
     // format: on
 
@@ -35,51 +36,53 @@ final class StylesheetDiffer[A] extends Differ[StyledHtml[A], StylesheetDiff] {
   }
 
   def element(
-      previous: Component.Element[StyledHtml[A], A],
-      next: Component.Element[StyledHtml[A], A]
+      previous: Component.Element[StylesheetWidget[A], A],
+      next: Component.Element[StylesheetWidget[A], A]
   ): Stylesheet = children(previous.children, next.children)
 
   def fragment(
-      previous: Component.Fragment[StyledHtml[A]],
-      next: Component.Fragment[StyledHtml[A]]
+      previous: Component.Fragment[StylesheetWidget[A]],
+      next: Component.Fragment[StylesheetWidget[A]]
   ): Stylesheet = children(previous.children, next.children)
 
   def lzy(
-      previous: Component.Lazy[StyledHtml[A]],
-      next: Component.Lazy[StyledHtml[A]]
+      previous: Component.Lazy[StylesheetWidget[A]],
+      next: Component.Lazy[StylesheetWidget[A]]
   ): Stylesheet =
     if (previous.hash == next.hash) Stylesheet.Empty
     else compare(previous.eval.value, next.eval.value)
 
   def children(
-      previous: Children[StyledHtml[A]],
-      next: Children[StyledHtml[A]]
+      previous: Children[StylesheetWidget[A]],
+      next: Children[StylesheetWidget[A]]
   ): Stylesheet =
     // format: off
     (previous, next) match {
-      case (previous: Children.Indexed[StyledHtml[A]], next: Children.Indexed[StyledHtml[A]]) =>
+      case (previous: Children.Indexed[StylesheetWidget[A]], next: Children.Indexed[StylesheetWidget[A]]) =>
         children(previous, next)
-      case (previous: Children.Identified[StyledHtml[A]], next: Children.Identified[StyledHtml[A]]) =>
+      case (previous: Children.Identified[StylesheetWidget[A]], next: Children.Identified[StylesheetWidget[A]]) =>
         // TODO
         Stylesheet.Empty
-      case _ => next.values.map(toStylesheet).combineAll
+      case _ => next.values.map(Widget.payload[Stylesheet]).combineAll
     }
     // format: on
 
   def children(
-      previous: Children.Indexed[StyledHtml[A]],
-      next: Children.Indexed[StyledHtml[A]]
+      previous: Children.Indexed[StylesheetWidget[A]],
+      next: Children.Indexed[StylesheetWidget[A]]
   ): Stylesheet =
     if (next.isEmpty) Stylesheet.Empty
     else {
       val left = previous.values
       val right = next.values
       val comparisons = (left zip right).map(compare _ tupled).combineAll
-      val additions = right.drop(left.length).map(toStylesheet).combineAll
+      val additions =
+        right.drop(left.length).map(Widget.payload[Stylesheet]).combineAll
       comparisons ++ additions
     }
 }
 
 object StylesheetDiffer {
-  def apply[A]: Differ[StyledHtml[A], StylesheetDiff] = new StylesheetDiffer[A]
+  def apply[A]: Differ[StylesheetWidget[A], StylesheetDiff] =
+    new StylesheetDiffer[A]
 }

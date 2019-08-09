@@ -8,7 +8,9 @@ object CssSchelm {
       manager: EventManager[F, A],
       dom: Dom[F, A],
       globals: Stylesheet
-  ): Schelm[F, A, StyledHtml[A], StyledReference[A], StyledHtmlDiff[A]] = {
+  ): Schelm[F, A, StylesheetWidget[A], StyledReference[A], StyledHtmlDiff[
+    A
+  ]] = {
     val renderer = HtmlRenderer(dom)
     Schelm(
       dom,

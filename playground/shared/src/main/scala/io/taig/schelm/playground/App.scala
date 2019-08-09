@@ -11,7 +11,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 object App {
-  def widget(state: State): Widget[Event] =
+  def widget(state: State): Widget[Event, Unit, Styles] =
     div
       .attributes(id("yolo"))
       .css(

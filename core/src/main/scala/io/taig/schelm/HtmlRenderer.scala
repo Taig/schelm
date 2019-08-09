@@ -10,7 +10,7 @@ final class HtmlRenderer[F[_], Event](dom: Dom[F, Event])(
       html: Html[Event],
       path: Path
   ): F[Reference[Event]] =
-    html.value match {
+    html.component match {
       case component: Component.Element[Html[Event], Event] =>
         for {
           element <- dom.createElement(component.name)
