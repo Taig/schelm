@@ -1,155 +1,136 @@
 package io.taig.schelm.dsl
 
-import io.taig.schelm.Children
+import io.taig.schelm.{Attribute, Attributes, Children, Listener, Listeners}
 
-trait ComponentDsl[Component[+_], Property[+_]] { self =>
-  implicit def nodeBuilderToComponent[A](
-      builder: ElementBuilder
-  ): Component[A] =
-    builder.component
-
-  implicit def childrenBuilderToComponent[A](
-      builder: ChildrenBuilder[A]
-  ): Component[A] = builder.component
-
-  implicit def childrenBuilderNothingToComponent[A](
-      builder: ChildrenBuilder[Nothing]
-  ): Component[A] = builder.component
-
-  implicit def stringToText[A](value: String): Component[A] =
-    text(value)
-
-  protected def element(name: String): Component[Nothing]
+trait ComponentDsl[Component[+_]] { self =>
+  def element(name: String): Component[Nothing]
 
   def text(value: String): Component[Nothing]
 
-  final class ElementBuilder(val component: Component[Nothing]) {
-    def apply[A](
-        property: Property[A],
-        properties: Property[A]*
-    ): ChildrenBuilder[A] =
-      new ChildrenBuilder(self.properties(component, property +: properties))
+  final implicit class Builder[A](component: Component[A]) {
+    def attributes(attributes: Attribute*): Component[A] =
+      self.updateAttributes(component, _ ++ Attributes.from(attributes))
 
-    def apply[A](child: Component[A], children: Component[A]*): Component[A] =
-      self.children(component, Children.indexed(child +: children))
+    def listeners(listeners: Listener[A]*): Component[A] =
+      updateListeners(component, (_: Listeners[A]) ++ Listeners.from(listeners))
+
+    def children(children: Component[A]*): Component[A] =
+      self.updateChildren(component, (_: Children[Component[A]]) ++ Children.indexed(children))
   }
 
-  final class ChildrenBuilder[A](val component: Component[A]) {
-    def apply(child: Component[A], children: Component[A]*): Component[A] =
-      self.children(component, Children.indexed(child +: children))
-  }
-
-  protected def properties[A](
+  protected def updateAttributes[A](
       component: Component[A],
-      properties: Iterable[Property[A]]
+      f: Attributes => Attributes
   ): Component[A]
 
-  protected def children[A](
+  protected def updateListeners[A](
+                                     component: Component[A],
+                                     f: Listeners[A] => Listeners[A]
+                                   ): Component[A]
+
+  protected def updateChildren[A](
       component: Component[A],
-      children: Children[Component[A]]
+      f: Children[Component[A]] => Children[Component[A]]
   ): Component[A]
 
-  final def tag(name: String): ElementBuilder =
-    new ElementBuilder(element(name))
-
-  final val a: ElementBuilder = tag("a")
-  final val abbr: ElementBuilder = tag("abbr")
-  final val address: ElementBuilder = tag("address")
-  final val area: ElementBuilder = tag("area")
-  final val article: ElementBuilder = tag("article")
-  final val aside: ElementBuilder = tag("aside")
-  final val audio: ElementBuilder = tag("audio")
-  final val b: ElementBuilder = tag("b")
-  final val base: ElementBuilder = tag("base")
-  final val blockquote: ElementBuilder = tag("blockquote")
-  final val body: ElementBuilder = tag("body")
-  final val br: ElementBuilder = tag("br")
-  final val button: ElementBuilder = tag("button")
-  final val canvas: ElementBuilder = tag("canvas")
-  final val caption: ElementBuilder = tag("caption")
-  final val cite: ElementBuilder = tag("cite")
-  final val code: ElementBuilder = tag("code")
-  final val col: ElementBuilder = tag("col")
-  final val colgroup: ElementBuilder = tag("colgroup")
-  final val command: ElementBuilder = tag("command")
-  final val data: ElementBuilder = tag("data")
-  final val datalist: ElementBuilder = tag("datalist")
-  final val dd: ElementBuilder = tag("dd")
-  final val details: ElementBuilder = tag("details")
-  final val dfn: ElementBuilder = tag("dfn")
-  final val div: ElementBuilder = tag("div")
-  final val dl: ElementBuilder = tag("dl")
-  final val dt: ElementBuilder = tag("dt")
-  final val em: ElementBuilder = tag("em")
-  final val embed: ElementBuilder = tag("embed")
-  final val fieldset: ElementBuilder = tag("fieldset")
-  final val figcaption: ElementBuilder = tag("figcaption")
-  final val figure: ElementBuilder = tag("figure")
-  final val footer: ElementBuilder = tag("footer")
-  final val form: ElementBuilder = tag("form")
-  final val h1: ElementBuilder = tag("h1")
-  final val h2: ElementBuilder = tag("h2")
-  final val h3: ElementBuilder = tag("h3")
-  final val h4: ElementBuilder = tag("h4")
-  final val h5: ElementBuilder = tag("h5")
-  final val h6: ElementBuilder = tag("h6")
-  final val head: ElementBuilder = tag("head")
-  final val header: ElementBuilder = tag("header")
-  final val hr: ElementBuilder = tag("hr")
-  final val i: ElementBuilder = tag("i")
-  final val iframe: ElementBuilder = tag("iframe")
-  final val img: ElementBuilder = tag("img")
-  final val input: ElementBuilder = tag("input")
-  final val kbd: ElementBuilder = tag("kbd")
-  final val keygen: ElementBuilder = tag("keygen")
-  final val label: ElementBuilder = tag("label")
-  final val legend: ElementBuilder = tag("legend")
-  final val li: ElementBuilder = tag("li")
-  final val link: ElementBuilder = tag("link")
-  final val main: ElementBuilder = tag("main")
-  final val map: ElementBuilder = tag("map")
-  final val math: ElementBuilder = tag("math")
-  final val menu: ElementBuilder = tag("menu")
-  final val meta: ElementBuilder = tag("meta")
-  final val meter: ElementBuilder = tag("meter")
-  final val nav: ElementBuilder = tag("nav")
-  final val noscript: ElementBuilder = tag("noscript")
-  final val obj: ElementBuilder = tag("object")
-  final val ol: ElementBuilder = tag("ol")
-  final val optgroup: ElementBuilder = tag("optgroup")
-  final val option: ElementBuilder = tag("option")
-  final val output: ElementBuilder = tag("output")
-  final val p: ElementBuilder = tag("p")
-  final val param: ElementBuilder = tag("param")
-  final val pre: ElementBuilder = tag("pre")
-  final val progress: ElementBuilder = tag("progress")
-  final val q: ElementBuilder = tag("q")
-  final val s: ElementBuilder = tag("s")
-  final val samp: ElementBuilder = tag("samp")
-  final val script: ElementBuilder = tag("script")
-  final val section: ElementBuilder = tag("section")
-  final val select: ElementBuilder = tag("select")
-  final val small: ElementBuilder = tag("small")
-  final val source: ElementBuilder = tag("source")
-  final val span: ElementBuilder = tag("span")
-  final val strong: ElementBuilder = tag("strong")
-  final val sub: ElementBuilder = tag("sub")
-  final val summary: ElementBuilder = tag("summary")
-  final val sup: ElementBuilder = tag("sup")
-  final val svg: ElementBuilder = tag("svg")
-  final val table: ElementBuilder = tag("table")
-  final val tbody: ElementBuilder = tag("tbody")
-  final val td: ElementBuilder = tag("td")
-  final val textarea: ElementBuilder = tag("textarea")
-  final val tfoot: ElementBuilder = tag("tfoot")
-  final val th: ElementBuilder = tag("th")
-  final val thead: ElementBuilder = tag("thead")
-  final val time: ElementBuilder = tag("time")
-  final val title: ElementBuilder = tag("title")
-  final val tr: ElementBuilder = tag("tr")
-  final val track: ElementBuilder = tag("track")
-  final val u: ElementBuilder = tag("u")
-  final val ul: ElementBuilder = tag("ul")
-  final val video: ElementBuilder = tag("video")
-  final val wbr: ElementBuilder = tag("wbr")
+  final val a: Component[Nothing] = element("a")
+  final val abbr: Component[Nothing] = element("abbr")
+  final val address: Component[Nothing] = element("address")
+  final val area: Component[Nothing] = element("area")
+  final val article: Component[Nothing] = element("article")
+  final val aside: Component[Nothing] = element("aside")
+  final val audio: Component[Nothing] = element("audio")
+  final val b: Component[Nothing] = element("b")
+  final val base: Component[Nothing] = element("base")
+  final val blockquote: Component[Nothing] = element("blockquote")
+  final val body: Component[Nothing] = element("body")
+  final val br: Component[Nothing] = element("br")
+  final val button: Component[Nothing] = element("button")
+  final val canvas: Component[Nothing] = element("canvas")
+  final val caption: Component[Nothing] = element("caption")
+  final val cite: Component[Nothing] = element("cite")
+  final val code: Component[Nothing] = element("code")
+  final val col: Component[Nothing] = element("col")
+  final val colgroup: Component[Nothing] = element("colgroup")
+  final val command: Component[Nothing] = element("command")
+  final val data: Component[Nothing] = element("data")
+  final val datalist: Component[Nothing] = element("datalist")
+  final val dd: Component[Nothing] = element("dd")
+  final val details: Component[Nothing] = element("details")
+  final val dfn: Component[Nothing] = element("dfn")
+  final val div: Component[Nothing] = element("div")
+  final val dl: Component[Nothing] = element("dl")
+  final val dt: Component[Nothing] = element("dt")
+  final val em: Component[Nothing] = element("em")
+  final val embed: Component[Nothing] = element("embed")
+  final val fieldset: Component[Nothing] = element("fieldset")
+  final val figcaption: Component[Nothing] = element("figcaption")
+  final val figure: Component[Nothing] = element("figure")
+  final val footer: Component[Nothing] = element("footer")
+  final val form: Component[Nothing] = element("form")
+  final val h1: Component[Nothing] = element("h1")
+  final val h2: Component[Nothing] = element("h2")
+  final val h3: Component[Nothing] = element("h3")
+  final val h4: Component[Nothing] = element("h4")
+  final val h5: Component[Nothing] = element("h5")
+  final val h6: Component[Nothing] = element("h6")
+  final val head: Component[Nothing] = element("head")
+  final val header: Component[Nothing] = element("header")
+  final val hr: Component[Nothing] = element("hr")
+  final val i: Component[Nothing] = element("i")
+  final val iframe: Component[Nothing] = element("iframe")
+  final val img: Component[Nothing] = element("img")
+  final val input: Component[Nothing] = element("input")
+  final val kbd: Component[Nothing] = element("kbd")
+  final val keygen: Component[Nothing] = element("keygen")
+  final val label: Component[Nothing] = element("label")
+  final val legend: Component[Nothing] = element("legend")
+  final val li: Component[Nothing] = element("li")
+  final val link: Component[Nothing] = element("link")
+  final val main: Component[Nothing] = element("main")
+  final val map: Component[Nothing] = element("map")
+  final val math: Component[Nothing] = element("math")
+  final val menu: Component[Nothing] = element("menu")
+  final val meta: Component[Nothing] = element("meta")
+  final val meter: Component[Nothing] = element("meter")
+  final val nav: Component[Nothing] = element("nav")
+  final val noscript: Component[Nothing] = element("noscript")
+  final val obj: Component[Nothing] = element("object")
+  final val ol: Component[Nothing] = element("ol")
+  final val optgroup: Component[Nothing] = element("optgroup")
+  final val option: Component[Nothing] = element("option")
+  final val output: Component[Nothing] = element("output")
+  final val p: Component[Nothing] = element("p")
+  final val param: Component[Nothing] = element("param")
+  final val pre: Component[Nothing] = element("pre")
+  final val progress: Component[Nothing] = element("progress")
+  final val q: Component[Nothing] = element("q")
+  final val s: Component[Nothing] = element("s")
+  final val samp: Component[Nothing] = element("samp")
+  final val script: Component[Nothing] = element("script")
+  final val section: Component[Nothing] = element("section")
+  final val select: Component[Nothing] = element("select")
+  final val small: Component[Nothing] = element("small")
+  final val source: Component[Nothing] = element("source")
+  final val span: Component[Nothing] = element("span")
+  final val strong: Component[Nothing] = element("strong")
+  final val sub: Component[Nothing] = element("sub")
+  final val summary: Component[Nothing] = element("summary")
+  final val sup: Component[Nothing] = element("sup")
+  final val svg: Component[Nothing] = element("svg")
+  final val table: Component[Nothing] = element("table")
+  final val tbody: Component[Nothing] = element("tbody")
+  final val td: Component[Nothing] = element("td")
+  final val textarea: Component[Nothing] = element("textarea")
+  final val tfoot: Component[Nothing] = element("tfoot")
+  final val th: Component[Nothing] = element("th")
+  final val thead: Component[Nothing] = element("thead")
+  final val time: Component[Nothing] = element("time")
+  final val title: Component[Nothing] = element("title")
+  final val tr: Component[Nothing] = element("tr")
+  final val track: Component[Nothing] = element("track")
+  final val u: Component[Nothing] = element("u")
+  final val ul: Component[Nothing] = element("ul")
+  final val video: Component[Nothing] = element("video")
+  final val wbr: Component[Nothing] = element("wbr")
 }

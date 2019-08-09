@@ -3,7 +3,7 @@ package io.taig.schelm.dsl
 import cats.implicits._
 import io.taig.schelm.css._
 
-trait CssDsl extends CssKeysDsl with CssValuesDsl {
+trait CssDsl[Component[+_]] extends CssKeysDsl with CssValuesDsl {
   implicit def declarationToEither(
       declaration: Declaration
   ): DeclarationOrPseudo = declaration.asLeft
@@ -17,6 +17,21 @@ trait CssDsl extends CssKeysDsl with CssValuesDsl {
 
   implicit def numericToTimeUnitsOps[B: Numeric](value: B): CssTimeUnitOps =
     new CssTimeUnitOps(value.toString)
+
+  final implicit class CssBuilder[A](component: Component[A]) {
+    def css(styles: Styles): Component[A] = updateStyles(component, _ ++ styles)
+
+    def css(
+        declaration: DeclarationOrPseudo,
+        declarations: DeclarationOrPseudo*
+    ): Component[A] =
+      css(styles(declaration, declarations: _*))
+  }
+
+  protected def updateStyles[A](
+      component: Component[A],
+      f: Styles => Styles
+  ): Component[A]
 
   def styles(
       declaration: DeclarationOrPseudo,

@@ -4,41 +4,41 @@ import io.taig.schelm.css._
 import io.taig.schelm._
 
 trait PropertiesDsl {
-  def attr(key: String, value: String): Property[Nothing] =
-    Property.fromAttribute(Attribute(key, Value.One(value)))
+  def attr(key: String, value: String): Attribute =
+    Attribute(key, Value.One(value))
 
   def attrs(
       key: String,
       values: List[String],
       accumulator: Accumulator
-  ): Property[Nothing] =
-    Property.fromAttribute(Attribute(key, Value.Multiple(values, accumulator)))
+  ): Attribute =
+    Attribute(key, Value.Multiple(values, accumulator))
 
-  def data(key: String, value: String): Property[Nothing] =
+  def data(key: String, value: String): Attribute =
     attr(s"data-$key", value)
 
-  def flag(key: String, value: Boolean): Property[Nothing] =
-    Property.fromAttribute(Attribute(key, Value.Flag(value)))
+  def flag(key: String, value: Boolean): Attribute =
+    Attribute(key, Value.Flag(value))
 
-  def on[A](event: String, action: Action[A]): Property[A] =
-    Property.fromListener(Listener(event, action))
+  def on[A](event: String, action: Action[A]): Listener[A] =
+    Listener(event, action)
 
-  def cls(values: String*): Property[Nothing] =
+  def cls(values: String*): Attribute =
     attrs("class", values.toList, Accumulator.Whitespace)
 
-  def disabled(value: Boolean): Property[Nothing] = flag("disabled", value)
+  def disabled(value: Boolean): Attribute = flag("disabled", value)
 
-  val disabled: Property[Nothing] = disabled(true)
+  val disabled: Attribute = disabled(true)
 
-  def href(value: String): Property[Nothing] = attr("href", value)
+  def href(value: String): Attribute = attr("href", value)
 
-  def id(value: String): Property[Nothing] = attr("id", value)
+  def id(value: String): Attribute = attr("id", value)
 
-  def onClick[A](value: A): Property[A] = on("click", Action.Pure(value))
+  def onClick[A](value: A): Listener[A] = on("click", Action.Pure(value))
 
-  def onSubmit[A](value: A): Property[A] = on("submit", Action.Pure(value))
+  def onSubmit[A](value: A): Listener[A] = on("submit", Action.Pure(value))
 
-  def style(declarations: Declarations): Property[Nothing] =
+  def style(declarations: Declarations): Attribute =
     attrs(
       "style",
       declarations.rows,
@@ -48,6 +48,6 @@ trait PropertiesDsl {
   def style(
       declaration: Declaration,
       declarations: Declaration*
-  ): Property[Nothing] =
+  ): Attribute =
     style(Declarations.from(declaration +: declarations))
 }

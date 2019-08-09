@@ -19,9 +19,6 @@ abstract class ComponentOps[F[_], A](
   final def updateListeners(f: Listeners[A] => Listeners[A]): F[A] =
     ComponentOps.updateListeners(component, extract, inject)(f)
 
-  final def children: Children[F[A]] =
-    ComponentOps.children(component, extract, inject)
-
   final def setChildren(children: Children[F[A]]): F[A] =
     updateChildren(_ => children)
 

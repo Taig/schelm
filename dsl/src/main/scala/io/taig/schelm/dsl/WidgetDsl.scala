@@ -3,34 +3,19 @@ package io.taig.schelm.dsl
 import io.taig.schelm.{Attributes, Children, Component, Listeners}
 import io.taig.schelm.css.{Styles, Widget}
 
-trait WidgetDsl extends Dsl[Widget, Property] {
-  private val EmptyListeners: Listeners[Nothing] = Listeners.empty
-  private val EmptyChildren: Children[Widget[Nothing]] = Children.empty
+private object Cache {
+  val EmptyListeners: Listeners[Nothing] = Listeners.empty
+  val EmptyChildren: Children[Widget[Nothing]] = Children.empty
+}
 
-  private def split[A](
-      properties: Iterable[Property[A]]
-  ): (Attributes, Listeners[A], Styles) =
-    // format: off
-    properties.foldLeft((Attributes.Empty, Listeners.empty[A], Styles.Empty)) {
-      case ((attributes, listeners, styles), Property.Attribute(attribute)) =>
-        (attributes + attribute, listeners, styles)
-      case ((attributes, listeners, styles), property: Property.Listener[A]) =>
-        (attributes, listeners + property.value, styles)
-      case ((attributes, listeners, styles), Property.Optional(property)) =>
-        val (x, y, z) = split(property)
-        (attributes ++ x, listeners ++ y, styles ++ z)
-      case ((attributes, listeners, styles), Property.Styles(values)) =>
-        (attributes, listeners, styles ++ values)
-    }
-  // format: on
-
-  override protected def element(name: String): Widget[Nothing] =
+trait WidgetDsl extends Dsl[Widget] with CssDsl[Widget] {
+  override def element(name: String): Widget[Nothing] =
     Widget(
       Component.Element[Widget[Nothing], Nothing](
         name,
         Attributes.Empty,
-        EmptyListeners,
-        EmptyChildren
+        Cache.EmptyListeners,
+        Cache.EmptyChildren
       ),
       Styles.Empty
     )
@@ -38,31 +23,29 @@ trait WidgetDsl extends Dsl[Widget, Property] {
   override def text(value: String): Widget[Nothing] =
     Widget(Component.Text(value), Styles.Empty)
 
-  override protected def properties[A](
+  override protected def updateAttributes[A](
       component: Widget[A],
-      properties: Iterable[Property[A]]
-  ): Widget[A] = {
-    val (attributes, listeners, styles) = split(properties)
-    component
-      .setAttributes(attributes)
-      .setListeners(listeners)
-      .setStyles(styles)
-  }
-
-  override protected def children[A](
-      component: Widget[A],
-      children: Children[Widget[A]]
+      f: Attributes => Attributes
   ): Widget[A] =
-    component.setChildren(children)
+    component.updateAttributes(f)
 
-  def stylesheet(styles: Styles): Property[Nothing] =
-    Property.fromStyles(styles)
+  override protected def updateListeners[A](
+      component: Widget[A],
+      f: Listeners[A] => Listeners[A]
+  ): Widget[A] =
+    component.updateListeners(f)
 
-  def stylesheet(
-      declaration: DeclarationOrPseudo,
-      declarations: DeclarationOrPseudo*
-  ): Property[Nothing] =
-    stylesheet(styles(declaration, declarations: _*))
+  override protected def updateChildren[A](
+      component: Widget[A],
+      f: Children[Widget[A]] => Children[Widget[A]]
+  ): Widget[A] =
+    component.updateChildren(f)
+
+  override protected def updateStyles[A](
+      component: Widget[A],
+      f: Styles => Styles
+  ): Widget[A] =
+    Widget(component.tail, f(component.head))
 }
 
 object WidgetDsl extends WidgetDsl
