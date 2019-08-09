@@ -16,16 +16,16 @@ final class NodeBuilder[A](val widget: Widget[A]) extends AnyVal {
     new ChildrenBuilder(update)
   }
 
-  def apply(child: Widget[A], children: Widget[A]*): Widget[A] =
-    new ChildrenBuilder(widget)(child, children: _*)
+  def apply(children: Widget[A]*): Widget[A] =
+    new ChildrenBuilder(widget)(children: _*)
 
   def apply(children: List[(String, Widget[A])]): Widget[A] =
     new ChildrenBuilder(widget)(children)
 }
 
 final class ChildrenBuilder[A](val widget: Widget[A]) extends AnyVal {
-  def apply(child: Widget[A], children: Widget[A]*): Widget[A] =
-    widget.setChildren(Children.indexed(child +: children))
+  def apply(children: Widget[A]*): Widget[A] =
+    widget.setChildren(Children.indexed(children))
 
   def apply(children: List[(String, Widget[A])]): Widget[A] =
     widget.setChildren(Children.identified(children))
