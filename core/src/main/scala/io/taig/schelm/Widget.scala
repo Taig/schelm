@@ -62,4 +62,9 @@ object Widget {
       component: Component[Widget[Event, Unit, Payload], Event]
   ): Widget[Event, Unit, Payload] =
     pure(component, Monoid[Payload].empty)
+
+  def of[Event, Context, Payload](
+      f: Context => Widget[Event, Context, Payload]
+  ): Widget[Event, Context, Payload] =
+    Widget(context => f(context).render(context))
 }
