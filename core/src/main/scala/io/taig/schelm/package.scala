@@ -15,7 +15,7 @@ package object schelm extends internal.Nodes {
   def toHtml[A](widget: Widget[A, Unit, _]): Html[A] =
     widget.component match {
       case component: Component.Element[Widget[A, Unit, _], A] =>
-        val children = component.children.map((_, child) => toHtml(child))
+        val children = component.children.map((_, child) => toHtml[A](child))
         Html(
           Component.Element(
             component.name,
@@ -25,10 +25,10 @@ package object schelm extends internal.Nodes {
           )
         )
       case component: Component.Fragment[Widget[A, Unit, _]] =>
-        val children = component.children.map((_, child) => toHtml(child))
+        val children = component.children.map((_, child) => toHtml[A](child))
         Html(Component.Fragment(children))
       case component: Component.Lazy[Widget[A, Unit, _]] =>
-        Html(component.copy(eval = component.eval.map(toHtml)))
+        Html(component.copy(eval = component.eval.map(toHtml[A])))
       case component: Component.Text => Html(component)
     }
 }

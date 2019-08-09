@@ -28,7 +28,7 @@ final class StylesheetDiffer[A]
       case (previous: Component.Lazy[StylesheetWidget[A]], next: Component.Lazy[StylesheetWidget[A]]) =>
         lzy(previous, next)
       case (_: Component.Text, _: Component.Text) => Stylesheet.Empty
-      case _ => Widget.payload(next)
+      case _ => next.merge
     }
     // format: on
 
@@ -63,7 +63,7 @@ final class StylesheetDiffer[A]
       case (previous: Children.Identified[StylesheetWidget[A]], next: Children.Identified[StylesheetWidget[A]]) =>
         // TODO
         Stylesheet.Empty
-      case _ => next.values.map(Widget.payload[Stylesheet]).combineAll
+      case _ => next.values.map(_.apply(unit).merge).combineAll
     }
     // format: on
 
@@ -76,8 +76,7 @@ final class StylesheetDiffer[A]
       val left = previous.values
       val right = next.values
       val comparisons = (left zip right).map(compare _ tupled).combineAll
-      val additions =
-        right.drop(left.length).map(Widget.payload[Stylesheet]).combineAll
+      val additions = right.drop(left.length).map(_.merge).combineAll
       comparisons ++ additions
     }
 }

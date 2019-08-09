@@ -4,30 +4,62 @@ import cats.Monoid
 import cats.implicits._
 
 final case class Widget[+Event, Context, Payload](
-    payload: Payload,
-    render: Context => Component[Widget[Event, Context, Payload], Event]
+    render: Context => (
+        Component[Widget[Event, Context, Payload], Event],
+        Payload
+    )
 ) {
   def component(
       implicit ev: Unit =:= Context
-  ): Component[Widget[Event, Context, Payload], Event] =
-    render(unit)
+  ): Component[Widget[Event, Context, Payload], Event] = render(unit)._1
+
+  def payload(implicit ev: Unit =:= Context): Payload = render(unit)._2
+
+  def merge(implicit F: Monoid[Payload], ev: Unit =:= Context): Payload =
+    component match {
+      case component: Component.Element[Widget[_, Context, Payload], _] =>
+        payload |+| component.children.values
+          .map(_.apply(unit).merge)
+          .combineAll
+      case component: Component.Fragment[Widget[_, Context, Payload]] =>
+        payload |+| component.children.values
+          .map(_.apply(unit).merge)
+          .combineAll
+      case component: Component.Lazy[Widget[_, Context, Payload]] =>
+        payload |+| component.eval.value(unit).merge
+      case _: Component.Text => payload
+    }
+
+  def apply(context: Context): Widget[Event, Unit, Payload] = {
+    val (component, payload) = render(context)
+    val update = component match {
+      case Component.Element(name, attributes, listeners, children) =>
+        Component.Element(
+          name,
+          attributes,
+          listeners,
+          children.map((_, widget) => widget(context))
+        )
+      case Component.Fragment(children) =>
+        Component.Fragment(children.map((_, widget) => widget(context)))
+      case Component.Lazy(eval, hash) =>
+        Component.Lazy(eval.map(_.apply(context)), hash)
+      case component: Component.Text => component
+    }
+
+    Widget.pure(update, payload)
+  }
 }
 
 object Widget {
   def pure[Event, Payload](
-      payload: Payload,
+      component: Component[Widget[Event, Unit, Payload], Event],
+      payload: Payload
+  ): Widget[Event, Unit, Payload] =
+    Widget(_ => (component, payload))
+
+  def empty[Event, Payload: Monoid](
       component: Component[Widget[Event, Unit, Payload], Event]
   ): Widget[Event, Unit, Payload] =
-    Widget(payload, _ => component)
-
-  def payload[A](widget: Widget[_, Unit, A])(implicit F: Monoid[A]): A =
-    widget.component match {
-      case component: Component.Element[Widget[_, Unit, A], _] =>
-        widget.payload |+| component.children.values.map(payload[A]).combineAll
-      case component: Component.Fragment[Widget[_, Unit, A]] =>
-        widget.payload |+| component.children.values.map(payload[A]).combineAll
-      case component: Component.Lazy[Widget[_, Unit, A]] =>
-        widget.payload |+| payload(component.eval.value)
-      case _: Component.Text => widget.payload
-    }
+    pure(component, Monoid[Payload].empty)
 }

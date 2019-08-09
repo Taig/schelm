@@ -8,26 +8,7 @@ package object css extends NormalizeCss {
 
   type StyledWidget[+A] = Widget[A, Unit, Styles]
 
-  object StylesWidget {
-    def apply[A](
-        component: Component[StyledWidget[A], A],
-        styles: Styles
-    ): StyledWidget[A] = Widget(styles, _ => component)
-  }
-
   type StylesheetWidget[+A] = Widget[A, Unit, Stylesheet]
-
-  object StylesheetWidget {
-    def apply[A](
-        component: Component[StylesheetWidget[A], A],
-        stylesheet: Stylesheet
-    ): StylesheetWidget[A] = Widget.pure(stylesheet, component)
-
-    def empty[Event](
-        component: Component[StylesheetWidget[Event], Event]
-    ): StylesheetWidget[Event] =
-      StylesheetWidget(component, Stylesheet.Empty)
-  }
 
   def toStylesheetWidget[A](widget: StyledWidget[A]): StylesheetWidget[A] =
     widget.component match {
@@ -48,18 +29,18 @@ package object css extends NormalizeCss {
         val children =
           component.children.map((_, child) => toStylesheetWidget(child))
 
-        StylesheetWidget(
+        Widget.pure(
           component.copy(attributes = attributes, children = children),
           stylesheet
         )
       case component: Component.Fragment[StyledWidget[A]] =>
         val children =
           component.children.map((_, child) => toStylesheetWidget(child))
-        StylesheetWidget.empty(component.copy(children = children))
+        Widget.empty(component.copy(children = children))
       case component: Component.Lazy[StyledWidget[A]] =>
         val eval = component.eval.map(toStylesheetWidget[A])
-        StylesheetWidget.empty(component.copy(eval = eval))
-      case component: Component.Text => StylesheetWidget.empty(component)
+        Widget.empty(component.copy(eval = eval))
+      case component: Component.Text => Widget.empty(component)
     }
 
   private def cls(values: List[String]): Attribute =

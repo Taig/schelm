@@ -12,8 +12,7 @@ final class StyledHtmlRenderer[F[_]: Functor, A](
       path: Path
   ): F[StyledReference[A]] =
     renderer.render(toHtml(styled), path).map { reference =>
-      val stylesheet = Widget.payload(styled)
-      StyledReference(reference, stylesheet)
+      StyledReference(reference, styled.merge)
     }
 }
 

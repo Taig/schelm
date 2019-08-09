@@ -5,18 +5,17 @@ import io.taig.schelm.css.Styles
 
 trait StyledHtmlDsl extends Dsl[Unit, Styles] with CssDsl[Unit, Styles] {
   override def element(name: String): Widget[Nothing, Unit, Styles] =
-    Widget.pure(
-      Styles.Empty,
+    Widget.empty(
       Component.Element(name, Attributes.Empty, Listeners.empty, Children.empty)
     )
 
   override def text(value: String): Widget[Nothing, Unit, Styles] =
-    Widget.pure(Styles.Empty, Component.Text(value))
+    Widget.empty(Component.Text(value))
 
   override def updateStyles[A](
       widget: Widget[A, Unit, Styles],
       f: Styles => Styles
-  ): Widget[A, Unit, Styles] = widget.copy(payload = f(widget.payload))
+  ): Widget[A, Unit, Styles] = updatePayload(widget, f)
 }
 
 object StyledHtmlDsl extends StyledHtmlDsl
