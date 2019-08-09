@@ -5,7 +5,7 @@ import cats.effect.IO
 import cats.implicits._
 import io.taig.schelm._
 import io.taig.schelm.css._
-import io.taig.schelm.dsl._
+import io.taig.schelm.dsl.widget._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
