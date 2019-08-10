@@ -25,36 +25,32 @@ trait WidgetDsl[Context, Payload] { self =>
       widget: Widget[A, Context, Payload],
       f: Attributes => Attributes
   ): Widget[A, Context, Payload] =
-    Widget { context =>
-      widget.render(context).leftMap {
-        case component: Component.Element[Widget[A, Context, Payload], A] =>
-          component.copy(attributes = f(component.attributes))
-        case Component.Lazy(eval, hash) =>
-          Component.Lazy(eval.map(updateAttributes(_, f)), hash)
-        case Component.Fragment(children) =>
-          Component.Fragment(
-            children.map((_, child) => updateAttributes(child, f))
-          )
-        case component: Component.Text => component
-      }
+    Widget.component(widget) {
+      case component: Component.Element[Widget[A, Context, Payload], A] =>
+        component.copy(attributes = f(component.attributes))
+      case Component.Lazy(eval, hash) =>
+        Component.Lazy(eval.map(updateAttributes(_, f)), hash)
+      case Component.Fragment(children) =>
+        Component.Fragment(
+          children.map((_, child) => updateAttributes(child, f))
+        )
+      case component: Component.Text => component
     }
 
   final def updateListeners[A](
       widget: Widget[A, Context, Payload],
       f: Listeners[A] => Listeners[A]
   ): Widget[A, Context, Payload] =
-    Widget { context =>
-      widget.render(context).leftMap {
-        case component: Component.Element[Widget[A, Context, Payload], A] =>
-          component.copy(listeners = f(component.listeners))
-        case Component.Lazy(eval, hash) =>
-          Component.Lazy(eval.map(updateListeners(_, f)), hash)
-        case Component.Fragment(children) =>
-          Component.Fragment(
-            children.map((_, child) => updateListeners(child, f))
-          )
-        case component: Component.Text => component
-      }
+    Widget.component(widget) {
+      case component: Component.Element[Widget[A, Context, Payload], A] =>
+        component.copy(listeners = f(component.listeners))
+      case Component.Lazy(eval, hash) =>
+        Component.Lazy(eval.map(updateListeners(_, f)), hash)
+      case Component.Fragment(children) =>
+        Component.Fragment(
+          children.map((_, child) => updateListeners(child, f))
+        )
+      case component: Component.Text => component
     }
 
   final def updateChildren[A](
@@ -63,25 +59,22 @@ trait WidgetDsl[Context, Payload] { self =>
         Widget[A, Context, Payload]
       ]
   ): Widget[A, Context, Payload] =
-    Widget { context =>
-      widget.render(context).leftMap {
-        case component: Component.Element[Widget[A, Context, Payload], A] =>
-          component.copy(children = f(component.children))
-        case Component.Lazy(eval, hash) =>
-          Component.Lazy(eval.map(updateChildren(_, f)), hash)
-        case Component.Fragment(children) =>
-          Component.Fragment(
-            children.map((_, child) => updateChildren(child, f))
-          )
-        case component: Component.Text => component
-      }
+    Widget.component(widget) {
+      case component: Component.Element[Widget[A, Context, Payload], A] =>
+        component.copy(children = f(component.children))
+      case Component.Lazy(eval, hash) =>
+        Component.Lazy(eval.map(updateChildren(_, f)), hash)
+      case Component.Fragment(children) =>
+        Component.Fragment(
+          children.map((_, child) => updateChildren(child, f))
+        )
+      case component: Component.Text => component
     }
 
   final def updatePayload[A](
       widget: Widget[A, Context, Payload],
       f: Payload => Payload
-  ): Widget[A, Context, Payload] =
-    Widget(widget.render(_).map(f))
+  ): Widget[A, Context, Payload] = Widget.payload(widget)(f)
 
   final val a: Widget[Nothing, Context, Payload] = element("a")
   final val abbr: Widget[Nothing, Context, Payload] = element("abbr")

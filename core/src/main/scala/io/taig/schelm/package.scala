@@ -13,7 +13,7 @@ package object schelm extends internal.Nodes {
   val unit: Unit = ()
 
   def toHtml[A](widget: Widget[A, Unit, _]): Html[A] =
-    widget.component match {
+    widget.component(unit) match {
       case component: Component.Element[Widget[A, Unit, _], A] =>
         val children = component.children.map((_, child) => toHtml[A](child))
         Html(

@@ -17,10 +17,10 @@ final class StylesheetDiffer[A]
       previous: StylesheetWidget[A],
       next: StylesheetWidget[A]
   ): Stylesheet = {
-    val node = next.payload
+    val node = next.payload(unit)
 
     // format: off
-    val children = (previous.component, next.component) match {
+    val children = (previous.component(unit), next.component(unit)) match {
       case (previous: Component.Element[StylesheetWidget[A], A], next: Component.Element[StylesheetWidget[A], A]) =>
         element(previous, next)
       case (previous: Component.Fragment[StylesheetWidget[A]], next: Component.Fragment[StylesheetWidget[A]]) =>
@@ -63,7 +63,7 @@ final class StylesheetDiffer[A]
       case (previous: Children.Identified[StylesheetWidget[A]], next: Children.Identified[StylesheetWidget[A]]) =>
         // TODO
         Stylesheet.Empty
-      case _ => next.values.map(_.apply(unit).merge).combineAll
+      case _ => next.values.map(_.merge).combineAll
     }
     // format: on
 

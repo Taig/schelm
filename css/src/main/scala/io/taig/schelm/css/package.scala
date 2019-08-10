@@ -11,13 +11,16 @@ package object css extends NormalizeCss {
   type StylesheetWidget[+A] = Widget[A, Unit, Stylesheet]
 
   def toStylesheetWidget[A](widget: StyledWidget[A]): StylesheetWidget[A] =
-    widget.component match {
+    widget.component(unit) match {
       case component: Component.Element[StyledWidget[A], A] =>
-        val styles = widget.payload.map { style =>
-          val identifier = Identifier(style.hashCode)
-          val selectors = Selectors.of(identifier.selector)
-          identifier -> style.toStylesheet(selectors)
-        }.toMap
+        val styles = widget
+          .payload(unit)
+          .map { style =>
+            val identifier = Identifier(style.hashCode)
+            val selectors = Selectors.of(identifier.selector)
+            identifier -> style.toStylesheet(selectors)
+          }
+          .toMap
 
         val identifiers = styles.keys.toList
         val stylesheet = styles.values.toList.combineAll
