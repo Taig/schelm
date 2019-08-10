@@ -83,6 +83,11 @@ object Widget {
       f: Context => Widget[Event, Context, Payload]
   ): Widget[Event, Context, Payload] = Chain(f)
 
+  def via[Event, Context, Payload](
+      f: Context => Context
+  )(widget: Widget[Event, Context, Payload]): Widget[Event, Context, Payload] =
+    Contextual(f, widget)
+
   def pure[Event, Context, Payload](
       component: Component[Event, Context, Payload],
       payload: Payload

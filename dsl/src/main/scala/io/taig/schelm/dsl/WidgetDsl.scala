@@ -1,7 +1,6 @@
 package io.taig.schelm.dsl
 
 import io.taig.schelm._
-import cats.implicits._
 
 trait WidgetDsl[Context, Payload] { self =>
   def element(name: String): Widget[Nothing, Context, Payload]
