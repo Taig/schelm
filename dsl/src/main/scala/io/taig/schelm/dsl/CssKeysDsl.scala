@@ -259,6 +259,7 @@ trait CssKeysDsl {
     declaration("transition-property", value)
   def transitionTimingFunction(value: String): Declaration =
     declaration("transition-timing-function", value)
+  def userSelect(value: String): Declaration = declaration("user-select", value)
   def verticalAlign(value: String): Declaration =
     declaration("vertical-align", value)
   def visibility(value: String): Declaration = declaration("visibility", value)

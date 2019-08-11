@@ -39,11 +39,7 @@ trait PropertiesDsl {
   def onSubmit[A](value: A): Listener[A] = on("submit", Action.Pure(value))
 
   def style(declarations: Declarations): Attribute =
-    attrs(
-      "style",
-      declarations.rows,
-      Accumulator.Semicolon + Accumulator.Whitespace
-    )
+    attrs("style", declarations.rows, Accumulator.Whitespace)
 
   def style(
       declaration: Declaration,
