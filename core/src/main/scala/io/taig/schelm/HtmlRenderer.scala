@@ -13,7 +13,10 @@ final class HtmlRenderer[F[_], Event](dom: Dom[F, Event])(
     html.component match {
       case component: Component.Element[Html[Event], Event] =>
         for {
-          element <- dom.createElement(component.name)
+          element <- component.namespace.fold(dom.createElement(component.name)) {
+            namespace =>
+              dom.createElementNS(namespace, component.name)
+          }
           _ <- component.attributes.traverse_(register(element, _))
           _ <- component.listeners.traverse_(register(element, path, _))
           children <- component.children.traverse(

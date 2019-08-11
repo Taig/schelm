@@ -2,8 +2,13 @@ package io.taig.schelm.dsl
 
 import io.taig.schelm._
 
-trait WidgetDsl[Context, Payload] { self =>
+trait WidgetDsl[Context, Payload] extends NamespaceDsl { self =>
   def element(name: String): Widget[Nothing, Context, Payload]
+
+  def element(
+      namespace: String,
+      name: String
+  ): Widget[Nothing, Context, Payload]
 
   def text(value: String): Widget[Nothing, Context, Payload]
 
@@ -163,7 +168,7 @@ trait WidgetDsl[Context, Payload] { self =>
   final val sub: Widget[Nothing, Context, Payload] = element("sub")
   final val summary: Widget[Nothing, Context, Payload] = element("summary")
   final val sup: Widget[Nothing, Context, Payload] = element("sup")
-  final val svg: Widget[Nothing, Context, Payload] = element("svg")
+  final val svg: Widget[Nothing, Context, Payload] = element(SVG, "svg")
   final val table: Widget[Nothing, Context, Payload] = element("table")
   final val tbody: Widget[Nothing, Context, Payload] = element("tbody")
   final val td: Widget[Nothing, Context, Payload] = element("td")

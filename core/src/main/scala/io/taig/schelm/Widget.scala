@@ -137,9 +137,16 @@ object Widget {
       component: Component[Event, Context, Payload]
   ): Component[Event, Unit, Payload] =
     component match {
-      case Component.Element(name, attributes, listeners, children) =>
+      case Component.Element(
+          name,
+          namespace,
+          attributes,
+          listeners,
+          children
+          ) =>
         Component.Element(
           name,
+          namespace,
           attributes,
           listeners,
           children.map((_, child) => render(context, child))

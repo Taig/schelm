@@ -7,6 +7,7 @@ sealed abstract class Component[+A, +Event] extends Product with Serializable
 object Component {
   final case class Element[A, Event](
       name: String,
+      namespace: Option[String],
       attributes: Attributes,
       listeners: Listeners[Event],
       children: Children[A]
@@ -26,9 +27,10 @@ object Component {
           fa: Component[A, Event]
       )(f: A => B): Component[B, Event] =
         fa match {
-          case Element(name, attributes, listeners, children) =>
+          case Element(name, namespace, attributes, listeners, children) =>
             Element(
               name,
+              namespace,
               attributes,
               listeners,
               children.map((_, value) => f(value))

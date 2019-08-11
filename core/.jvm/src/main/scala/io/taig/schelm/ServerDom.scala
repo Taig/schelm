@@ -42,6 +42,9 @@ final class ServerDom[F[_], Event](document: JDocument)(implicit F: Sync[F])
   override def createElement(name: String): F[JElement] =
     F.delay(new JElement(name))
 
+  override def createElementNS(namespace: String, name: String): F[Element] =
+    createElement(name)
+
   override def createTextNode(value: String): F[JText] =
     F.delay(new JText(value))
 

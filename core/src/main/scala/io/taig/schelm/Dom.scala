@@ -28,6 +28,8 @@ abstract class Dom[F[_], Event] {
 
   def createElement(name: String): F[Element]
 
+  def createElementNS(namespace: String, name: String): F[Element]
+
   def createTextNode(value: String): F[Text]
 
   def childAt(element: Element, index: Int): F[Option[Node]]
