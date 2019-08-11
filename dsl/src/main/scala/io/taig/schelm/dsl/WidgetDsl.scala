@@ -80,6 +80,7 @@ trait WidgetDsl[Context, Payload] extends NamespaceDsl { self =>
       f: Payload => Payload
   ): Widget[A, Context, Payload] = Widget.payload(widget)(f)
 
+  // format: off
   final val a: Widget[Nothing, Context, Payload] = element("a")
   final val abbr: Widget[Nothing, Context, Payload] = element("abbr")
   final val address: Widget[Nothing, Context, Payload] = element("address")
@@ -89,15 +90,14 @@ trait WidgetDsl[Context, Payload] extends NamespaceDsl { self =>
   final val audio: Widget[Nothing, Context, Payload] = element("audio")
   final val b: Widget[Nothing, Context, Payload] = element("b")
   final val base: Widget[Nothing, Context, Payload] = element("base")
-  final val blockquote: Widget[Nothing, Context, Payload] = element(
-    "blockquote"
-  )
+  final val blockquote: Widget[Nothing, Context, Payload] = element("blockquote")
   final val body: Widget[Nothing, Context, Payload] = element("body")
   final val br: Widget[Nothing, Context, Payload] = element("br")
   final val button: Widget[Nothing, Context, Payload] = element("button")
   final val canvas: Widget[Nothing, Context, Payload] = element("canvas")
   final val caption: Widget[Nothing, Context, Payload] = element("caption")
   final val cite: Widget[Nothing, Context, Payload] = element("cite")
+  final val circle: Widget[Nothing, Context, Payload] = element(SVG, "circle")
   final val code: Widget[Nothing, Context, Payload] = element("code")
   final val col: Widget[Nothing, Context, Payload] = element("col")
   final val colgroup: Widget[Nothing, Context, Payload] = element("colgroup")
@@ -110,12 +110,11 @@ trait WidgetDsl[Context, Payload] extends NamespaceDsl { self =>
   final val div: Widget[Nothing, Context, Payload] = element("div")
   final val dl: Widget[Nothing, Context, Payload] = element("dl")
   final val dt: Widget[Nothing, Context, Payload] = element("dt")
+  final val ellipse: Widget[Nothing, Context, Payload] = element(SVG, "ellipse")
   final val em: Widget[Nothing, Context, Payload] = element("em")
   final val embed: Widget[Nothing, Context, Payload] = element("embed")
   final val fieldset: Widget[Nothing, Context, Payload] = element("fieldset")
-  final val figcaption: Widget[Nothing, Context, Payload] = element(
-    "figcaption"
-  )
+  final val figcaption: Widget[Nothing, Context, Payload] = element("figcaption")
   final val figure: Widget[Nothing, Context, Payload] = element("figure")
   final val footer: Widget[Nothing, Context, Payload] = element("footer")
   final val form: Widget[Nothing, Context, Payload] = element("form")
@@ -152,10 +151,13 @@ trait WidgetDsl[Context, Payload] extends NamespaceDsl { self =>
   final val option: Widget[Nothing, Context, Payload] = element("option")
   final val output: Widget[Nothing, Context, Payload] = element("output")
   final val p: Widget[Nothing, Context, Payload] = element("p")
+  final val path: Widget[Nothing, Context, Payload] = element(SVG, "path")
   final val param: Widget[Nothing, Context, Payload] = element("param")
+  final val polygon: Widget[Nothing, Context, Payload] = element(SVG, "polygon")
   final val pre: Widget[Nothing, Context, Payload] = element("pre")
   final val progress: Widget[Nothing, Context, Payload] = element("progress")
   final val q: Widget[Nothing, Context, Payload] = element("q")
+  final val rect: Widget[Nothing, Context, Payload] = element(SVG, "rect")
   final val s: Widget[Nothing, Context, Payload] = element("s")
   final val samp: Widget[Nothing, Context, Payload] = element("samp")
   final val script: Widget[Nothing, Context, Payload] = element("script")
@@ -184,4 +186,5 @@ trait WidgetDsl[Context, Payload] extends NamespaceDsl { self =>
   final val ul: Widget[Nothing, Context, Payload] = element("ul")
   final val video: Widget[Nothing, Context, Payload] = element("video")
   final val wbr: Widget[Nothing, Context, Payload] = element("wbr")
+  // format: on
 }

@@ -1,5 +1,6 @@
 package io.taig.schelm.dsl
 
 trait Dsl[Context, Payload]
-    extends PropertiesDsl
+    extends AttributesDsl
+    with ListenersDsl
     with WidgetDsl[Context, Payload]
