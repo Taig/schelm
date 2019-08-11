@@ -2,7 +2,7 @@ package io.taig.schelm.dsl
 
 import io.taig.schelm._
 
-trait WidgetDsl[Context, Payload] extends NamespaceDsl { self =>
+trait WidgetDsl[Context, Payload] extends NamespaceDsl {
   def element(name: String): Widget[Nothing, Context, Payload]
 
   def element(
@@ -16,7 +16,7 @@ trait WidgetDsl[Context, Payload] extends NamespaceDsl { self =>
 
   final implicit class Builder[A](widget: Widget[A, Context, Payload]) {
     def attributes(attributes: Attribute*): Widget[A, Context, Payload] =
-      self.updateAttributes(widget, _ ++ Attributes.from(attributes))
+      updateAttributes(widget, _ ++ Attributes.from(attributes))
 
     def listeners(listeners: Listener[A]*): Widget[A, Context, Payload] =
       updateListeners[A](widget, _ ++ Listeners.from(listeners))
@@ -24,7 +24,7 @@ trait WidgetDsl[Context, Payload] extends NamespaceDsl { self =>
     def children(
         children: Widget[A, Context, Payload]*
     ): Widget[A, Context, Payload] =
-      self.updateChildren[A](widget, _ ++ Children.indexed(children))
+      updateChildren[A](widget, _ ++ Children.indexed(children))
   }
 
   final def updateAttributes[A](
