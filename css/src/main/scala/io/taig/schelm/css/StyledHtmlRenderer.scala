@@ -9,9 +9,10 @@ final class StyledHtmlRenderer[F[_]: Functor, A](
 ) extends Renderer[F, StylesheetWidget[A], StyledReference[A]] {
   override def render(
       styled: StylesheetWidget[A],
+      parent: Option[Element],
       path: Path
   ): F[StyledReference[A]] =
-    renderer.render(toHtml(styled), path).map { reference =>
+    renderer.render(toHtml(styled), parent, path).map { reference =>
       StyledReference(reference, styled.merge)
     }
 }

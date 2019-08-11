@@ -17,8 +17,10 @@ final class ReferencePatcher[F[_], A](
     // format: off
     (reference, diff) match {
       case (_, diff: HtmlDiff.Group[A]) => group(reference, diff, path)
-      case (reference: Reference.Element[A], diff: HtmlDiff.AddAttribute) => addAttribute(reference, diff)
-      case (reference: Reference.Element[A], diff: HtmlDiff.RemoveAttribute) => removeAttribute(reference, diff)
+      case (reference: Reference.Element[A], diff: HtmlDiff.AddAttribute) =>
+        addAttribute(reference, diff)
+      case (reference: Reference.Element[A], diff: HtmlDiff.RemoveAttribute) =>
+        removeAttribute(reference, diff)
       case (element@Reference.Element(_, node), HtmlDiff.RemoveListener(event)) =>
         dom.removeEventListener(node, event, path) *>
         element.updateListeners(_ - event).pure[F]
@@ -45,7 +47,7 @@ final class ReferencePatcher[F[_], A](
           reference <- child(component.children, key)
           child <- patch(reference, diff, path / key)
         } yield parent.updateChildren(_.updated(key, child))
-      case (_, HtmlDiff.Replace(html)) => renderer.render(html, path)
+      case (_, HtmlDiff.Replace(html)) => renderer.render(html, parent = None, path)
       case (reference @ Reference.Text(_, node), HtmlDiff.UpdateText(value)) =>
         dom.data(node, value) *> reference.pure[F].widen
       case _ =>

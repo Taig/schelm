@@ -10,6 +10,8 @@ trait WidgetDsl[Context, Payload] extends NamespaceDsl { self =>
       name: String
   ): Widget[Nothing, Context, Payload]
 
+  def fragment: Widget[Nothing, Context, Payload]
+
   def text(value: String): Widget[Nothing, Context, Payload]
 
   final implicit class Builder[A](widget: Widget[A, Context, Payload]) {
@@ -62,18 +64,15 @@ trait WidgetDsl[Context, Payload] extends NamespaceDsl { self =>
       f: Children[Widget[A, Context, Payload]] => Children[
         Widget[A, Context, Payload]
       ]
-  ): Widget[A, Context, Payload] =
-    Widget.component(widget) {
-      case component: Component.Element[Widget[A, Context, Payload], A] =>
-        component.copy(children = f(component.children))
-      case Component.Lazy(eval, hash) =>
-        Component.Lazy(eval.map(updateChildren(_, f)), hash)
-      case Component.Fragment(children) =>
-        Component.Fragment(
-          children.map((_, child) => updateChildren(child, f))
-        )
-      case component: Component.Text => component
-    }
+  ): Widget[A, Context, Payload] = Widget.component(widget) {
+    case component: Component.Element[Widget[A, Context, Payload], A] =>
+      component.copy(children = f(component.children))
+    case component: Component.Lazy[Widget[A, Context, Payload]] =>
+      component.copy(eval = component.eval.map(updateChildren(_, f)))
+    case component: Component.Fragment[Widget[A, Context, Payload]] =>
+      component.copy(children = f(component.children))
+    case component: Component.Text => component
+  }
 
   final def updatePayload[A](
       widget: Widget[A, Context, Payload],

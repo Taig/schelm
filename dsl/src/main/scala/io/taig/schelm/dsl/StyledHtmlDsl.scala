@@ -30,6 +30,9 @@ trait StyledHtmlDsl extends Dsl[Unit, Styles] with CssDsl[Unit, Styles] {
     Widget.empty(component)
   }
 
+  override val fragment: Widget[Nothing, Unit, Styles] =
+    Widget.empty(Component.Fragment(Children.empty))
+
   override def text(value: String): Widget[Nothing, Unit, Styles] =
     Widget.empty(Component.Text(value))
 

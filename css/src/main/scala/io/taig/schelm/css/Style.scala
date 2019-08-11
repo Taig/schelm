@@ -18,6 +18,9 @@ final case class Style(
   def ++(pseudos: PseudoDeclarations): Style =
     Style(declarations, this.pseudos ++ pseudos)
 
+  def ++(style: Style): Style =
+    Style(declarations ++ style.declarations, pseudos ++ style.pseudos)
+
   def toStylesheet(selectors: Selectors): Stylesheet =
     pseudos.toStylesheet(selectors) + Rule.Style(selectors, declarations)
 }

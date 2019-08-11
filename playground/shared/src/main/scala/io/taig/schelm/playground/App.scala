@@ -12,30 +12,27 @@ import scala.concurrent.duration._
 
 object App {
   def widget(state: State): Widget[Event, Unit, Styles] =
-    div
-      .attributes(id("yolo"))
-      .css(
-        if (state.clicks % 2 == 0) backgroundColor("greenyellow")
-        else backgroundColor("yellow"),
-        maxWidth(500.px),
-        padding(5.px),
-        &.after(
-          backgroundColor("orangered"),
-          content("''"),
-          height(100.px),
-          position(absolute),
-          width(100.%%)
-        )
-      )
-      .children(
-        button
-          .listeners(
-            if (state.clicks < 5) onClick(Event.Increment(1))
-            else onClick(Event.Increment(5))
+    Widget.local(identity[Unit]) {
+      Widget { context =>
+        div
+          .attributes(id("yolo"))
+          .styles(
+            if (state.clicks % 2 == 0) backgroundColor("greenyellow")
+            else backgroundColor("yellow"),
+            maxWidth(500.px),
+            padding(5.px)
           )
-          .children(text("Click to play")),
-        text(s"Does this work?: ${state.clicks}")
-      )
+          .children(
+            button
+              .listeners(
+                if (state.clicks < 5) onClick(Event.Increment(1))
+                else onClick(Event.Increment(5))
+              )
+              .children(text("Click to play")),
+            text(s"Does this work?: ${state.clicks}")
+          )
+      }
+    }
 
   val events: EventHandler[State, Event, Command] = {
     case (state, Event.Increment(value)) =>

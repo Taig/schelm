@@ -8,33 +8,38 @@ final class HtmlRenderer[F[_], Event](dom: Dom[F, Event])(
 ) extends Renderer[F, Html[Event], Reference[Event]] {
   override def render(
       html: Html[Event],
+      parent: Option[Element],
       path: Path
   ): F[Reference[Event]] =
     html.component match {
       case component: Component.Element[Html[Event], Event] =>
+        val name = component.name
+
         for {
-          element <- component.namespace.fold(dom.createElement(component.name)) {
-            namespace =>
-              dom.createElementNS(namespace, component.name)
-          }
+          element <- component.namespace.fold(dom.createElement(name))(
+            dom.createElementNS(_, name)
+          )
+          _ <- parent.traverse_(dom.appendChild(_, element))
+          parent = element.some
           _ <- component.attributes.traverse_(register(element, _))
           _ <- component.listeners.traverse_(register(element, path, _))
-          children <- component.children.traverse(
-            (key, child) => render(child, path / key)
-          )
-          _ <- dom.appendChildren(element, children.values.flatMap(_.root))
+          children <- component.children.traverse { (key, child) =>
+            render(child, parent, path / key)
+          }
         } yield Reference.Element(component.copy(children = children), element)
       case component: Component.Fragment[Html[Event]] =>
-        component.children
-          .traverse((key, child) => render(child, path / key))
-          .map(component.copy)
-          .map(Reference.Fragment.apply)
+        for {
+          children <- component.children.traverse { (key, child) =>
+            render(child, parent, path / key)
+          }
+        } yield Reference.Fragment(component.copy(children = children))
       case component: Component.Lazy[Html[Event]] =>
-        render(component.eval.value, path)
+        render(component.eval.value, parent, path)
       case component: Component.Text =>
-        dom
-          .createTextNode(component.value)
-          .map(Reference.Text(component, _))
+        for {
+          text <- dom.createTextNode(component.value)
+          _ <- parent.traverse_(dom.appendChild(_, text))
+        } yield Reference.Text(component, text)
     }
 
   def register(element: Element, attribute: Attribute): F[Unit] =

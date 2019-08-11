@@ -20,14 +20,16 @@ trait CssDsl[Context, Payload] extends CssKeysDsl with CssValuesDsl {
     new CssTimeUnitOps(value.toString)
 
   final implicit class CssBuilder[A](component: Widget[A, Context, Payload]) {
-    def css(styles: Styles): Widget[A, Context, Payload] =
+    def styles(styles: Styles): Widget[A, Context, Payload] =
       updateStyles(component, _ ++ styles)
 
-    def css(
-        declaration: DeclarationOrPseudo,
+    def styles(style: Style): Widget[A, Context, Payload] =
+      updateStyles(component, _ :+ style)
+
+    def styles(
         declarations: DeclarationOrPseudo*
     ): Widget[A, Context, Payload] =
-      css(styles(declaration, declarations: _*))
+      styles(css(declarations: _*))
   }
 
   def updateStyles[A](
@@ -35,10 +37,13 @@ trait CssDsl[Context, Payload] extends CssKeysDsl with CssValuesDsl {
       f: Styles => Styles
   ): Widget[A, Context, Payload]
 
-  def styles(
-      declaration: DeclarationOrPseudo,
-      declarations: DeclarationOrPseudo*
-  ): Styles = Styles.of(reduce(declaration +: declarations))
+  def css(declarations: DeclarationOrPseudo*): Style = reduce(declarations)
+
+  private def reduce(declarations: Iterable[DeclarationOrPseudo]): Style =
+    declarations.foldLeft(Style.Empty) {
+      case (style, Left(declaration))  => style :+ declaration
+      case (style, Right(declaration)) => style :+ declaration
+    }
 
   object & extends CssPseudoDsl
 }

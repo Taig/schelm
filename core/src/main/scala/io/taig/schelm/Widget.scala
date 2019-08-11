@@ -8,29 +8,31 @@ import scala.annotation.tailrec
 sealed abstract class Widget[+Event, Context, Payload]
     extends Product
     with Serializable {
-  @tailrec
-  final def component(
+  def component(
       context: Context
-  ): Component[Widget[Event, Context, Payload], Event] =
-    this match {
-      case Widget.Chain(apply)       => apply(context).component(context)
-      case Widget.Pure(component, _) => component
-      case Widget.Render(apply)      => apply(context)._1
-    }
+  ): Component[Widget[Event, Context, Payload], Event] = this match {
+    case Widget.Pure(component, _) => component
+    case Widget.Render(apply)      => apply(context).component(context)
+    case Widget.Local(f, widget)   => widget.component(f(context))
+  }
 
-  @tailrec
-  final def payload(context: Context): Payload =
-    this match {
-      case Widget.Chain(apply)     => apply(context).payload(context)
-      case Widget.Pure(_, payload) => payload
-      case Widget.Render(apply)    => apply(context)._2
-    }
+  def component(
+      implicit ev: Unit =:= Context
+  ): Component[Widget[Event, Context, Payload], Event] = component(unit)
 
-  final def merge(
-      implicit F: Monoid[Payload],
-      ev: Unit =:= Context
-  ): Payload = {
-    val payloads = component(unit) match {
+  def payload(context: Context): Payload = this match {
+    case Widget.Pure(_, payload) => payload
+    case Widget.Render(apply)    => apply(context).payload(context)
+    case Widget.Local(f, widget) => widget.payload(f(context))
+  }
+
+  def payload(implicit ev: Unit =:= Context): Payload = payload(unit)
+
+  def render(context: Context): Widget[Event, Unit, Payload] =
+    Widget.render(context, this)
+
+  def merge(implicit F: Monoid[Payload], ev: Unit =:= Context): Payload = {
+    val payloads = component match {
       case component: Component.Element[Widget[_, Context, Payload], _] =>
         component.children.values.map(_.merge).combineAll
       case component: Component.Fragment[Widget[_, Context, Payload]] =>
@@ -42,66 +44,42 @@ sealed abstract class Widget[+Event, Context, Payload]
 
     payload(unit) |+| payloads
   }
-
-  def render(context: Context): Widget[Event, Unit, Payload] =
-    Widget.render(context, this)
 }
 
 object Widget {
-  type Component[+Event, Context, Payload] =
-    io.taig.schelm.Component[Widget[Event, Context, Payload], Event]
-
-  type Update[Event, Context, Payload] =
-    Component[Event, Context, Payload] => Component[Event, Context, Payload]
-
-  final case class Chain[Event, Context, Payload](
-      apply: Context => Widget[Event, Context, Payload]
-  ) extends Widget[Event, Context, Payload]
-
-  final case class Pure[Event, Context, Payload](
-      component: Component[Event, Context, Payload],
+  final case class Pure[+Event, Context, Payload](
+      component: Component[Widget[Event, Context, Payload], Event],
       payload: Payload
   ) extends Widget[Event, Context, Payload]
 
-  final case class Render[Event, Context, Payload](
-      apply: Context => (Component[Event, Context, Payload], Payload)
+  final case class Render[+Event, Context, Payload](
+      apply: Context => Widget[Event, Context, Payload]
+  ) extends Widget[Event, Context, Payload]
+
+  final case class Local[+Event, Context, Payload](
+      f: Context => Context,
+      widget: Widget[Event, Context, Payload]
   ) extends Widget[Event, Context, Payload]
 
   def apply[Event, Context, Payload](
-      f: Context => (Component[Event, Context, Payload], Payload)
-  ): Widget[Event, Context, Payload] = Render(f)
-
-  def of[Event, Context, Payload](
-      f: Context => Widget[Event, Context, Payload]
-  ): Widget[Event, Context, Payload] = Chain(f)
+      apply: Context => Widget[Event, Context, Payload]
+  ): Widget[Event, Context, Payload] =
+    Render(apply)
 
   def pure[Event, Context, Payload](
-      component: Component[Event, Context, Payload],
+      component: Component[Widget[Event, Context, Payload], Event],
       payload: Payload
   ): Widget[Event, Context, Payload] = Pure(component, payload)
 
   def empty[Event, Context, Payload: Monoid](
-      component: Component[Event, Context, Payload]
+      component: Component[Widget[Event, Context, Payload], Event]
   ): Widget[Event, Context, Payload] =
-    pure(component, Monoid[Payload].empty)
+    Pure(component, Monoid[Payload].empty)
 
-  def component[Event, Context, Payload](
-      widget: Widget[Event, Context, Payload]
-  )(
-      f: Update[Event, Context, Payload]
-  ): Widget[Event, Context, Payload] = widget match {
-    case Chain(apply)             => Chain(context => component(apply(context))(f))
-    case Pure(component, payload) => Pure(f(component), payload)
-    case Render(apply)            => Render(apply(_).leftMap(f))
-  }
-
-  def payload[Event, Context, Payload](
-      widget: Widget[Event, Context, Payload]
-  )(f: Payload => Payload): Widget[Event, Context, Payload] = widget match {
-    case Chain(apply)             => Chain(context => payload(apply(context))(f))
-    case Pure(component, payload) => Pure(component, f(payload))
-    case Render(apply)            => Render(apply(_).map(f))
-  }
+  def local[Event, Context, Payload](
+      f: Context => Context
+  )(widget: Widget[Event, Context, Payload]): Widget[Event, Context, Payload] =
+    Local(f, widget)
 
   @tailrec
   def render[Event, Context, Payload](
@@ -109,26 +87,50 @@ object Widget {
       widget: Widget[Event, Context, Payload]
   ): Widget[Event, Unit, Payload] =
     widget match {
-      case Chain(apply)             => render(context, apply(context))
       case Pure(component, payload) => Pure(render(context, component), payload)
-      case Render(apply) =>
-        val (component, payload) = apply(context)
-        Pure(render(context, component), payload)
+      case Render(apply)            => render(context, apply(context))
+      case Local(f, widget)         => render(f(context), widget)
     }
 
   def render[Event, Context, Payload](
       context: Context,
-      component: Component[Event, Context, Payload]
-  ): Component[Event, Unit, Payload] =
+      component: Component[Widget[Event, Context, Payload], Event]
+  ): Component[Widget[Event, Unit, Payload], Event] =
     component match {
       case component: Component.Element[Widget[Event, Context, Payload], Event] =>
-        val children =
-          component.children.map((_, child) => render(context, child))
+        val children = component.children.map { (_, child) =>
+          render(context, child)
+        }
         component.copy(children = children)
       case Component.Fragment(children) =>
         Component.Fragment(children.map((_, child) => render(context, child)))
       case Component.Lazy(eval, hash) =>
         Component.Lazy(eval.map(render(context, _)), hash)
       case component: Component.Text => component
+    }
+
+  def payload[Event, Context, Payload](
+      widget: Widget[Event, Context, Payload]
+  )(transform: Payload => Payload): Widget[Event, Context, Payload] =
+    widget match {
+      case Pure(component, payload) => Pure(component, transform(payload))
+      case Render(apply) =>
+        Render(context => payload(apply(context))(transform))
+      case Local(f, widget) => Local(f, payload(widget)(transform))
+    }
+
+  def component[Event, Context, Payload](
+      widget: Widget[Event, Context, Payload]
+  )(
+      transform: Component[Widget[Event, Context, Payload], Event] => Component[
+        Widget[Event, Context, Payload],
+        Event
+      ]
+  ): Widget[Event, Context, Payload] =
+    widget match {
+      case Pure(component, payload) => Pure(transform(component), payload)
+      case Render(apply) =>
+        Render(context => component(apply(context))(transform))
+      case Local(f, widget) => Local(f, component(widget)(transform))
     }
 }
