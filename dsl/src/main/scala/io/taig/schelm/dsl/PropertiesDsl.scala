@@ -14,8 +14,9 @@ trait PropertiesDsl {
   ): Attribute =
     Attribute(key, Value.Multiple(values, accumulator))
 
-  def data(key: String, value: String): Attribute =
-    attr(s"data-$key", value)
+  def data(key: String, value: String): Attribute = attr(s"data-$key", value)
+
+  def aria(key: String, value: String): Attribute = attr(s"aria-$key", value)
 
   def flag(key: String, value: Boolean): Attribute =
     Attribute(key, Value.Flag(value))
