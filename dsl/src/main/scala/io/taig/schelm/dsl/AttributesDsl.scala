@@ -14,9 +14,11 @@ trait AttributesDsl {
   ): Attribute =
     Attribute(key, Value.Multiple(values, accumulator))
 
-  final def data(key: String, value: String): Attribute = attr(s"data-$key", value)
+  final def data(key: String, value: String): Attribute =
+    attr(s"data-$key", value)
 
-  final def aria(key: String, value: String): Attribute = attr(s"aria-$key", value)
+  final def aria(key: String, value: String): Attribute =
+    attr(s"aria-$key", value)
 
   final def flag(key: String, value: Boolean): Attribute =
     Attribute(key, Value.Flag(value))

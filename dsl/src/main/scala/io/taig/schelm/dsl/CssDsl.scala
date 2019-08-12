@@ -14,10 +14,14 @@ trait CssDsl[Context] extends CssKeysDsl with CssValuesDsl {
       declaration: PseudoDeclaration
   ): DeclarationOrPseudo = declaration.asRight
 
-  implicit final def numericToScaleUnitsOps[B: Numeric](value: B): CssScaleUnitOps =
+  implicit final def numericToScaleUnitsOps[B: Numeric](
+      value: B
+  ): CssScaleUnitOps =
     new CssScaleUnitOps(value.toString)
 
-  implicit final def numericToTimeUnitsOps[B: Numeric](value: B): CssTimeUnitOps =
+  implicit final def numericToTimeUnitsOps[B: Numeric](
+      value: B
+  ): CssTimeUnitOps =
     new CssTimeUnitOps(value.toString)
 
   implicit final class CssBuilder[A](component: Widget[A, Context, Styles]) {
@@ -32,10 +36,11 @@ trait CssDsl[Context] extends CssKeysDsl with CssValuesDsl {
     ): Widget[A, Context, Styles] = styles(css(declarations: _*))
   }
 
-  def css(declarations: DeclarationOrPseudo*): Style = declarations.foldLeft(Style.Empty) {
-    case (style, Left(declaration))  => style :+ declaration
-    case (style, Right(declaration)) => style :+ declaration
-  }
+  def css(declarations: DeclarationOrPseudo*): Style =
+    declarations.foldLeft(Style.Empty) {
+      case (style, Left(declaration))  => style :+ declaration
+      case (style, Right(declaration)) => style :+ declaration
+    }
 
   object & extends CssPseudoDsl
 }

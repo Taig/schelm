@@ -43,7 +43,7 @@ package object css extends NormalizeCss {
       case component: Component.Lazy[StyledWidget[A]] =>
         val eval = component.eval.map { widget =>
           val payload = widget.payload
-          toStylesheetWidget[A](Widget.payload(widget)(payload ++_))
+          toStylesheetWidget[A](Widget.payload(widget)(payload ++ _))
         }
         Widget.empty(component.copy(eval = eval))
       case component: Component.Text => Widget.empty(component)

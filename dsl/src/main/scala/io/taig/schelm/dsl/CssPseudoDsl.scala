@@ -8,7 +8,9 @@ import io.taig.schelm.css.{
 }
 
 trait CssPseudoDsl {
-  final def pseudo(modifier: String)(declarations: Declaration*): PseudoDeclaration =
+  final def pseudo(
+      modifier: String
+  )(declarations: Declaration*): PseudoDeclaration =
     PseudoDeclaration(Modifier(modifier), Declarations.from(declarations))
 
   final def after(declarations: Declaration*): PseudoDeclaration =
@@ -26,7 +28,9 @@ trait CssPseudoDsl {
   final def default(declarations: Declaration*): PseudoDeclaration =
     pseudo(":default")(declarations: _*)
 
-  final def dir(direction: String)(declarations: Declaration*): PseudoDeclaration =
+  final def dir(
+      direction: String
+  )(declarations: Declaration*): PseudoDeclaration =
     pseudo(s":dir($direction)")(declarations: _*)
 
   final def disabled(declarations: Declaration*): PseudoDeclaration =
@@ -74,7 +78,9 @@ trait CssPseudoDsl {
   final def lastOfType(declarations: Declaration*): PseudoDeclaration =
     pseudo(":last-of-type")(declarations: _*)
 
-  final def not(selector: String)(declarations: Declaration*): PseudoDeclaration =
+  final def not(
+      selector: String
+  )(declarations: Declaration*): PseudoDeclaration =
     pseudo(s":not($selector)")(declarations: _*)
 
   final def nthChild(declarations: Declaration*): PseudoDeclaration =

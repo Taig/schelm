@@ -3,7 +3,8 @@ package io.taig.schelm.dsl
 import io.taig.schelm.css.Declaration
 
 trait CssKeysDsl {
-  final def declaration(key: String, value: String): Declaration = Declaration(key, value)
+  final def declaration(key: String, value: String): Declaration =
+    Declaration(key, value)
 
   // format: off
   final def alignContent(value: String): Declaration = declaration("align-content", value)
