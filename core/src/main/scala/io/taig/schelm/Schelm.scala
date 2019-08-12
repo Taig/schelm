@@ -38,7 +38,7 @@ final class Schelm[F[_], Event, Component, Reference, Diff](
     val component = render(initial)
 
     for {
-      reference <- renderer.render(component, Path.Root)
+      reference <- renderer.render(component, parent = None, Path.Root)
       _ <- attacher.attach(container, reference)
       htmls = (manager.subscription merge subscriptions)
         .evalScan(initial) { (state, event) =>

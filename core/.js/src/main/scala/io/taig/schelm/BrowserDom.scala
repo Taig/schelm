@@ -57,6 +57,12 @@ final class BrowserDom[F[_], Event](
   override def createElement(name: String): F[dom.Element] =
     F.delay(document.createElement(name))
 
+  override def createElementNS(
+      namespace: String,
+      name: String
+  ): F[dom.Element] =
+    F.delay(document.createElementNS(namespace, name))
+
   override def createTextNode(value: String): F[dom.Text] =
     F.delay(document.createTextNode(value))
 

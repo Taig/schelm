@@ -6,7 +6,7 @@ import cats.implicits._
 class HtmlDiffer[A] extends Differ[Html[A], HtmlDiff[A]] {
   override def diff(previous: Html[A], next: Html[A]): Option[HtmlDiff[A]] =
     // format: off
-    (previous.value, next.value) match {
+    (previous.component, next.component) match {
       case (previous: Component.Element[Html[A], A], next: Component.Element[Html[A], A]) =>
         element(previous, next)
       case (previous: Component.Fragment[Html[A]], next: Component.Fragment[Html[A]]) =>

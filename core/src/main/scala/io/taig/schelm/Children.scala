@@ -16,6 +16,22 @@ sealed abstract class Children[A] extends Product with Serializable {
     case Children.Identified(values) => values.size
   }
 
+  def ++(children: Children[A]): Children[A] =
+    (this, children) match {
+      case (Children.Indexed(x), Children.Indexed(y)) =>
+        Children.Indexed(x ++ y)
+      case (Children.Identified(x), Children.Identified(y)) =>
+        Children.Identified(x ++ y)
+      case (Children.Indexed(x), Children.Identified(y)) =>
+        Children.Identified(ListMap(x.zipWithIndex.map {
+          case (value, index) => (String.valueOf(index), value)
+        }: _*) ++ y)
+      case (Children.Identified(x), Children.Indexed(y)) =>
+        Children.Identified(x ++ ListMap(y.zipWithIndex.map {
+          case (value, index) => (String.valueOf(index), value)
+        }: _*))
+    }
+
   def indexOf(key: Key): Option[Int] =
     (key, this) match {
       case (Key.Index(index), _) => index.some

@@ -6,43 +6,14 @@ import cats.implicits._
 package object css extends NormalizeCss {
   type StyledHtmlDiff[A] = Ior[HtmlDiff[A], StylesheetDiff]
 
-  type Widget[+A] = Document[A, Styles]
+  type StyledWidget[+A] = Widget[A, Unit, Styles]
 
-  object Widget {
-    def apply[A](
-        component: Component[Widget[A], A],
-        styles: Styles
-    ): Widget[A] = Document(component, styles)
-  }
+  type StylesheetWidget[+A] = Widget[A, Unit, Stylesheet]
 
-  implicit final class WidgetSyntax[A](widget: Widget[A])
-      extends ComponentOps[Widget, A](
-        widget,
-        _.tail,
-        (component, widget) => Widget[A](component, widget.head)
-      ) {
-    def setStyles(styles: Styles): Widget[A] = Widget(widget.tail, styles)
-  }
-
-  type StyledHtml[+Event] = Document[Event, Stylesheet]
-
-  object StyledHtml {
-    def apply[Event](
-        component: Component[StyledHtml[Event], Event],
-        stylesheet: Stylesheet
-    ): StyledHtml[Event] =
-      Document(component, stylesheet)
-
-    def empty[Event](
-        component: Component[StyledHtml[Event], Event]
-    ): StyledHtml[Event] =
-      StyledHtml(component, Stylesheet.Empty)
-  }
-
-  def toStyledHtml[Event](widget: Widget[Event]): StyledHtml[Event] =
-    widget.tail match {
-      case component: Component.Element[Widget[Event], Event] =>
-        val styles = widget.head.map { style =>
+  def toStylesheetWidget[A](widget: StyledWidget[A]): StylesheetWidget[A] =
+    widget.component match {
+      case component: Component.Element[StyledWidget[A], A] =>
+        val styles = widget.payload.map { style =>
           val identifier = Identifier(style.hashCode)
           val selectors = Selectors.of(identifier.selector)
           identifier -> style.toStylesheet(selectors)
@@ -55,35 +26,27 @@ package object css extends NormalizeCss {
           if (identifiers.isEmpty) component.attributes
           else component.attributes.merge(cls(identifiers.map(_.cls)))
 
-        val children = component.children.map((_, child) => toStyledHtml(child))
+        val children = component.children.map { (_, child) =>
+          toStylesheetWidget(child)
+        }
 
-        StyledHtml(
+        Widget.pure(
           component.copy(attributes = attributes, children = children),
           stylesheet
         )
-      case component: Component.Fragment[Widget[Event]] =>
-        val children = component.children.map((_, child) => toStyledHtml(child))
-        StyledHtml.empty(component.copy(children = children))
-      case component: Component.Lazy[Widget[Event]] =>
-        val eval = component.eval.map(toStyledHtml[Event])
-        StyledHtml.empty(component.copy(eval = eval))
-      case component: Component.Text =>
-        StyledHtml(component, Stylesheet.Empty)
-    }
-
-  def toStylesheet[A](html: StyledHtml[A]): Stylesheet =
-    html.tail match {
-      case component: Component.Element[StyledHtml[A], A] =>
-        component.children.foldLeft(html.head) { (stylesheet, A, html) =>
-          stylesheet |+| toStylesheet(html)
+      case component: Component.Fragment[StyledWidget[A]] =>
+        val payload = widget.payload
+        val children = component.children.map { (_, child) =>
+          toStylesheetWidget(Widget.payload(child)(payload ++ _))
         }
-      case component: Component.Fragment[StyledHtml[A]] =>
-        component.children.foldLeft(Stylesheet.Empty) { (stylesheet, _, html) =>
-          stylesheet |+| toStylesheet(html)
+        Widget.empty(component.copy(children = children))
+      case component: Component.Lazy[StyledWidget[A]] =>
+        val eval = component.eval.map { widget =>
+          val payload = widget.payload
+          toStylesheetWidget[A](Widget.payload(widget)(payload ++ _))
         }
-      case component: Component.Lazy[StyledHtml[A]] =>
-        toStylesheet(component.eval.value)
-      case _: Component.Text => Stylesheet.Empty
+        Widget.empty(component.copy(eval = eval))
+      case component: Component.Text => Widget.empty(component)
     }
 
   private def cls(values: List[String]): Attribute =

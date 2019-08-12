@@ -1,36 +1,46 @@
 package io.taig.schelm.dsl
 
 import cats.implicits._
+import io.taig.schelm.Widget
 import io.taig.schelm.css._
 
-trait CssDsl extends CssKeysDsl with CssValuesDsl {
-  implicit def declarationToEither(
+trait CssDsl[Context] extends CssKeysDsl with CssValuesDsl {
+  this: WidgetDsl[Context, Styles] =>
+  implicit final def declarationToEither(
       declaration: Declaration
   ): DeclarationOrPseudo = declaration.asLeft
 
-  implicit def pseudoToEither(
+  implicit final def pseudoToEither(
       declaration: PseudoDeclaration
   ): DeclarationOrPseudo = declaration.asRight
 
-  implicit def numericToScaleUnitsOps[B: Numeric](value: B): CssScaleUnitOps =
+  implicit final def numericToScaleUnitsOps[B: Numeric](
+      value: B
+  ): CssScaleUnitOps =
     new CssScaleUnitOps(value.toString)
 
-  implicit def numericToTimeUnitsOps[B: Numeric](value: B): CssTimeUnitOps =
+  implicit final def numericToTimeUnitsOps[B: Numeric](
+      value: B
+  ): CssTimeUnitOps =
     new CssTimeUnitOps(value.toString)
 
-  def stylesheet(styles: Styles): Property[Nothing] =
-    Property.fromStyles(styles)
+  implicit final class CssBuilder[A](component: Widget[A, Context, Styles]) {
+    def styles(styles: Styles): Widget[A, Context, Styles] =
+      updatePayload(component, _ ++ styles)
 
-  def stylesheet(
-      declaration: DeclarationOrPseudo,
-      declarations: DeclarationOrPseudo*
-  ): Property[Nothing] =
-    stylesheet(styles(declaration, declarations: _*))
+    def styles(style: Style): Widget[A, Context, Styles] =
+      updatePayload(component, _ :+ style)
 
-  def styles(
-      declaration: DeclarationOrPseudo,
-      declarations: DeclarationOrPseudo*
-  ): Styles = Styles.of(reduce(declaration +: declarations))
+    def styles(
+        declarations: DeclarationOrPseudo*
+    ): Widget[A, Context, Styles] = styles(css(declarations: _*))
+  }
+
+  def css(declarations: DeclarationOrPseudo*): Style =
+    declarations.foldLeft(Style.Empty) {
+      case (style, Left(declaration))  => style :+ declaration
+      case (style, Right(declaration)) => style :+ declaration
+    }
 
   object & extends CssPseudoDsl
 }

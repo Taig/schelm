@@ -6,11 +6,11 @@ import io.taig.schelm._
 
 final class StyledHtmlDiffer[A](
     html: Differ[Html[A], HtmlDiff[A]],
-    stylesheet: Differ[StyledHtml[A], StylesheetDiff]
-) extends Differ[StyledHtml[A], StyledHtmlDiff[A]] {
+    stylesheet: Differ[StylesheetWidget[A], StylesheetDiff]
+) extends Differ[StylesheetWidget[A], StyledHtmlDiff[A]] {
   override def diff(
-      previous: StyledHtml[A],
-      next: StyledHtml[A]
+      previous: StylesheetWidget[A],
+      next: StylesheetWidget[A]
   ): Option[StyledHtmlDiff[A]] =
     (html.diff(toHtml(previous), toHtml(next)), stylesheet.diff(previous, next)) match {
       case (Some(html), Some(stylesheet)) => Ior.both(html, stylesheet).some
@@ -21,6 +21,6 @@ final class StyledHtmlDiffer[A](
 }
 
 object StyledHtmlDiffer {
-  def apply[A]: Differ[StyledHtml[A], StyledHtmlDiff[A]] =
+  def apply[A]: Differ[StylesheetWidget[A], StyledHtmlDiff[A]] =
     new StyledHtmlDiffer[A](HtmlDiffer[A], StylesheetDiffer[A])
 }

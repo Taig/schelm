@@ -1,143 +1,189 @@
 package io.taig.schelm.dsl
 
-import io.taig.schelm.css.{Styles, Widget}
-import io.taig.schelm.{Attributes, Children, Component, Listeners}
+import io.taig.schelm._
 
-trait WidgetDsl {
-  implicit def childrenBuilderToWidget[A](
-      builder: ChildrenBuilder[A]
-  ): Widget[A] = builder.widget
+trait WidgetDsl[Context, Payload] extends NamespaceDsl {
+  def element(name: String): Widget[Nothing, Context, Payload]
 
-  implicit def childrenBuilderNothingToWidget[A](
-      builder: ChildrenBuilder[Nothing]
-  ): Widget[A] = builder.widget
+  def element(
+      namespace: String,
+      name: String
+  ): Widget[Nothing, Context, Payload]
 
-  implicit def nodeBuilderToWidget[A](builder: NodeBuilder[A]): Widget[A] =
-    builder.widget
+  def fragment: Widget[Nothing, Context, Payload]
 
-  implicit def nodeBuilderNothingToWidget[A](
-      builder: NodeBuilder[Nothing]
-  ): Widget[A] =
-    builder.widget
+  def text(value: String): Widget[Nothing, Context, Payload]
 
-  implicit def textToWidget[A](value: String): Widget[A] = text(value)
+  final implicit class Builder[A](widget: Widget[A, Context, Payload]) {
+    def attributes(attributes: Attribute*): Widget[A, Context, Payload] =
+      updateAttributes(widget, _ ++ Attributes.from(attributes))
 
-  def widget[A](name: String): Widget[A] =
-    Widget[A](
-      Component
-        .Element(name, Attributes.Empty, Listeners.empty, Children.empty),
-      Styles.Empty
-    )
+    def listeners(listeners: Listener[A]*): Widget[A, Context, Payload] =
+      updateListeners[A](widget, _ ++ Listeners.from(listeners))
 
-  def fragment[A](children: Widget[A]*): Widget[A] =
-    Widget(
-      Component.Fragment(Children.indexed(children.toList)),
-      Styles.Empty
-    )
+    def children(
+        children: Widget[A, Context, Payload]*
+    ): Widget[A, Context, Payload] =
+      updateChildren[A](widget, _ ++ Children.indexed(children))
+  }
 
-  def node[A](name: String): NodeBuilder[A] = new NodeBuilder[A](widget(name))
+  final def updateAttributes[A](
+      widget: Widget[A, Context, Payload],
+      f: Attributes => Attributes
+  ): Widget[A, Context, Payload] =
+    Widget.component(widget) {
+      case component: Component.Element[Widget[A, Context, Payload], A] =>
+        component.copy(attributes = f(component.attributes))
+      case Component.Lazy(eval, hash) =>
+        Component.Lazy(eval.map(updateAttributes(_, f)), hash)
+      case Component.Fragment(children) =>
+        Component.Fragment(
+          children.map((_, child) => updateAttributes(child, f))
+        )
+      case component: Component.Text => component
+    }
 
-  def text[A](value: String): Widget[A] =
-    Widget(Component.Text(value), Styles.Empty)
+  final def updateListeners[A](
+      widget: Widget[A, Context, Payload],
+      f: Listeners[A] => Listeners[A]
+  ): Widget[A, Context, Payload] =
+    Widget.component(widget) {
+      case component: Component.Element[Widget[A, Context, Payload], A] =>
+        component.copy(listeners = f(component.listeners))
+      case Component.Lazy(eval, hash) =>
+        Component.Lazy(eval.map(updateListeners(_, f)), hash)
+      case Component.Fragment(children) =>
+        Component.Fragment(
+          children.map((_, child) => updateListeners(child, f))
+        )
+      case component: Component.Text => component
+    }
 
-  def a[A]: NodeBuilder[A] = node("a")
-  def abbr[A]: NodeBuilder[A] = node("abbr")
-  def address[A]: NodeBuilder[A] = node("address")
-  def area[A]: NodeBuilder[A] = node("area")
-  def article[A]: NodeBuilder[A] = node("article")
-  def aside[A]: NodeBuilder[A] = node("aside")
-  def audio[A]: NodeBuilder[A] = node("audio")
-  def b[A]: NodeBuilder[A] = node("b")
-  def base[A]: NodeBuilder[A] = node("base")
-  def blockquote[A]: NodeBuilder[A] = node("blockquote")
-  def body[A]: NodeBuilder[A] = node("body")
-  def br[A]: NodeBuilder[A] = node("br")
-  def button[A]: NodeBuilder[A] = node("button")
-  def canvas[A]: NodeBuilder[A] = node("canvas")
-  def caption[A]: NodeBuilder[A] = node("caption")
-  def cite[A]: NodeBuilder[A] = node("cite")
-  def code[A]: NodeBuilder[A] = node("code")
-  def col[A]: NodeBuilder[A] = node("col")
-  def colgroup[A]: NodeBuilder[A] = node("colgroup")
-  def command[A]: NodeBuilder[A] = node("command")
-  def data[A]: NodeBuilder[A] = node("data")
-  def datalist[A]: NodeBuilder[A] = node("datalist")
-  def dd[A]: NodeBuilder[A] = node("dd")
-  def details[A]: NodeBuilder[A] = node("details")
-  def dfn[A]: NodeBuilder[A] = node("dfn")
-  def div[A]: NodeBuilder[A] = node("div")
-  def dl[A]: NodeBuilder[A] = node("dl")
-  def dt[A]: NodeBuilder[A] = node("dt")
-  def em[A]: NodeBuilder[A] = node("em")
-  def embed[A]: NodeBuilder[A] = node("embed")
-  def fieldset[A]: NodeBuilder[A] = node("fieldset")
-  def figcaption[A]: NodeBuilder[A] = node("figcaption")
-  def figure[A]: NodeBuilder[A] = node("figure")
-  def footer[A]: NodeBuilder[A] = node("footer")
-  def form[A]: NodeBuilder[A] = node("form")
-  def h1[A]: NodeBuilder[A] = node("h1")
-  def h2[A]: NodeBuilder[A] = node("h2")
-  def h3[A]: NodeBuilder[A] = node("h3")
-  def h4[A]: NodeBuilder[A] = node("h4")
-  def h5[A]: NodeBuilder[A] = node("h5")
-  def h6[A]: NodeBuilder[A] = node("h6")
-  def head[A]: NodeBuilder[A] = node("head")
-  def header[A]: NodeBuilder[A] = node("header")
-  def hr[A]: NodeBuilder[A] = node("hr")
-  def i[A]: NodeBuilder[A] = node("i")
-  def iframe[A]: NodeBuilder[A] = node("iframe")
-  def img[A]: NodeBuilder[A] = node("img")
-  def input[A]: NodeBuilder[A] = node("input")
-  def kbd[A]: NodeBuilder[A] = node("kbd")
-  def keygen[A]: NodeBuilder[A] = node("keygen")
-  def label[A]: NodeBuilder[A] = node("label")
-  def legend[A]: NodeBuilder[A] = node("legend")
-  def li[A]: NodeBuilder[A] = node("li")
-  def link[A]: NodeBuilder[A] = node("link")
-  def main[A]: NodeBuilder[A] = node("main")
-  def map[A]: NodeBuilder[A] = node("map")
-  def math[A]: NodeBuilder[A] = node("math")
-  def menu[A]: NodeBuilder[A] = node("menu")
-  def meta[A]: NodeBuilder[A] = node("meta")
-  def meter[A]: NodeBuilder[A] = node("meter")
-  def nav[A]: NodeBuilder[A] = node("nav")
-  def noscript[A]: NodeBuilder[A] = node("noscript")
-  def obj[A]: NodeBuilder[A] = node("object")
-  def ol[A]: NodeBuilder[A] = node("ol")
-  def optgroup[A]: NodeBuilder[A] = node("optgroup")
-  def option[A]: NodeBuilder[A] = node("option")
-  def output[A]: NodeBuilder[A] = node("output")
-  def p[A]: NodeBuilder[A] = node("p")
-  def param[A]: NodeBuilder[A] = node("param")
-  def pre[A]: NodeBuilder[A] = node("pre")
-  def progress[A]: NodeBuilder[A] = node("progress")
-  def q[A]: NodeBuilder[A] = node("q")
-  def s[A]: NodeBuilder[A] = node("s")
-  def samp[A]: NodeBuilder[A] = node("samp")
-  def script[A]: NodeBuilder[A] = node("script")
-  def section[A]: NodeBuilder[A] = node("section")
-  def select[A]: NodeBuilder[A] = node("select")
-  def small[A]: NodeBuilder[A] = node("small")
-  def source[A]: NodeBuilder[A] = node("source")
-  def span[A]: NodeBuilder[A] = node("span")
-  def strong[A]: NodeBuilder[A] = node("strong")
-  def sub[A]: NodeBuilder[A] = node("sub")
-  def summary[A]: NodeBuilder[A] = node("summary")
-  def sup[A]: NodeBuilder[A] = node("sup")
-  def svg[A]: NodeBuilder[A] = node("svg")
-  def table[A]: NodeBuilder[A] = node("table")
-  def tbody[A]: NodeBuilder[A] = node("tbody")
-  def td[A]: NodeBuilder[A] = node("td")
-  def textarea[A]: NodeBuilder[A] = node("textarea")
-  def tfoot[A]: NodeBuilder[A] = node("tfoot")
-  def th[A]: NodeBuilder[A] = node("th")
-  def thead[A]: NodeBuilder[A] = node("thead")
-  def time[A]: NodeBuilder[A] = node("time")
-  def title[A]: NodeBuilder[A] = node("title")
-  def tr[A]: NodeBuilder[A] = node("tr")
-  def track[A]: NodeBuilder[A] = node("track")
-  def u[A]: NodeBuilder[A] = node("u")
-  def ul[A]: NodeBuilder[A] = node("ul")
-  def video[A]: NodeBuilder[A] = node("video")
-  def wbr[A]: NodeBuilder[A] = node("wbr")
+  final def updateChildren[A](
+      widget: Widget[A, Context, Payload],
+      f: Children[Widget[A, Context, Payload]] => Children[
+        Widget[A, Context, Payload]
+      ]
+  ): Widget[A, Context, Payload] = Widget.component(widget) {
+    case component: Component.Element[Widget[A, Context, Payload], A] =>
+      component.copy(children = f(component.children))
+    case component: Component.Lazy[Widget[A, Context, Payload]] =>
+      component.copy(eval = component.eval.map(updateChildren(_, f)))
+    case component: Component.Fragment[Widget[A, Context, Payload]] =>
+      component.copy(children = f(component.children))
+    case component: Component.Text => component
+  }
+
+  final def updatePayload[A](
+      widget: Widget[A, Context, Payload],
+      f: Payload => Payload
+  ): Widget[A, Context, Payload] = Widget.payload(widget)(f)
+
+  // format: off
+  final val a: Widget[Nothing, Context, Payload] = element("a")
+  final val abbr: Widget[Nothing, Context, Payload] = element("abbr")
+  final val address: Widget[Nothing, Context, Payload] = element("address")
+  final val area: Widget[Nothing, Context, Payload] = element("area")
+  final val article: Widget[Nothing, Context, Payload] = element("article")
+  final val aside: Widget[Nothing, Context, Payload] = element("aside")
+  final val audio: Widget[Nothing, Context, Payload] = element("audio")
+  final val b: Widget[Nothing, Context, Payload] = element("b")
+  final val base: Widget[Nothing, Context, Payload] = element("base")
+  final val blockquote: Widget[Nothing, Context, Payload] = element("blockquote")
+  final val body: Widget[Nothing, Context, Payload] = element("body")
+  final val br: Widget[Nothing, Context, Payload] = element("br")
+  final val button: Widget[Nothing, Context, Payload] = element("button")
+  final val canvas: Widget[Nothing, Context, Payload] = element("canvas")
+  final val caption: Widget[Nothing, Context, Payload] = element("caption")
+  final val cite: Widget[Nothing, Context, Payload] = element("cite")
+  final val circle: Widget[Nothing, Context, Payload] = element(SVG, "circle")
+  final val code: Widget[Nothing, Context, Payload] = element("code")
+  final val col: Widget[Nothing, Context, Payload] = element("col")
+  final val colgroup: Widget[Nothing, Context, Payload] = element("colgroup")
+  final val command: Widget[Nothing, Context, Payload] = element("command")
+  final val data: Widget[Nothing, Context, Payload] = element("data")
+  final val datalist: Widget[Nothing, Context, Payload] = element("datalist")
+  final val dd: Widget[Nothing, Context, Payload] = element("dd")
+  final val details: Widget[Nothing, Context, Payload] = element("details")
+  final val dfn: Widget[Nothing, Context, Payload] = element("dfn")
+  final val div: Widget[Nothing, Context, Payload] = element("div")
+  final val dl: Widget[Nothing, Context, Payload] = element("dl")
+  final val dt: Widget[Nothing, Context, Payload] = element("dt")
+  final val ellipse: Widget[Nothing, Context, Payload] = element(SVG, "ellipse")
+  final val em: Widget[Nothing, Context, Payload] = element("em")
+  final val embed: Widget[Nothing, Context, Payload] = element("embed")
+  final val fieldset: Widget[Nothing, Context, Payload] = element("fieldset")
+  final val figcaption: Widget[Nothing, Context, Payload] = element("figcaption")
+  final val figure: Widget[Nothing, Context, Payload] = element("figure")
+  final val footer: Widget[Nothing, Context, Payload] = element("footer")
+  final val form: Widget[Nothing, Context, Payload] = element("form")
+  final val h1: Widget[Nothing, Context, Payload] = element("h1")
+  final val h2: Widget[Nothing, Context, Payload] = element("h2")
+  final val h3: Widget[Nothing, Context, Payload] = element("h3")
+  final val h4: Widget[Nothing, Context, Payload] = element("h4")
+  final val h5: Widget[Nothing, Context, Payload] = element("h5")
+  final val h6: Widget[Nothing, Context, Payload] = element("h6")
+  final val head: Widget[Nothing, Context, Payload] = element("head")
+  final val header: Widget[Nothing, Context, Payload] = element("header")
+  final val hr: Widget[Nothing, Context, Payload] = element("hr")
+  final val i: Widget[Nothing, Context, Payload] = element("i")
+  final val iframe: Widget[Nothing, Context, Payload] = element("iframe")
+  final val img: Widget[Nothing, Context, Payload] = element("img")
+  final val input: Widget[Nothing, Context, Payload] = element("input")
+  final val kbd: Widget[Nothing, Context, Payload] = element("kbd")
+  final val keygen: Widget[Nothing, Context, Payload] = element("keygen")
+  final val label: Widget[Nothing, Context, Payload] = element("label")
+  final val legend: Widget[Nothing, Context, Payload] = element("legend")
+  final val li: Widget[Nothing, Context, Payload] = element("li")
+  final val link: Widget[Nothing, Context, Payload] = element("link")
+  final val main: Widget[Nothing, Context, Payload] = element("main")
+  final val map: Widget[Nothing, Context, Payload] = element("map")
+  final val math: Widget[Nothing, Context, Payload] = element("math")
+  final val menu: Widget[Nothing, Context, Payload] = element("menu")
+  final val meta: Widget[Nothing, Context, Payload] = element("meta")
+  final val meter: Widget[Nothing, Context, Payload] = element("meter")
+  final val nav: Widget[Nothing, Context, Payload] = element("nav")
+  final val noscript: Widget[Nothing, Context, Payload] = element("noscript")
+  final val obj: Widget[Nothing, Context, Payload] = element("object")
+  final val ol: Widget[Nothing, Context, Payload] = element("ol")
+  final val optgroup: Widget[Nothing, Context, Payload] = element("optgroup")
+  final val option: Widget[Nothing, Context, Payload] = element("option")
+  final val output: Widget[Nothing, Context, Payload] = element("output")
+  final val p: Widget[Nothing, Context, Payload] = element("p")
+  final val path: Widget[Nothing, Context, Payload] = element(SVG, "path")
+  final val param: Widget[Nothing, Context, Payload] = element("param")
+  final val polygon: Widget[Nothing, Context, Payload] = element(SVG, "polygon")
+  final val pre: Widget[Nothing, Context, Payload] = element("pre")
+  final val progress: Widget[Nothing, Context, Payload] = element("progress")
+  final val q: Widget[Nothing, Context, Payload] = element("q")
+  final val rect: Widget[Nothing, Context, Payload] = element(SVG, "rect")
+  final val s: Widget[Nothing, Context, Payload] = element("s")
+  final val samp: Widget[Nothing, Context, Payload] = element("samp")
+  final val script: Widget[Nothing, Context, Payload] = element("script")
+  final val section: Widget[Nothing, Context, Payload] = element("section")
+  final val select: Widget[Nothing, Context, Payload] = element("select")
+  final val small: Widget[Nothing, Context, Payload] = element("small")
+  final val source: Widget[Nothing, Context, Payload] = element("source")
+  final val span: Widget[Nothing, Context, Payload] = element("span")
+  final val strong: Widget[Nothing, Context, Payload] = element("strong")
+  final val sub: Widget[Nothing, Context, Payload] = element("sub")
+  final val summary: Widget[Nothing, Context, Payload] = element("summary")
+  final val sup: Widget[Nothing, Context, Payload] = element("sup")
+  final val svg: Widget[Nothing, Context, Payload] = element(SVG, "svg")
+  final val table: Widget[Nothing, Context, Payload] = element("table")
+  final val tbody: Widget[Nothing, Context, Payload] = element("tbody")
+  final val td: Widget[Nothing, Context, Payload] = element("td")
+  final val textarea: Widget[Nothing, Context, Payload] = element("textarea")
+  final val tfoot: Widget[Nothing, Context, Payload] = element("tfoot")
+  final val th: Widget[Nothing, Context, Payload] = element("th")
+  final val thead: Widget[Nothing, Context, Payload] = element("thead")
+  final val time: Widget[Nothing, Context, Payload] = element("time")
+  final val title: Widget[Nothing, Context, Payload] = element("title")
+  final val tr: Widget[Nothing, Context, Payload] = element("tr")
+  final val track: Widget[Nothing, Context, Payload] = element("track")
+  final val u: Widget[Nothing, Context, Payload] = element("u")
+  final val ul: Widget[Nothing, Context, Payload] = element("ul")
+  final val video: Widget[Nothing, Context, Payload] = element("video")
+  final val wbr: Widget[Nothing, Context, Payload] = element("wbr")
+  // format: on
 }
