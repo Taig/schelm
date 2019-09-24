@@ -77,15 +77,20 @@ lazy val website = project
   .enablePlugins(MicrositesPlugin)
   .settings(micrositeSettings)
   .settings(
-    mdocVariables ++= Map(
-      "MODULE_CORE" -> (coreJVM / normalizedName).value,
-      "MODULE_CSS" -> (cssJVM / normalizedName).value,
-      "MODULE_DSL" -> (dslJVM / normalizedName).value,
-      "ORGANIZATION" -> organization.value,
-      "VERSION" -> version.value,
-      "SCALA_VERSIONS" -> crossScalaVersions.value.mkString(", "),
-      "SCALAJS_VERSION" -> scalaJSVersion
-    ),
+    mdocVariables ++= {
+      val format: String => String = version =>
+        s"`${version.replaceAll("\\.\\d+$", "")}`"
+
+      Map(
+        "MODULE_CORE" -> (coreJVM / normalizedName).value,
+        "MODULE_CSS" -> (cssJVM / normalizedName).value,
+        "MODULE_DSL" -> (dslJVM / normalizedName).value,
+        "ORGANIZATION" -> organization.value,
+        "VERSION" -> version.value,
+        "SCALA_VERSIONS" -> crossScalaVersions.value.map(format).mkString(", "),
+        "SCALAJS_VERSION" -> format(scalaJSVersion)
+      )
+    },
     name := "schelm-website",
     micrositeBaseUrl := "",
     micrositeDescription := "The Elm architecture on top of cats-effect and fs2",
