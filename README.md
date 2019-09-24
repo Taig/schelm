@@ -14,6 +14,7 @@
 - [x] Support for Html.lazy
 - [ ] Keyed children diffing
 - [ ] Dom parsing (e.g. for SSR continuation)
+- [ ] Ports to interact with JavaScript
 - [ ] Documentation & project website
 - [ ] Test suite
 

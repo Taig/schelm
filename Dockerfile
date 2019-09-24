@@ -1,8 +1,8 @@
-FROM        openjdk:8u222-jdk-slim-buster
+FROM        openjdk:8u212-jdk-alpine3.9
 
-RUN         apt-get update
-RUN         apt-get install --yes build-essential curl git ruby-full
-RUN         gem install jekyll bundler
+RUN         apk upgrade --update
+RUN         apk add --no-cache bash build-base git nodejs ruby-full ruby-dev
+RUN         gem install --no-document jekyll
 
 # Install sbt
 RUN         curl -Ls https://git.io/sbt > /usr/local/bin/sbt
