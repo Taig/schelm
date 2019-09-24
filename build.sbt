@@ -22,8 +22,8 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
   .settings(sonatypePublishSettings)
   .settings(
     libraryDependencies ++=
-      "org.typelevel" %%% "cats-effect" % "2.0.0-RC1" ::
-        "co.fs2" %%% "fs2-core" % "1.1.0-M1" ::
+      "org.typelevel" %%% "cats-effect" % "2.0.0" ::
+        "co.fs2" %%% "fs2-core" % "2.0.1" ::
         Nil,
     name := "schelm-core"
   )
