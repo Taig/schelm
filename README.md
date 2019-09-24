@@ -22,29 +22,22 @@
 
 Please visit the [microsite](http://taig.io/schelm/).
 
-## Build website
+## Building the microsite
 
-Steps to build the documentation locally, but within a docker container.
+The microsite relies on [`sbt-microsites`](https://github.com/47deg/sbt-microsites) and does therefore require `ruby` and `jekyll` to be installed on your system. When these requirements are met, the microsite can be built as follows.
 
-  1. Build the container if not already done
-     ```
-     docker build -t schelm .
-     ```
+```
+sbt website/makeMicrosite
+cd website/target/site/
+jekyll serve
+```
 
-  2. Run the container, exposing port 4000 for Jekyll
-     ```
-     docker run -it -v $PWD:/home/schelm/ -p 4000:4000 schelm
-     ```
+Alternatively, when `ruby` and `jekyll` are not available the microsite can be built via docker.
 
-  3. Now inside the container, generate the microsite
-     ```
-     sbt website/makeMicrosite
-     ```
-
-  4. Start the Jekyll server
-     ```
-     cd website/target/site
-     jekyll serve --host 0.0.0.0
-     ```
-
-  5. Navigate to `localhost:4000` in your browser.
+```
+docker build -t schelm .
+docker run -it -p 4000:4000 -v $PWD:/home/schelm/ schelm 
+sbt website/makeMicrosite
+cd website/target/site/
+jekyll serve --host=0.0.0.0
+```

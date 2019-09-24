@@ -5,7 +5,7 @@ RUN         apk add --no-cache bash build-base git nodejs ruby-full ruby-dev
 RUN         gem install --no-document jekyll
 
 # Install sbt
-RUN         curl -Ls https://git.io/sbt > /usr/local/bin/sbt
+RUN         wget -O /usr/local/bin/sbt https://git.io/sbt
 RUN         chmod 0755 /usr/local/bin/sbt
 
 # Cache sbt

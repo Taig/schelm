@@ -24,7 +24,7 @@ test-format:
   stage: test
   image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
   script:
-    - sbt scalafmtCheckAll
+    - sbt -Dmode=strict scalafmtCheckAll
 
 test-artifacts:
   stage: test
@@ -36,7 +36,7 @@ test-docs:
   stage: test
   image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
   script:
-    - sbt website/makeMicrosite
+    - sbt -Dmode=strict website/makeMicrosite
     - mv website/target/site/ site/
   artifacts:
     expire_in: 1 month
@@ -50,7 +50,7 @@ publish-artifacts:
     - master
     - tags
   script:
-    - sbt publishAndRelease
+    - sbt -Dmode=strict publishAndRelease
 
 pages:
   stage: publish
