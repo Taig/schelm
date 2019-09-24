@@ -55,8 +55,10 @@ publish-artifacts:
 pages:
   stage: deploy
   image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
-#  only:
-#    - tags
+  only:
+    # Should be set to "tags", but before a stable version is published, master
+    # is more useful
+    - master
   script:
     - mv site/ public/
   artifacts:
