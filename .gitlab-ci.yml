@@ -13,44 +13,54 @@ docker:
   stage: docker
   image: docker
   services:
-  - docker:dind
+    - docker:dind
   script:
-  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CONTAINER_REGISTRY
-  - docker pull $CONTAINER_IMAGE:latest || true
-  - docker build --cache-from $CONTAINER_IMAGE:latest --tag $CONTAINER_IMAGE:latest --tag $CONTAINER_IMAGE:$CI_BUILD_REF_NAME .
-  - docker push $CONTAINER_IMAGE
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CONTAINER_REGISTRY
+    - docker pull $CONTAINER_IMAGE:latest || true
+    - docker build --cache-from $CONTAINER_IMAGE:latest --tag $CONTAINER_IMAGE:latest --tag $CONTAINER_IMAGE:$CI_BUILD_REF_NAME .
+    - docker push $CONTAINER_IMAGE
 
 test-format:
   stage: test
   image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
   script:
-  - sbt scalafmtCheckAll
+    - sbt scalafmtCheckAll
 
 test-artifacts:
   stage: test
   image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
   script:
-  - sbt -Dmode=strict +playgroundJS/fastOptJS
+    - sbt -Dmode=strict +playgroundJS/fastOptJS
 
 test-docs:
   stage: test
   image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
   script:
-  - sbt website/makeMicrosite
+    - sbt website/makeMicrosite
+    - mv website/target/site/ site/
+  artifacts:
+    expire_in: 1 month
+    paths:
+      - site/
 
 publish-artifacts:
   stage: publish
   image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
   only:
-  - master
-  - tags
+    - master
+    - tags
   script:
-  - sbt publishAndRelease
+    - sbt publishAndRelease
 
-publish-docs:
+pages:
   stage: publish
   image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
-  only:
-  - tags
+#   only:
+#     - tags
   script:
-  - sbt website/publishMicrosite
+    - mv site/ public/
+  artifacts:
+    paths:
+      - public/
+  dependencies:
+    - test-docs
