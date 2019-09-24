@@ -78,17 +78,20 @@ lazy val website = project
   .settings(micrositeSettings)
   .settings(
     mdocVariables ++= Map(
-      "MODULE_CORE" -> (normalizedName in coreJVM).value,
-      "MODULE_CSS" -> (normalizedName in cssJVM).value,
-      "MODULE_DSL" -> (normalizedName in dslJVM).value,
+      "MODULE_CORE" -> (coreJVM / normalizedName).value,
+      "MODULE_CSS" -> (cssJVM / normalizedName).value,
+      "MODULE_DSL" -> (dslJVM / normalizedName).value,
       "ORGANIZATION" -> organization.value,
       "VERSION" -> version.value,
       "SCALA_VERSIONS" -> crossScalaVersions.value.mkString(", "),
       "SCALAJS_VERSION" -> scalaJSVersion
     ),
     name := "schelm-website",
+    micrositeBaseUrl := "",
     micrositeDescription := "The Elm architecture on top of cats-effect and fs2",
-    micrositeName := "Schelm"
+    micrositeHomepage := "https://schelm.taig.io",
+    micrositeName := "Schelm",
+    micrositeUrl := micrositeHomepage.value
   )
   .dependsOn(dslJVM)
 
