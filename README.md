@@ -20,7 +20,7 @@
 
 ## Documentation
 
-Please visit the [microsite](http://taig.io/schelm/).
+Please visit the [documentation](https://schelm.taig.io/) microsite to learn how to install and use _Schelm_.
 
 ## Building the microsite
 

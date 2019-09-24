@@ -55,8 +55,8 @@ publish-artifacts:
 pages:
   stage: deploy
   image: $CONTAINER_IMAGE:$CI_BUILD_REF_NAME
-  only:
-    - tags
+#  only:
+#    - tags
   script:
     - mv site/ public/
   artifacts:
