@@ -78,8 +78,8 @@ lazy val website = project
   .settings(micrositeSettings)
   .settings(
     mdocVariables ++= {
-      val format: String => String = version =>
-        s"`${version.replaceAll("\\.\\d+$", "")}`"
+      val format: String => String =
+        version => s"`${version.replaceAll("\\.\\d+$", "")}`"
 
       Map(
         "MODULE_CORE" -> (coreJVM / normalizedName).value,
