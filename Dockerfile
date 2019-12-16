@@ -1,12 +1,10 @@
-FROM        openjdk:8u212-jdk-alpine3.9
+FROM        adoptopenjdk/openjdk12:alpine
 
-RUN         apk upgrade --update
 RUN         apk add --no-cache bash build-base git nodejs ruby-full ruby-dev
 RUN         gem install --no-document jekyll
 
 # Install sbt
-RUN         wget -O /usr/local/bin/sbt https://git.io/sbt
-RUN         chmod 0755 /usr/local/bin/sbt
+RUN         wget -O /usr/local/bin/sbt https://git.io/sbt && chmod 0755 /usr/local/bin/sbt
 
 # Cache sbt
 RUN         mkdir -p \
@@ -35,4 +33,4 @@ RUN         cd ./cache/ && sbt -v ";set every sourceGenerators := List.empty;+co
 # Clean cache
 RUN         rm -r ./cache/
 
-WORKDIR     /home/schelm/
+WORKDIR     /root/schelm/
