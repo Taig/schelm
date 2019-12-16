@@ -30,7 +30,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
   .jvmSettings(
     libraryDependencies ++=
       "org.jsoup" % "jsoup" % "1.12.1" ::
-        "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.2" ::
+        "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.3" ::
         Nil
   )
   .jsSettings(
