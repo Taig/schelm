@@ -56,11 +56,11 @@ sealed abstract class Children[A] extends Product with Serializable {
     this match {
       case Children.Indexed(values) =>
         Children.indexed(values.zipWithIndex.mapFilter {
-          case (value, index) => f.lift(Key.Index(index), value)
+          case (value, index) => f.lift((Key.Index(index), value))
         })
       case Children.Identified(values) =>
         Children.identified(values.toList.mapFilter {
-          case (key, value) => f.lift(Key.Identifier(key), value).tupleLeft(key)
+          case (key, value) => f.lift((Key.Identifier(key), value)).tupleLeft(key)
         })
     }
 
