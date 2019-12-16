@@ -14,7 +14,7 @@ trait WidgetDsl[Context, Payload] extends NamespaceDsl {
 
   def text(value: String): Widget[Nothing, Context, Payload]
 
-  final implicit class Builder[A](widget: Widget[A, Context, Payload]) {
+  implicit final class Builder[A](widget: Widget[A, Context, Payload]) {
     def attributes(attributes: Attribute*): Widget[A, Context, Payload] =
       updateAttributes(widget, _ ++ Attributes.from(attributes))
 

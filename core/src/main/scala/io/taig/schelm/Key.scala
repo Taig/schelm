@@ -1,7 +1,7 @@
 package io.taig.schelm
 
 sealed abstract class Key extends Product with Serializable {
-  override final def toString: String = this match {
+  final override def toString: String = this match {
     case Key.Identifier(value) => value
     case Key.Index(value)      => String.valueOf(value)
   }

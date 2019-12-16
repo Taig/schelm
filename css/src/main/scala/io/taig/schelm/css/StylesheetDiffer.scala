@@ -60,7 +60,7 @@ final class StylesheetDiffer[A]
     (previous, next) match {
       case (previous: Children.Indexed[StylesheetWidget[A]], next: Children.Indexed[StylesheetWidget[A]]) =>
         children(previous, next)
-      case (previous: Children.Identified[StylesheetWidget[A]], next: Children.Identified[StylesheetWidget[A]]) =>
+      case (_: Children.Identified[StylesheetWidget[A]], _: Children.Identified[StylesheetWidget[A]]) =>
         // TODO
         Stylesheet.Empty
       case _ => next.values.map(_.merge).combineAll
@@ -75,7 +75,7 @@ final class StylesheetDiffer[A]
     else {
       val left = previous.values
       val right = next.values
-      val comparisons = (left zip right).map(compare _ tupled).combineAll
+      val comparisons = (left zip right).map((compare _).tupled).combineAll
       val additions = right.drop(left.length).map(_.merge).combineAll
       comparisons ++ additions
     }

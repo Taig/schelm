@@ -13,7 +13,7 @@ import scala.concurrent.duration._
 object App {
   def widget(state: State): Widget[Event, Unit, Styles] =
     Widget.local(identity[Unit]) {
-      Widget { context =>
+      Widget { _ =>
         div
           .attributes(id("yolo"))
           .styles(
