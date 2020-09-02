@@ -1,9 +1,9 @@
 package io.taig.schelm.css
 
-import io.taig.schelm.data.{Component, Widget}
+import io.taig.schelm.data.{Component, Component}
 
 package object data {
-  type StyledWidget[Event, Context] = Widget[Event, Context, Stylesheet]
+  type StyledWidget[Event, Context] = Component[Event, Context, Stylesheet]
 
   type StyledComponent[Event] = Component[Event, Stylesheet]
 }

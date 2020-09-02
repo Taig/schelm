@@ -1,6 +1,7 @@
 package io.taig.schelm.playground
 
 import cats.effect.{ExitCode, IO, IOApp}
+import cats.implicits._
 import io.taig.schelm.interpreter.{BrowserDom, HtmlRenderer, QueueEventManager}
 
 object Playground extends IOApp {
@@ -11,8 +12,11 @@ object Playground extends IOApp {
         val dom = BrowserDom(events)
         val renderer = HtmlRenderer(dom)
 
-        renderer.render(Shared.component.html).map { nodes =>
-          nodes.foreach { node => org.scalajs.dom.console.dir(node) }
+        renderer.render(Shared.component.html).flatMap { nodes =>
+          dom
+            .getElementById("main")
+            .flatMap(_.liftTo[IO](new IllegalStateException))
+            .flatMap { root => nodes.traverse_(dom.appendChild(root, _)) }
         }
       }
       .as(ExitCode.Success)

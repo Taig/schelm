@@ -18,17 +18,16 @@ final class BrowserDom[F[_]: Effect, Event](events: EventManager[F, Event])(impl
   override type Text = dom.Text
   override type Listener = js.Function1[dom.Event, _]
 
-  override def callback(listener: Listener.Action[Event]): js.Function1[dom.Event, _] =
-    listener match {
-      case Action.Pure(event) =>
-        native =>
-          native.preventDefault()
-          unsafeSubmit(event)
-      case Action.Input(event) =>
-        native =>
-          val value = native.target.asInstanceOf[HTMLInputElement].value
-          unsafeSubmit(event(value))
-    }
+  override def callback(action: Listener.Action[Event]): js.Function1[dom.Event, _] = action match {
+    case Action.Pure(event) =>
+      native =>
+        native.preventDefault()
+        unsafeSubmit(event)
+    case Action.Input(event) =>
+      native =>
+        val value = native.target.asInstanceOf[HTMLInputElement].value
+        unsafeSubmit(event(value))
+  }
 
   def unsafeSubmit(event: Event): Unit =
     events

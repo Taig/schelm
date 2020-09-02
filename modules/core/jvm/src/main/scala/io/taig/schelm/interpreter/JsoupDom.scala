@@ -14,7 +14,7 @@ final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) exte
   override type Text = JText
   override type Listener = Unit
 
-  override def callback(listener: Action[Event]): Unit = ()
+  override def callback(action: Action[Event]): Unit = ()
 
   override def addEventListener(node: JNode, event: String, notify: Unit): F[Unit] = F.unit
 
@@ -29,9 +29,7 @@ final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) exte
   override def data(text: JText, value: String): F[Unit] = F.delay(text.text(value)).void
 
   override def childAt(element: JElement, index: Int): F[Option[JNode]] =
-    F.delay(element.child(index).some)
-      .recover { case _: IndexOutOfBoundsException => None }
-      .widen
+    F.delay(element.child(index).some).recover { case _: IndexOutOfBoundsException => None }.widen
 
   override def children(element: JElement): F[List[JNode]] = F.delay(element.childNodes().asScala.toList)
 

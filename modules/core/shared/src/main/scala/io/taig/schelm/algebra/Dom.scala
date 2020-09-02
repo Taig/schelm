@@ -11,7 +11,7 @@ abstract class Dom[F[_], Event] {
 
   type Listener
 
-  def callback(listener: Action[Event]): Listener
+  def callback(action: Action[Event]): Listener
 
   def addEventListener(node: Node, name: String, listener: Listener): F[Unit]
 
