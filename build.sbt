@@ -30,3 +30,19 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
       "org.scala-js" %%% "scalajs-dom" % ScalajsDomVersion ::
         Nil
   )
+
+lazy val css = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Full)
+  .in(file("modules/css"))
+  .settings(sonatypePublishSettings)
+  .dependsOn(core)
+
+lazy val playground = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Full)
+  .in(file("modules/playground"))
+  .settings(noPublishSettings)
+  .settings(
+    name := "playground",
+    scalaJSUseMainModuleInitializer := true
+  )
+  .dependsOn(css)
