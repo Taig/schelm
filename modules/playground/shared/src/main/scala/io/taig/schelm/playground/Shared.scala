@@ -1,26 +1,18 @@
 package io.taig.schelm.playground
 
-import io.taig.schelm.css.data.Stylesheet
 import io.taig.schelm.data._
+import io.taig.schelm.dsl._
 
 object Shared {
   final case class Theme()
 
   sealed abstract class Event extends Product with Serializable
 
-  val widget: Component[Event, Theme, Stylesheet] = Component[Event, Theme, Stylesheet](
-    _ =>
-      Element.Normal(
-        Tag("p", Attributes.Empty, Listeners.Empty),
-        Children.Indexed(
-          List(
-            Component[Event, Theme, Stylesheet](_ => Text("yolo", Listeners.Empty), identity, Stylesheet.Empty)
-          )
-        )
-      ),
-    patch = identity,
-    payload = Stylesheet.Empty
-  )
+  def widget(label: String): StyledWidget[Event, Nothing] =
+    button
+      .attributes(src := "hello", style := "color: red;")(text(label))
 
-  val component: Component[Event, Stylesheet] = widget.apply(Theme())
+  def component(label: String): StyledHtml2[Event] = StyledHtml2.fromStyledWidget(widget(label), Theme())
+
+  def html(label: String): Fix[Event] = StyledHtml2.toHtml(component(label))._1
 }

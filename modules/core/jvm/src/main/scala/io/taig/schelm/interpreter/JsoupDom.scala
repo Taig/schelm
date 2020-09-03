@@ -14,6 +14,16 @@ final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) exte
   override type Text = JText
   override type Listener = Unit
 
+  override def element(node: JNode): Option[JElement] = node match {
+    case element: JElement => Some(element)
+    case _                 => None
+  }
+
+  override def text(node: JNode): Option[JText] = node match {
+    case text: JText => Some(text)
+    case _           => None
+  }
+
   override def callback(action: Action[Event]): Unit = ()
 
   override def addEventListener(node: JNode, event: String, notify: Unit): F[Unit] = F.unit
@@ -42,19 +52,26 @@ final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) exte
 
   override def innerHtml(element: JElement, value: String): F[Unit] = F.delay(element.wrap(value)).void
 
+  override def insertBefore(parent: JElement, node: JNode, reference: Option[Node]): F[Unit] =
+    F.delay(reference.fold[Unit](parent.appendChild(node))(reference => reference.before(node)))
+
+  override def parentNode(node: JNode): F[Option[Node]] = F.delay(Option(node.parentNode()))
+
   override def removeChild(parent: JElement, child: JNode): F[Unit] = F.delay(child.remove())
 
   override def removeAttribute(element: JElement, key: String): F[Unit] = F.delay(element.removeAttr(key)).void
 
   override def removeEventListener(node: JNode, name: String, listener: Unit): F[Unit] = F.unit
 
+  override def replaceChild(parent: JElement, current: JNode, next: JNode): F[Unit] = F.delay(current.replaceWith(next))
+
   override def setAttribute(element: JElement, key: String, value: String): F[Unit] =
     F.delay(element.attr(key, value)).void
 }
 
 object JsoupDom {
-  def apply[F[_]: Sync, Event](document: JDocument): Dom.Aux[F, Event, JNode, JElement, JText] =
+  def apply[F[_]: Sync, Event](document: JDocument): Dom.Aux[F, Event, JNode] =
     new JsoupDom[F, Event](document)
 
-  def default[F[_]: Sync, Event]: Dom.Aux[F, Event, JNode, JElement, JText] = JsoupDom[F, Event](new JDocument("/"))
+  def default[F[_]: Sync, Event]: Dom.Aux[F, Event, JNode] = JsoupDom[F, Event](new JDocument("/"))
 }

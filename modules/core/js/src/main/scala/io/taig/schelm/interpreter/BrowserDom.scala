@@ -18,6 +18,16 @@ final class BrowserDom[F[_]: Effect, Event](events: EventManager[F, Event])(impl
   override type Text = dom.Text
   override type Listener = js.Function1[dom.Event, _]
 
+  override def element(node: Node): Option[Element] = node match {
+    case element: dom.Element => Some(element)
+    case _                    => None
+  }
+
+  override def text(node: Node): Option[Text] = node match {
+    case text: dom.Text => Some(text)
+    case _              => None
+  }
+
   override def callback(action: Listener.Action[Event]): js.Function1[dom.Event, _] = action match {
     case Action.Pure(event) =>
       native =>
@@ -78,6 +88,11 @@ final class BrowserDom[F[_]: Effect, Event](events: EventManager[F, Event])(impl
 
   override def innerHtml(element: Element, value: String): F[Unit] = F.delay(element.innerHTML = value)
 
+  override def insertBefore(parent: Element, node: Node, reference: Option[Node]): F[Unit] =
+    F.delay(parent.insertBefore(node, reference.orNull))
+
+  override def parentNode(node: Node): F[Option[Node]] = F.delay(Option(node.parentNode))
+
   override def removeAttribute(element: Element, key: String): F[Unit] = F.delay(element.removeAttribute(key))
 
   override def removeChild(parent: Element, child: Node): F[Unit] = F.delay(parent.removeChild(child)).void
@@ -85,11 +100,13 @@ final class BrowserDom[F[_]: Effect, Event](events: EventManager[F, Event])(impl
   override def removeEventListener(node: Node, name: String, listener: js.Function1[dom.Event, _]): F[Unit] =
     F.delay(node.removeEventListener(name, listener))
 
+  override def replaceChild(parent: Element, current: Node, next: Node): F[Unit] =
+    F.delay(parent.replaceChild(next, current)).void
+
   override def setAttribute(element: Element, key: String, value: String): F[Unit] =
     F.delay(element.setAttribute(key, value))
 }
 
 object BrowserDom {
-  def apply[F[_]: Effect, Event](events: EventManager[F, Event]): Dom.Aux[F, Event, dom.Node, dom.Element, dom.Text] =
-    new BrowserDom[F, Event](events)
+  def apply[F[_]: Effect, Event](events: EventManager[F, Event]): Dom.Aux[F, Event, dom.Node] = new BrowserDom[F, Event](events)
 }
