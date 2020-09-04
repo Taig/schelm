@@ -6,7 +6,7 @@ import io.taig.schelm.algebra.{Dom, Renderer}
 import io.taig.schelm.data.{Html, HtmlDiff, Patcher}
 
 final class HtmlPatcher[F[_], Event, Node](
-    val dom: Dom.Aux[F, Event, Node],
+    val dom: Dom.Node[F, Event, Node],
     renderer: Renderer[F, Html[Event], Node]
 )(implicit F: MonadError[F, Throwable])
     extends Patcher[F, Node, HtmlDiff[Event]] {
@@ -67,7 +67,7 @@ final class HtmlPatcher[F[_], Event, Node](
 
 object HtmlPatcher {
   def apply[F[_]: MonadError[*[_], Throwable], Event, Node](
-      dom: Dom.Aux[F, Event, Node],
+      dom: Dom.Node[F, Event, Node],
       renderer: Renderer[F, Html[Event], Node]
   ): Patcher[F, Node, HtmlDiff[Event]] = new HtmlPatcher[F, Event, Node](dom, renderer)
 }

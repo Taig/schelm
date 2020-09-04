@@ -70,8 +70,8 @@ final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) exte
 }
 
 object JsoupDom {
-  def apply[F[_]: Sync, Event](document: JDocument): Dom.Aux[F, Event, JNode] =
+  def apply[F[_]: Sync, Event](document: JDocument): Dom.Node[F, Event, JNode] =
     new JsoupDom[F, Event](document)
 
-  def default[F[_]: Sync, Event]: Dom.Aux[F, Event, JNode] = JsoupDom[F, Event](new JDocument("/"))
+  def default[F[_]: Sync, Event]: Dom.Node[F, Event, JNode] = JsoupDom[F, Event](new JDocument("/"))
 }

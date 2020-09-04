@@ -108,6 +108,6 @@ final class BrowserDom[F[_]: Effect, Event](events: EventManager[F, Event])(impl
 }
 
 object BrowserDom {
-  def apply[F[_]: Effect, Event](events: EventManager[F, Event]): Dom.Aux[F, Event, dom.Node] =
+  def apply[F[_]: Effect, Event](events: EventManager[F, Event]): Dom.Aux[F, Event, dom.Node, dom.Element, dom.Text] =
     new BrowserDom[F, Event](events)
 }
