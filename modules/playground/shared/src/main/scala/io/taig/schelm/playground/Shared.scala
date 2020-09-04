@@ -1,5 +1,6 @@
 package io.taig.schelm.playground
 
+import io.taig.schelm.css.data.{StylesheetHtml, StylesheetWidget}
 import io.taig.schelm.data._
 import io.taig.schelm.dsl._
 
@@ -8,11 +9,10 @@ object Shared {
 
   sealed abstract class Event extends Product with Serializable
 
-  def widget(label: String): StyledWidget[Event, Nothing] =
-    button
-      .attributes(src := "hello", style := "color: red;")(text(label))
+  def widget(label: String): StylesheetWidget[Element.Normal[Event, +*], Event, Theme] =
+    button(text(label))
 
-  def component(label: String): StyledHtml2[Event] = StyledHtml2.fromStyledWidget(widget(label), Theme())
+  def component(label: String): StylesheetHtml[Node[Event, +*], Event] = StylesheetWidget.toStylesheetHtml(widget(label), Theme())
 
-  def html(label: String): Fix[Event] = StyledHtml2.toHtml(component(label))._1
+  def html(label: String): Html[Event] = StylesheetHtml.toHtml(component(label))._1
 }

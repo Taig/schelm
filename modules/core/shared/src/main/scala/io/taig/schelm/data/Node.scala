@@ -7,9 +7,7 @@ sealed abstract class Node[+Event, +A] extends Product with Serializable
 
 object Node {
   implicit def traverse[Event]: Traverse[Node[Event, *]] = new Traverse[Node[Event, *]] {
-    override def traverse[G[_], A, B](
-        fa: Node[Event, A]
-    )(f: A => G[B])(implicit evidence$1: Applicative[G]): G[Node[Event, B]] =
+    override def traverse[G[_]: Applicative, A, B](fa: Node[Event, A])(f: A => G[B]): G[Node[Event, B]] =
       fa match {
         case node: Element[Event, A] => node.traverse(f).widen
         case node: Fragment[A]       => node.children.traverse(f).map(children => node.copy(children = children))

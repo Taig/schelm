@@ -9,9 +9,9 @@ final class HtmlRenderer[F[_]: Monad, Event, Node](dom: Dom.Aux[F, Event, Node])
     extends Renderer[F, Html[Event], Node] {
   override def render(html: Html[Event]): F[List[Node]] = html.node match {
     case node: Element.Normal[Event, Html[Event]] => render(node.tag, node.children)
-    case node: Element.Void[Event]                  => render(node.tag, Children.Empty)
+    case node: Element.Void[Event]                => render(node.tag, Children.Empty)
     case node: Fragment[Html[Event]]              => node.children.indexed.flatTraverse(render)
-    case node: Text[Event]                          => dom.createTextNode(node.value).map(_ :: Nil)
+    case node: Text[Event]                        => dom.createTextNode(node.value).map(_ :: Nil)
   }
 
   def render(tag: Tag[Event], children: Children[Html[Event]]): F[List[Node]] =

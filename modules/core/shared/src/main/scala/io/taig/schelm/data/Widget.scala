@@ -1,11 +1,11 @@
 package io.taig.schelm.data
 
-sealed abstract class Widget[+F[+_], +Context] extends Product with Serializable
+sealed abstract class Widget[+A, -Context] extends Product with Serializable
 
 object Widget {
-  final case class Patch[F[+_], Context](f: Context => Context, widget: Widget[F, Context]) extends Widget[F, Context]
+  final case class Patch[+A, -Context, B](f: Context => B, widget: Widget[A, B]) extends Widget[A, B]
 
-  final case class Pure[F[+_], Context](node: F[Context]) extends Widget[F, Context]
+  final case class Pure[+A](node: A) extends Widget[A, Any]
 
-  final case class Render[F[+_], Context](f: Context => Widget[F, Context]) extends Widget[F, Context]
+  final case class Render[+A, -Context](f: Context => Widget[A, Context]) extends Widget[A, Context]
 }
