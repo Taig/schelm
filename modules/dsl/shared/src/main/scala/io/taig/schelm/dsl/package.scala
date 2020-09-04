@@ -1,26 +1,18 @@
 package io.taig.schelm
 
-import io.taig.schelm.css.data.{Stylesheet, StylesheetNode, StylesheetWidget}
-import io.taig.schelm.data.{Attribute, Listeners, Text, Widget}
+import io.taig.schelm.css.data.Stylesheet
+import io.taig.schelm.data.{Attribute, Listener}
 
-package object dsl extends Attributes with Elements with Stylesheets {
+package object dsl extends AttributeDsl with ContextDsl with ListenerDsl with NodeDsl with StylesheetDsl {
   implicit class AttributeKeySyntax(key: Attribute.Key) {
     def :=(value: String): Attribute = Attribute(key, Attribute.Value(value))
+  }
+
+  implicit class ListenerNameSyntax(name: Listener.Name) {
+    def :=[Event](action: Listener.Action[Event]): Listener[Event] = Listener(name, action)
   }
 
   implicit class StylesheetRuleNameSyntax(name: Stylesheet.Rule.Name) {
     def :=(value: String): Stylesheet.Rule = Stylesheet.Rule(name, Stylesheet.Rule.Value(value))
   }
-
-  type TextF[+A] = Text[Nothing]
-
-  final def text(value: String): StylesheetWidget[TextF, Nothing, Any] =
-    StylesheetWidget(
-      Widget.Pure(
-        StylesheetNode.Unstyled(Text(value, Listeners.Empty))
-      )
-    )
-
-//  final def contextual[Context](render: Context => StyledWidget[Nothing, Context]): StyledWidget[Nothing, Context] =
-//    StyledWidget(Widget.Render(render(_: Context).widget))
 }

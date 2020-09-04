@@ -36,7 +36,7 @@ sealed abstract class Element[+Event, +A] extends Node[Event, A]
 object Element {
   final case class Normal[+Event, +A](tag: Tag[Event], children: Children[A]) extends Element[Event, A]
 
-  final case class Void[Event](tag: Tag[Event]) extends Element[Event, Nothing]
+  final case class Void[+Event](tag: Tag[Event]) extends Element[Event, Nothing]
 
   implicit def traverse[Event]: Traverse[Element[Event, *]] = new Traverse[Element[Event, *]] {
     override def traverse[G[_]: Applicative, A, B](fa: Element[Event, A])(f: A => G[B]): G[Element[Event, B]] =
@@ -60,6 +60,6 @@ object Element {
   }
 }
 
-final case class Fragment[A](children: Children[A]) extends Node[Nothing, A]
+final case class Fragment[+A](children: Children[A]) extends Node[Nothing, A]
 
-final case class Text[Event](value: String, listeners: Listeners[Event]) extends Node[Event, Nothing]
+final case class Text[+Event](value: String, listeners: Listeners[Event]) extends Node[Event, Nothing]

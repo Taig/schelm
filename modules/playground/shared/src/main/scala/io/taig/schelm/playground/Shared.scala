@@ -3,16 +3,32 @@ package io.taig.schelm.playground
 import io.taig.schelm.css.data.{StylesheetHtml, StylesheetWidget}
 import io.taig.schelm.data._
 import io.taig.schelm.dsl._
+import io.taig.schelm.dsl.data.DslWidget
 
 object Shared {
-  final case class Theme()
+  final case class Theme(background: String)
 
   sealed abstract class Event extends Product with Serializable
 
-  def widget(label: String): StylesheetWidget[Element.Normal[Event, +*], Event, Theme] =
-    button(text(label))
+  object Event {
+    final case object Click extends Event
+  }
 
-  def component(label: String): StylesheetHtml[Node[Event, +*], Event] = StylesheetWidget.toStylesheetHtml(widget(label), Theme())
+  def dslWidget(label: String): DslWidget[Element.Normal[Event, +*], Event, Theme] = contextual { theme =>
+    div.apply(
+      button
+        .attrs(style := s"background-color: ${theme.background};")
+        .on(click := Listener.Action.Pure(Event.Click))
+        .apply(text(label)),
+      hr
+    )
+  }
 
-  def html(label: String): Html[Event] = StylesheetHtml.toHtml(component(label))._1
+  def stylesheetWidget(label: String): StylesheetWidget[Event, Theme] =
+    DslWidget.toStylesheetWidget(dslWidget(label))
+
+  def stylesheetHtml(label: String): StylesheetHtml[Event] =
+    StylesheetWidget.toStylesheetHtml(stylesheetWidget(label), Theme(background = "green"))
+
+  def html(label: String): Html[Event] = StylesheetHtml.toHtml(stylesheetHtml(label))._1
 }

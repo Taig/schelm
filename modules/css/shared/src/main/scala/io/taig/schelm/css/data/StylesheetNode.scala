@@ -1,12 +1,20 @@
 package io.taig.schelm.css.data
 
-import io.taig.schelm.data.Element
+import cats.implicits._
+import cats.{Applicative, Eval, Traverse}
 
-sealed abstract class StylesheetNode[+A, +B, +Event] extends Product with Serializable
+final case class StylesheetNode[+Event, +A](value: A, stylesheet: Stylesheet)
 
 object StylesheetNode {
-  final case class Styled[+A <: Element[Event, B], +B, +Event](element: A, styles: Stylesheet)
-      extends StylesheetNode[A, B, Event]
+  implicit def traverse[Event]: Traverse[StylesheetNode[Event, *]] = new Traverse[StylesheetNode[Event, *]] {
+    override def traverse[G[_]: Applicative, A, B](
+        fa: StylesheetNode[Event, A]
+    )(f: A => G[B]): G[StylesheetNode[Event, B]] =
+      f(fa.value).map(node => fa.copy(value = node))
 
-  final case class Unstyled[+A, +Event](node: A) extends StylesheetNode[Nothing, A, Event]
+    override def foldLeft[A, B](fa: StylesheetNode[Event, A], b: B)(f: (B, A) => B): B = f(b, fa.value)
+
+    override def foldRight[A, B](fa: StylesheetNode[Event, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
+      f(fa.value, lb)
+  }
 }

@@ -22,7 +22,7 @@ object Playground extends IOApp {
             dom
               .getElementById("main")
               .flatMap(_.liftTo[IO](new IllegalStateException))
-              .flatMap { root => nodes.traverse_(dom.appendChild(root, _)) }
+              .flatMap(root => nodes.traverse_(dom.appendChild(root, _)))
           }
           .flatMap { nodes =>
             differ.diff(previous, next) match {
