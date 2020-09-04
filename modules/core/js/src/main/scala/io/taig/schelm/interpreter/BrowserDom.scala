@@ -89,7 +89,7 @@ final class BrowserDom[F[_]: Effect, Event](events: EventManager[F, Event])(impl
   override def innerHtml(element: Element, value: String): F[Unit] = F.delay(element.innerHTML = value)
 
   override def insertBefore(parent: Element, node: Node, reference: Option[Node]): F[Unit] =
-    F.delay(parent.insertBefore(node, reference.orNull))
+    F.delay(parent.insertBefore(node, reference.orNull)).void
 
   override def parentNode(node: Node): F[Option[Node]] = F.delay(Option(node.parentNode))
 
@@ -105,6 +105,11 @@ final class BrowserDom[F[_]: Effect, Event](events: EventManager[F, Event])(impl
 
   override def setAttribute(element: Element, key: String, value: String): F[Unit] =
     F.delay(element.setAttribute(key, value))
+
+  override def serialize(node: Node): String = node match {
+    case element: Element => element.outerHTML
+    case _ => node.innerText
+  }
 }
 
 object BrowserDom {

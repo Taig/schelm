@@ -53,7 +53,7 @@ final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) exte
   override def innerHtml(element: JElement, value: String): F[Unit] = F.delay(element.wrap(value)).void
 
   override def insertBefore(parent: JElement, node: JNode, reference: Option[Node]): F[Unit] =
-    F.delay(reference.fold[Unit](parent.appendChild(node))(reference => reference.before(node)))
+    F.delay(reference.fold[Node](parent.appendChild(node))(reference => reference.before(node))).void
 
   override def parentNode(node: JNode): F[Option[Node]] = F.delay(Option(node.parentNode()))
 
@@ -67,11 +67,13 @@ final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) exte
 
   override def setAttribute(element: JElement, key: String, value: String): F[Unit] =
     F.delay(element.attr(key, value)).void
+
+  override def serialize(node: JNode): String = node.outerHtml()
 }
 
 object JsoupDom {
-  def apply[F[_]: Sync, Event](document: JDocument): Dom.Node[F, Event, JNode] =
+  def apply[F[_]: Sync, Event](document: JDocument): Dom.Aux[F, Event, JNode, JElement, JText] =
     new JsoupDom[F, Event](document)
 
-  def default[F[_]: Sync, Event]: Dom.Node[F, Event, JNode] = JsoupDom[F, Event](new JDocument("/"))
+  def default[F[_]: Sync, Event]: Dom.Aux[F, Event, JNode, JElement, JText] = JsoupDom[F, Event](new JDocument("/"))
 }

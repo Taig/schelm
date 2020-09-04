@@ -7,4 +7,6 @@ abstract class Schelm[F[_], View, Event, Element] {
       render: State => View,
       events: (State, Event) => State
   ): F[Unit]
+
+  def markup[State](initial: State, render: State => View): F[String]
 }

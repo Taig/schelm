@@ -54,6 +54,8 @@ abstract class Dom[F[_], Event] {
   def replaceChild(parent: Element, current: Node, next: Node): F[Unit]
 
   def setAttribute(element: Element, key: String, value: String): F[Unit]
+
+  def serialize(node: Node): String
 }
 
 object Dom {

@@ -42,6 +42,9 @@ final class DomSchelm[F[_]: Concurrent, View, Event, Node, Element, Diff](
         .start
     } yield ()
   }
+
+  override def markup[State](initial: State, render: State => View): F[String] =
+    renderer.render(render(initial)).map(_.map(dom.serialize).mkString("\n"))
 }
 
 object DomSchelm {
