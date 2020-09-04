@@ -6,11 +6,11 @@ import io.taig.schelm.algebra.{Dom, Renderer}
 import io.taig.schelm.data.{Html, HtmlDiff, Patcher}
 
 final class HtmlPatcher[F[_], Event, Node](
-    val dom: Dom.Node[F, Event, Node],
-    renderer: Renderer[F, Html[Event], Node]
+    val dom: Dom.Aux[F, Event, Node, _, _],
+    renderer: Renderer[F, Html[Event], List[Node]]
 )(implicit F: MonadError[F, Throwable])
-    extends Patcher[F, Node, HtmlDiff[Event]] {
-  override def patch(nodes: List[dom.Node], diff: HtmlDiff[Event]): F[Unit] =
+    extends Patcher[F, List[Node], HtmlDiff[Event]] {
+  override def patch(nodes: List[Node], diff: HtmlDiff[Event]): F[Unit] =
     diff match {
       case HtmlDiff.AddAttribute(attribute) => ???
       case HtmlDiff.AppendChild(html) =>
@@ -67,7 +67,7 @@ final class HtmlPatcher[F[_], Event, Node](
 
 object HtmlPatcher {
   def apply[F[_]: MonadError[*[_], Throwable], Event, Node](
-      dom: Dom.Node[F, Event, Node],
-      renderer: Renderer[F, Html[Event], Node]
-  ): Patcher[F, Node, HtmlDiff[Event]] = new HtmlPatcher[F, Event, Node](dom, renderer)
+      dom: Dom.Aux[F, Event, Node, _, _],
+      renderer: Renderer[F, Html[Event], List[Node]]
+  ): Patcher[F, List[Node], HtmlDiff[Event]] = new HtmlPatcher[F, Event, Node](dom, renderer)
 }

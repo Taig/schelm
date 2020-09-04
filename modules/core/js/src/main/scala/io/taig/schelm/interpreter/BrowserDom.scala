@@ -108,7 +108,7 @@ final class BrowserDom[F[_]: Effect, Event](events: EventManager[F, Event])(impl
 
   override def serialize(node: Node): String = node match {
     case element: Element => element.outerHTML
-    case _ => node.innerText
+    case _                => node.innerText
   }
 }
 

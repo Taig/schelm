@@ -1,6 +1,8 @@
 package io.taig.schelm.playground
 
-import io.taig.schelm.algebra.Schelm
+import cats.Applicative
+import cats.implicits._
+import io.taig.schelm.algebra.{Handler, Schelm}
 import io.taig.schelm.css.data.{StylesheetHtml, StylesheetWidget}
 import io.taig.schelm.data._
 import io.taig.schelm.dsl._
@@ -15,19 +17,21 @@ object Event {
 
 final case class State(label: String)
 
+final class MyHandler[F[_]: Applicative] extends Handler[F, State, Event, Nothing] {
+  override def command(value: Nothing): F[Option[Event]] = none[Event].pure[F]
+
+  override def event(state: State, event: Event): Result[State, Nothing] = event match {
+    case Event.Click => Result(State(label = "Clicked (:").some, List.empty)
+  }
+}
+
 object PlaygroundApp {
   val Initial: State = State(label = "Not clicked ):")
 
-  def events(state: State, event: Event): State = event match {
-    case Event.Click => State(label = "Clicked (:")
-  }
-
   def render(state: State): Html[Event] = html(state.label)
 
-  def start[F[_], X](schelm: Schelm[F, Html[Event], Event, X], root: X): F[Unit] =
-    schelm.start[State](root, Initial, render, events)
-
-  def markup[F[_], X](schelm: Schelm[F, Html[Event], Event, X]): F[String] = schelm.markup[State](Initial, render)
+  def start[F[_]: Applicative, X](schelm: Schelm[F, Html[Event], Event, X], root: X): F[Unit] =
+    schelm.start(root, Initial, render, new MyHandler[F])
 
   def dslWidget(label: String): DslWidget[Element.Normal[Event, +*], Event, Theme] = contextual { theme =>
     div.apply(

@@ -1,58 +1,78 @@
 package io.taig.schelm.interpreter
 
+import cats.Parallel
 import cats.effect.Concurrent
 import cats.effect.implicits._
 import cats.implicits._
 import io.taig.schelm.algebra._
-import io.taig.schelm.data.Patcher
+import io.taig.schelm.data.{Patcher, Result}
 
-final class DomSchelm[F[_]: Concurrent, View, Event, Node, Element, Diff](
-    val dom: Dom.Aux[F, Event, Node, Element, _],
+final class DomSchelm[F[_]: Parallel, View, Event, Structure, Element, Diff](
     manager: EventManager[F, Event],
-    renderer: Renderer[F, View, Node],
+    renderer: Renderer[F, View, Structure],
+    attacher: Attacher[F, Structure, Element],
     differ: Differ[View, Diff],
-    patcher: Patcher[F, Node, Diff]
-) extends Schelm[F, View, Event, Element] {
-  override def start[State](
+    patcher: Patcher[F, Structure, Diff],
+    printer: Printer[Structure]
+)(implicit F: Concurrent[F])
+    extends Schelm[F, View, Event, Element] {
+  override def start[State, Command](
       container: Element,
       initial: State,
       render: State => View,
-      events: (State, Event) => State
+      handler: Handler[F, State, Event, Command]
   ): F[Unit] = {
     val view = render(initial)
 
     for {
-      nodes <- renderer.render(view)
-      _ <- nodes.traverse_(dom.appendChild(container, _))
+      structure <- renderer.render(view)
+      _ <- attacher.attach(container, structure)
       _ <- manager.subscription
-        .mapAccumulate((initial, view)) {
+        .evalMapAccumulate((initial, view)) {
           case ((state, previous), event) =>
-            val update = events(state, event)
+            val update = handler.event(state, event)
 
-            if (update == state) ((state, previous), none[Diff])
-            else {
-              val next = render(update)
-              ((update, next), differ.diff(previous, next))
+            update match {
+              case Result(None, Nil)                           => ((state, previous), none[Diff]).pure[F]
+              case Result(Some(state), Nil) if update == state => ((state, previous), none[Diff]).pure[F]
+              case Result(Some(state), Nil) =>
+                val next = render(state)
+                ((state, next), differ.diff(previous, next)).pure[F]
+              case Result(None, commands) =>
+                publish(handler.command, commands).start *> ((state, previous), none[Diff]).pure[F]
+              case Result(Some(state), commands) =>
+                val next = render(state)
+                publish(handler.command, commands).start *> ((state, next), differ.diff(previous, next)).pure[F]
             }
         }
         .collect { case (_, Some(diff)) => diff }
-        .evalMap(patcher.patch(nodes, _))
+        .evalMap(patcher.patch(structure, _))
         .compile
         .drain
         .start
     } yield ()
   }
 
-  override def markup[State](initial: State, render: State => View): F[String] =
-    renderer.render(render(initial)).map(_.map(dom.serialize).mkString("\n"))
+  def publish[Command](handler: Command => F[Option[Event]], commands: List[Command]): F[Unit] =
+    commands.parTraverse_ { command =>
+      handler.apply(command).flatMap(_.traverse_(manager.submit)).handleErrorWith { throwable =>
+        F.delay {
+          System.err.println("Failed to handle command")
+          throwable.printStackTrace(System.err)
+        }
+      }
+    }
+
+  override def markup(view: View): F[String] = renderer.render(view).map(printer.print)
 }
 
 object DomSchelm {
-  def apply[F[_]: Concurrent, View, Event, Node, Element, Diff](
-      dom: Dom.Aux[F, Event, Node, Element, _],
+  def apply[F[_]: Concurrent: Parallel, View, Event, Structure, Element, Diff](
       manager: EventManager[F, Event],
-      renderer: Renderer[F, View, Node],
+      renderer: Renderer[F, View, Structure],
+      attacher: Attacher[F, Structure, Element],
       differ: Differ[View, Diff],
-      patcher: Patcher[F, Node, Diff]
-  ): Schelm[F, View, Event, Element] = new DomSchelm(dom, manager, renderer, differ, patcher)
+      patcher: Patcher[F, Structure, Diff],
+      printer: Printer[Structure]
+  ): Schelm[F, View, Event, Element] = new DomSchelm(manager, renderer, attacher, differ, patcher, printer)
 }
