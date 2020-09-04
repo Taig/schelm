@@ -1,7 +1,7 @@
 package io.taig.schelm.dsl.operation
 
 import io.taig.schelm.data.Listeners
-import io.taig.schelm.dsl.data.DslWidget
+import io.taig.schelm.dsl.DslWidget
 
 abstract class ListenersOperation[F[+_], Event, Context] {
   final def set(listeners: Listeners[Event]): DslWidget[F, Event, Context] = patch(_ => listeners)

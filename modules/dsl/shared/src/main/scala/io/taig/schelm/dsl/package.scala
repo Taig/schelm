@@ -1,9 +1,18 @@
 package io.taig.schelm
 
-import io.taig.schelm.css.data.Stylesheet
-import io.taig.schelm.data.{Attribute, Listener}
+import io.taig.schelm.css.data.{Stylesheet, StylesheetNode, StylesheetWidget}
+import io.taig.schelm.data.{Attribute, Listener, Node, Widget}
 
 package object dsl extends AttributeDsl with ContextDsl with ListenerDsl with NodeDsl with StylesheetDsl {
+  type DslWidget[+F[+_], +Event, -Context] = Widget[Context, StylesheetNode[Event, F[StylesheetWidget[Event, Context]]]]
+
+  object DslWidget {
+    def toStylesheetWidget[Event, Context](
+        widget: DslWidget[Node[Event, +*], Event, Context]
+    ): StylesheetWidget[Event, Context] =
+      StylesheetWidget(widget)
+  }
+
   implicit class AttributeKeySyntax(key: Attribute.Key) {
     def :=(value: String): Attribute = Attribute(key, Attribute.Value(value))
   }

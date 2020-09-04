@@ -3,7 +3,7 @@ package io.taig.schelm.dsl.syntax
 import cats.implicits._
 import io.taig.schelm.css.data.StylesheetWidget
 import io.taig.schelm.data.{Children, Fragment}
-import io.taig.schelm.dsl.data.DslWidget
+import io.taig.schelm.dsl.DslWidget
 import io.taig.schelm.dsl.operation.ChildrenOperation
 
 final class FragmentSyntax[Event, Context](widget: DslWidget[Fragment[+*], Event, Context])
@@ -13,6 +13,6 @@ final class FragmentSyntax[Event, Context](widget: DslWidget[Fragment[+*], Event
       override def patch(
           f: Children[StylesheetWidget[Event, Context]] => Children[StylesheetWidget[Event, Context]]
       ): DslWidget[Fragment, Event, Context] =
-        DslWidget(widget.widget.map(_.map(element => element.copy(children = f(element.children)))))
+        widget.map(_.map(element => element.copy(children = f(element.children))))
     }
 }

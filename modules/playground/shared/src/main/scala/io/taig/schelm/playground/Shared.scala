@@ -2,8 +2,7 @@ package io.taig.schelm.playground
 
 import io.taig.schelm.css.data.{StylesheetHtml, StylesheetWidget}
 import io.taig.schelm.data._
-import io.taig.schelm.dsl._
-import io.taig.schelm.dsl.data.DslWidget
+import io.taig.schelm.dsl.{DslWidget, _}
 
 object Shared {
   final case class Theme(background: String)

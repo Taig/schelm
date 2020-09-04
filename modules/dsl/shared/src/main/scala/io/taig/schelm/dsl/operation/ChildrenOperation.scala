@@ -2,7 +2,7 @@ package io.taig.schelm.dsl.operation
 
 import io.taig.schelm.css.data.StylesheetWidget
 import io.taig.schelm.data.Children
-import io.taig.schelm.dsl.data.DslWidget
+import io.taig.schelm.dsl.DslWidget
 
 abstract class ChildrenOperation[F[+_], Event, Context] {
   final def set(children: Children[StylesheetWidget[Event, Context]]): DslWidget[F, Event, Context] =

@@ -1,7 +1,7 @@
 package io.taig.schelm.dsl.syntax
 
 import io.taig.schelm.data.{Attribute, Attributes}
-import io.taig.schelm.dsl.data.DslWidget
+import io.taig.schelm.dsl.DslWidget
 import io.taig.schelm.dsl.operation.AttributesOperation
 
 trait AttributesSyntax[F[+_], Event, Context] { self =>

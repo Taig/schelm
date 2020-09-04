@@ -2,7 +2,6 @@ package io.taig.schelm.dsl
 
 import io.taig.schelm.css.data._
 import io.taig.schelm.data._
-import io.taig.schelm.dsl.data.DslWidget
 import io.taig.schelm.dsl.syntax.{ElementNormalSyntax, ElementVoidSyntax, FragmentSyntax}
 
 trait NodeDsl {
@@ -23,21 +22,18 @@ trait NodeDsl {
 
   def element(tag: String): DslWidget[Element.Normal[Nothing, +*], Nothing, Any] = {
     val element = Element.Normal(Tag(tag, Attributes.Empty, Listeners.Empty), Children.Empty)
-    DslWidget(Widget.Pure(StylesheetNode(element, Stylesheet.Empty)))
+    Widget.Pure(StylesheetNode(element, Stylesheet.Empty))
   }
 
-  final val fragment: DslWidget[Fragment[+*], Nothing, Any] = DslWidget(
+  final val fragment: DslWidget[Fragment[+*], Nothing, Any] =
     Widget.Pure(StylesheetNode(Fragment(Children.Empty), Stylesheet.Empty))
-  )
 
   final def text(value: String): DslWidget[λ[`+A` => Text[Nothing]], Nothing, Any] =
-    DslWidget[λ[`+A` => Text[Nothing]], Nothing, Any](
-      Widget.Pure(StylesheetNode(Text(value, Listeners.Empty), Stylesheet.Empty))
-    )
+    Widget.Pure(StylesheetNode(Text(value, Listeners.Empty), Stylesheet.Empty))
 
   def void(tag: String): DslWidget[λ[`+A` => Element.Void[Nothing]], Nothing, Any] = {
     val element = Element.Void(Tag(tag, Attributes.Empty, Listeners.Empty))
-    DslWidget[λ[`+A` => Element.Void[Nothing]], Nothing, Any](Widget.Pure(StylesheetNode(element, Stylesheet.Empty)))
+    Widget.Pure(StylesheetNode(element, Stylesheet.Empty))
   }
 
   final val br: DslWidget[λ[`+A` => Element.Void[Nothing]], Nothing, Any] = void("br")
