@@ -4,7 +4,7 @@ import cats.implicits._
 import cats.{Applicative, Eval, Traverse}
 import io.taig.schelm.Navigator
 import io.taig.schelm.css.CssNavigator
-import io.taig.schelm.data.{Attributes, Children, Element, Listeners, Node}
+import io.taig.schelm.data._
 
 sealed abstract class CssNode[+Event, +A] extends Product with Serializable
 
@@ -57,8 +57,16 @@ object CssNode {
 
       override def style(css: CssNode[Event, A], f: Style => Style): CssNode[Event, A] =
         css match {
-          case css: Styled[Event, A]   => css.copy(style = f(css.style))
-          case css: Unstyled[Event, A] => css
+          case css: Styled[Event, A] =>
+            val update = f(css.style)
+            if (update.isEmpty) Unstyled(css.element) else css.copy(style = f(css.style))
+          case css: Unstyled[Event, A] =>
+            css.node match {
+              case node: Element[Event, A] =>
+                val update = f(Style.Empty)
+                if (update.isEmpty) css else Styled(node, update)
+              case _ => css
+            }
         }
     }
 }

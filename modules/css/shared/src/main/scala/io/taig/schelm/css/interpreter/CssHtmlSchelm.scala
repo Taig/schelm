@@ -4,6 +4,7 @@ import cats.Parallel
 import cats.effect.Concurrent
 import io.taig.schelm.algebra.{Dom, EventManager, Schelm}
 import io.taig.schelm.css.data.CssHtml
+import io.taig.schelm.interpreter.DomSchelm
 
 object CssHtmlSchelm {
   def default[F[_]: Concurrent: Parallel, View, Event, Structure, Node, Element, Diff](
@@ -14,10 +15,8 @@ object CssHtmlSchelm {
   ): Schelm[F, CssHtml[Event], Event] = {
     val renderer = CssHtmlRenderer.default(dom)
     val attacher = CssHtmlAttacher.default(main, style, dom)
-
-    ???
-//    val differ = HtmlDiffer[Event]
-//    val patcher = HtmlPatcher(dom, renderer)
-//    DomSchelm(manager, renderer, attacher, differ, patcher)
+    val differ = CssHtmlDiffer.default[Event]
+    val patcher = CssHtmlPatcher[F, Event, Node]
+    DomSchelm(manager, renderer, attacher, differ, patcher)
   }
 }

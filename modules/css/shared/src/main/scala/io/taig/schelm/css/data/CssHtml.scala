@@ -3,7 +3,7 @@ package io.taig.schelm.css.data
 import cats.implicits._
 import io.taig.schelm.Navigator
 import io.taig.schelm.css.CssNavigator
-import io.taig.schelm.data.{Attributes, Children, Html, Listeners}
+import io.taig.schelm.data.{Attribute, Attributes, Children, Element, Html, Listeners}
 
 final case class CssHtml[+Event](node: CssNode[Event, CssHtml[Event]]) extends AnyVal
 
@@ -11,21 +11,22 @@ object CssHtml {
   private val EmptyStyles: Map[Selector, Style] = Map.empty
 
   def toHtml[Event](css: CssHtml[Event]): (Html[Event], Map[Selector, Style]) = {
-    val nodes = css.node.map(toHtml[Event])
+    val nodes: CssNode[Event, (Html[Event], Map[Selector, Style])] = css.node.map(toHtml[Event])
+    val navigator =
+      Navigator[Event, Element[Event, (Html[Event], Map[Selector, Style])], (Html[Event], Map[Selector, Style])]
 
-    val html = nodes match {
-      case CssNode.Styled(element, _) => Html(element.map { case (html, _) => html })
-      case CssNode.Unstyled(node)     => Html(node.map { case (html, _)    => html })
-    }
-
-    val rules = css.node match {
-      case CssNode.Styled(_, style) if !style.isEmpty =>
+    val (node, rules) = nodes match {
+      case CssNode.Styled(element, style) if !style.isEmpty =>
         val identifier = Identifier(style.hashCode)
         val selector = identifier.toSelector
-        Map(selector -> style)
-      case CssNode.Styled(_, _) | CssNode.Unstyled(_) => EmptyStyles
+        val attribute = Attribute(Attribute.Key.Class, Attribute.Value(identifier.toClass))
+        val update = navigator.attributes(element, Attributes.of(attribute) ++ _)
+        (update, Map(selector -> style))
+      case CssNode.Styled(element, _) => (element, EmptyStyles)
+      case CssNode.Unstyled(node)     => (node, EmptyStyles)
     }
 
+    val html = Html(node.map { case (html, _) => html })
     val styles = nodes.foldl(rules) { case (left, (_, right)) => left ++ right }
 
     (html, styles)
