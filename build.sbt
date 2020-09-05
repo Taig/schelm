@@ -5,6 +5,7 @@ val Fs2Version = "2.4.4"
 val JsoupVersion = "1.13.1"
 val ScalaCollectionCompatVersion = "2.1.6"
 val ScalajsDomVersion = "1.1.0"
+val ShapelessVersion = "2.3.3"
 
 noPublishSettings
 

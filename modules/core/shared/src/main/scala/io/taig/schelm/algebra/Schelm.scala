@@ -7,6 +7,4 @@ abstract class Schelm[F[_], View, Event, Element] {
       render: State => View,
       handler: Handler[F, State, Event, Command]
   ): F[Unit]
-
-  def markup(view: View): F[String]
 }

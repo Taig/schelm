@@ -2,47 +2,57 @@ package io.taig.schelm.dsl
 
 import io.taig.schelm.css.data._
 import io.taig.schelm.data._
-import io.taig.schelm.dsl.syntax.{ElementNormalSyntax, ElementVoidSyntax, FragmentSyntax}
+import io.taig.schelm.dsl.data.Tagged.@@
+import io.taig.schelm.dsl.data.{Has, Tagged}
+import io.taig.schelm.dsl.syntax._
 
 trait NodeDsl {
-  implicit def elementNormalSyntax[Event, Context](
-      widget: DslWidget[Element.Normal[Event, +*], Event, Context]
-  ): ElementNormalSyntax[Event, Context] =
-    new ElementNormalSyntax[Event, Context](widget)
+  implicit def normalElementSyntax[Event, Context](
+      widget: CssWidget[Event, Context] @@ NormalElementSyntax.Tag
+  ): NormalElementSyntax[Event, Context] =
+    new NormalElementSyntax[Event, Context](widget)
 
-  implicit def elementVoidSyntax[Event, Context](
-      widget: DslWidget[λ[`+A` => Element.Void[Event]], Event, Context]
-  ): ElementVoidSyntax[Event, Context] =
-    new ElementVoidSyntax[Event, Context](widget)
+  implicit def voidElementSyntax[Event, Context](
+      widget: CssWidget[Event, Context] @@ VoidElementSyntax.Tag
+  ): VoidElementSyntax[Event, Context] = new VoidElementSyntax[Event, Context](widget)
 
   implicit def fragmentSyntax[Event, Context](
-      widget: DslWidget[Fragment[+*], Event, Context]
+      widget: CssWidget[Event, Context] @@ FragmentSyntax.Tag
   ): FragmentSyntax[Event, Context] =
     new FragmentSyntax[Event, Context](widget)
 
-  def element(tag: String): DslWidget[Element.Normal[Nothing, +*], Nothing, Any] = {
-    val element = Element.Normal(Tag(tag, Attributes.Empty, Listeners.Empty), Children.Empty)
-    Widget.Pure(StylesheetNode(element, Stylesheet.Empty))
+  implicit def textSyntax[Event, Context](
+      widget: CssWidget[Event, Context] @@ TextSyntax.Tag
+  ): TextSyntax[Event, Context] = new TextSyntax[Event, Context](widget)
+
+  def element(
+      name: String
+  ): CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css with Has.Children = {
+    val element = Element(Tag(name, Attributes.Empty, Listeners.Empty), Element.Type.Normal(Children.Empty))
+    Tagged(CssWidget(Widget.Pure(CssNode.Unstyled(element))))
   }
 
-  final val fragment: DslWidget[Fragment[+*], Nothing, Any] =
-    Widget.Pure(StylesheetNode(Fragment(Children.Empty), Stylesheet.Empty))
+  final val fragment: CssWidget[Nothing, Any] @@ Has.Children =
+    Tagged(CssWidget(Widget.Pure(CssNode.Unstyled(Fragment(Children.Empty)))))
 
-  final def text(value: String): DslWidget[λ[`+A` => Text[Nothing]], Nothing, Any] =
-    Widget.Pure(StylesheetNode(Text(value, Listeners.Empty), Stylesheet.Empty))
+  final def text(value: String): CssWidget[Nothing, Any] @@ Has.Listeners =
+    Tagged(CssWidget(Widget.Pure(CssNode.Unstyled(Text(value, Listeners.Empty)))))
 
-  def void(tag: String): DslWidget[λ[`+A` => Element.Void[Nothing]], Nothing, Any] = {
-    val element = Element.Void(Tag(tag, Attributes.Empty, Listeners.Empty))
-    Widget.Pure(StylesheetNode(element, Stylesheet.Empty))
+  def void(tag: String): CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css = {
+    val element = Element(Tag(tag, Attributes.Empty, Listeners.Empty), Element.Type.Void)
+    Tagged(CssWidget(Widget.Pure(CssNode.Unstyled(element))))
   }
 
-  final val br: DslWidget[λ[`+A` => Element.Void[Nothing]], Nothing, Any] = void("br")
+  final val br: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css = void("br")
 
-  final val button: DslWidget[Element.Normal[Nothing, +*], Nothing, Any] = element("button")
+  final val button: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css with Has.Children =
+    element("button")
 
-  final val div: DslWidget[Element.Normal[Nothing, +*], Nothing, Any] = element("div")
+  final val div: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css with Has.Children =
+    element("div")
 
-  final val hr: DslWidget[λ[`+A` => Element.Void[Nothing]], Nothing, Any] = void("hr")
+  final val hr: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css = void("hr")
 
-  final val p: DslWidget[Element.Normal[Nothing, +*], Nothing, Any] = element("p")
+  final val p: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css with Has.Children =
+    element("p")
 }

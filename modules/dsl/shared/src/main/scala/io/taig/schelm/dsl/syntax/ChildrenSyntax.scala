@@ -1,12 +1,12 @@
 package io.taig.schelm.dsl.syntax
 
-import io.taig.schelm.data.{Children, Node}
-import io.taig.schelm.dsl.DslWidget
+import io.taig.schelm.css.data.CssWidget
+import io.taig.schelm.data.Children
 import io.taig.schelm.dsl.operation.ChildrenOperation
 
-trait ChildrenSyntax[F[+_], Event, Context] { self =>
-  final def apply(children: DslWidget[Node[Event, +*], Event, Context]*): DslWidget[F, Event, Context] =
-    self.children.set(Children.Indexed(children.map(DslWidget.toStylesheetWidget[Event, Context]).toList))
+trait ChildrenSyntax[Event, Context, Tag] { self =>
+  final def apply(children: CssWidget[Event, Context]*): CssWidget[Event, Context] =
+    self.children.set(Children.Indexed(children.toList))
 
-  def children: ChildrenOperation[F, Event, Context]
+  def children: ChildrenOperation[Event, Context, Tag]
 }

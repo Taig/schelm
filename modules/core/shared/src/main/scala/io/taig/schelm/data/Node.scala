@@ -2,6 +2,7 @@ package io.taig.schelm.data
 
 import cats.implicits._
 import cats.{Applicative, Eval, Traverse}
+import io.taig.schelm.Navigator
 
 sealed abstract class Node[+Event, +A] extends Product with Serializable
 
@@ -28,36 +29,93 @@ object Node {
         case _: Text[Event]          => lb
       }
   }
+
+  implicit def navigator[Event, A]: Navigator[Event, Node[Event, A], A] = new Navigator[Event, Node[Event, A], A] {
+    override def attributes(node: Node[Event, A], f: Attributes => Attributes): Node[Event, A] =
+      node match {
+        case node: Element[Event, A]         => Navigator[Event, Element[Event, A], A].attributes(node, f)
+        case _: Fragment[A] | _: Text[Event] => node
+      }
+
+    override def listeners(node: Node[Event, A], f: Listeners[Event] => Listeners[Event]): Node[Event, A] =
+      node match {
+        case node: Element[Event, A] => Navigator[Event, Element[Event, A], A].listeners(node, f)
+        case node: Text[Event]       => node.copy(listeners = f(node.listeners))
+        case _: Fragment[A]          => node
+      }
+
+    override def children(node: Node[Event, A], f: Children[A] => Children[A]): Node[Event, A] =
+      node match {
+        case node: Element[Event, A] => Navigator[Event, Element[Event, A], A].children(node, f)
+        case node: Text[Event]       => node
+        case node: Fragment[A]       => node.copy(children = f(node.children))
+      }
+  }
 }
 
-sealed abstract class Element[+Event, +A] extends Node[Event, A]
+final case class Element[+Event, +A](tag: Tag[Event], tpe: Element.Type[A]) extends Node[Event, A]
 
-/** @see https://dev.w3.org/html5/html-author/#element-type-comparision */
 object Element {
-  final case class Normal[+Event, +A](tag: Tag[Event], children: Children[A]) extends Element[Event, A]
 
-  final case class Void[+Event](tag: Tag[Event]) extends Element[Event, Nothing]
+  /** @see https://dev.w3.org/html5/html-author/#element-type-comparision */
+  sealed abstract class Type[+A] extends Product with Serializable
+
+  object Type {
+    final case class Normal[+A](children: Children[A]) extends Type[A]
+    final case object Void extends Type[Nothing]
+
+    implicit val traverse: Traverse[Type] = new Traverse[Type] {
+      override def traverse[G[_]: Applicative, A, B](fa: Type[A])(f: A => G[B]): G[Type[B]] =
+        fa match {
+          case tpe: Normal[A] => tpe.children.traverse(f).map(Normal[B])
+          case Void           => Void.pure[G].widen
+        }
+
+      override def foldLeft[A, B](fa: Type[A], b: B)(f: (B, A) => B): B = fa match {
+        case tpe: Normal[A] => tpe.children.foldl(b)(f)
+        case Void           => b
+      }
+
+      override def foldRight[A, B](fa: Type[A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] = fa match {
+        case tpe: Normal[A] => tpe.children.foldr(lb)(f)
+        case Void           => lb
+      }
+    }
+
+    implicit def navigator[A]: Navigator[Nothing, Type[A], A] = new Navigator[Nothing, Type[A], A] {
+      override def attributes(tpe: Type[A], f: Attributes => Attributes): Type[A] = tpe
+
+      override def listeners(tpe: Type[A], f: Listeners[Nothing] => Listeners[Nothing]): Type[A] = tpe
+
+      override def children(tpe: Type[A], f: Children[A] => Children[A]): Type[A] =
+        tpe match {
+          case Normal(children) => Normal(f(children))
+          case Void             => Void
+        }
+    }
+  }
 
   implicit def traverse[Event]: Traverse[Element[Event, *]] = new Traverse[Element[Event, *]] {
     override def traverse[G[_]: Applicative, A, B](fa: Element[Event, A])(f: A => G[B]): G[Element[Event, B]] =
-      fa match {
-        case element: Element.Normal[Event, A] =>
-          element.children.traverse(f).map(children => element.copy(children = children))
-        case element: Element.Void[Event] => element.pure[G].widen
-      }
+      fa.tpe.traverse(f).map(tpe => fa.copy(tpe = tpe))
 
-    override def foldLeft[A, B](fa: Element[Event, A], b: B)(f: (B, A) => B): B =
-      fa match {
-        case element: Element.Normal[Event, A] => element.children.foldl(b)(f)
-        case _: Element.Void[Event]            => b
-      }
+    override def foldLeft[A, B](fa: Element[Event, A], b: B)(f: (B, A) => B): B = fa.tpe.foldl(b)(f)
 
     override def foldRight[A, B](fa: Element[Event, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
-      fa match {
-        case element: Element.Normal[Event, A] => element.children.foldr(lb)(f)
-        case _: Element.Void[Event]            => lb
-      }
+      fa.tpe.foldr(lb)(f)
   }
+
+  implicit def navigator[Event, A, B]: Navigator[Event, Element[Event, B], B] =
+    new Navigator[Event, Element[Event, B], B] {
+      override def attributes(element: Element[Event, B], f: Attributes => Attributes): Element[Event, B] =
+        element.copy(tag = Navigator[Event, Tag[Event], Nothing].attributes(element.tag, f))
+
+      override def listeners(element: Element[Event, B], f: Listeners[Event] => Listeners[Event]): Element[Event, B] =
+        element.copy(tag = Navigator[Event, Tag[Event], Nothing].listeners(element.tag, f))
+
+      override def children(element: Element[Event, B], f: Children[B] => Children[B]): Element[Event, B] =
+        element.copy(tpe = Navigator[Nothing, Type[B], B].children(element.tpe, f))
+    }
 }
 
 final case class Fragment[+A](children: Children[A]) extends Node[Nothing, A]

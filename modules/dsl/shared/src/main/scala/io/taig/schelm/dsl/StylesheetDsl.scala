@@ -1,7 +1,7 @@
 package io.taig.schelm.dsl
 
-import io.taig.schelm.css.data.Stylesheet
+import io.taig.schelm.css.data.Declaration
 
 trait StylesheetDsl {
-  val color: Stylesheet.Rule.Name = Stylesheet.Rule.Name("color")
+  val color: Declaration.Name = Declaration.Name("color")
 }

@@ -7,12 +7,6 @@ import io.taig.schelm.data.Html
 import org.jsoup.nodes.{Element => JElement}
 
 object JvmHtmlSchelm {
-  def default[F[_]: Concurrent: Parallel, Event]: Schelm[F, Html[Event], Event, JElement] = {
-    val dom = JsoupDom.default[F, Event]
-    val renderer = HtmlRenderer(dom)
-    val attacher = HtmlAttacher(dom)
-    val differ = HtmlDiffer[Event]
-    val patcher = HtmlPatcher(dom, renderer)
-    DomSchelm(EventManager.noop[F, Event], renderer, attacher, differ, patcher, JvmHtmlPrinter)
-  }
+  def default[F[_]: Concurrent: Parallel, Event]: Schelm[F, Html[Event], Event, JElement] =
+    DomSchelm.default(EventManager.noop[F, Event], JsoupDom.default[F, Event])
 }

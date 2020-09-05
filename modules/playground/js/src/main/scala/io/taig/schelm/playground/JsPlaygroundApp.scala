@@ -10,7 +10,7 @@ object JsPlaygroundApp extends IOApp {
       .default[IO, Event]
       .flatMap { schelm =>
         val root = document.getElementById("main")
-        PlaygroundApp.start(schelm, root)
+        schelm.start(root, PlaygroundApp.Initial, PlaygroundApp.render, new MyHandler[IO])
       }
       .as(ExitCode.Success)
 }

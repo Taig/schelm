@@ -2,8 +2,8 @@ package io.taig.schelm.playground
 
 import cats.Applicative
 import cats.implicits._
-import io.taig.schelm.algebra.{Handler, Schelm}
-import io.taig.schelm.css.data.{StylesheetHtml, StylesheetWidget}
+import io.taig.schelm.algebra.Handler
+import io.taig.schelm.css.data.{CssHtml, CssWidget}
 import io.taig.schelm.data._
 import io.taig.schelm.dsl._
 
@@ -30,24 +30,27 @@ object PlaygroundApp {
 
   def render(state: State): Html[Event] = html(state.label)
 
-  def start[F[_]: Applicative, X](schelm: Schelm[F, Html[Event], Event, X], root: X): F[Unit] =
-    schelm.start(root, Initial, render, new MyHandler[F])
+  def renderCss(state: State): CssHtml[Event] = stylesheetHtml(state.label)
 
-  def dslWidget(label: String): DslWidget[Element.Normal[Event, +*], Event, Theme] = contextual { theme =>
-    div.apply(
-      button
-        .attrs(style := s"background-color: ${theme.background};")
-        .on(click := Listener.Action.Pure(Event.Click))
-        .apply(text(label)),
-      hr
-    )
-  }
+  def cssWidget(label: String): CssWidget[Event, Theme] =
+    contextual { theme =>
+      div.apply(
+        button
+          .attrs(style := s"background-color: ${theme.background};")
+          .on(click := Listener.Action.Pure(Event.Click))
+          .style(color := "white")
+          .apply(text(label)),
+        hr,
+        button
+          .attrs(style := s"background-color: white;")
+          .on(click := Listener.Action.Pure(Event.Click))
+          .style(color := theme.background)
+          .apply(text(label))
+      )
+    }
 
-  def stylesheetWidget(label: String): StylesheetWidget[Event, Theme] =
-    DslWidget.toStylesheetWidget(dslWidget(label))
+  def stylesheetHtml(label: String): CssHtml[Event] =
+    CssWidget.toStylesheetHtml(cssWidget(label), Theme(background = "red"))
 
-  def stylesheetHtml(label: String): StylesheetHtml[Event] =
-    StylesheetWidget.toStylesheetHtml(stylesheetWidget(label), Theme(background = "red"))
-
-  def html(label: String): Html[Event] = StylesheetHtml.toHtml(stylesheetHtml(label))._1
+  def html(label: String): Html[Event] = CssHtml.toHtml(stylesheetHtml(label))._1
 }

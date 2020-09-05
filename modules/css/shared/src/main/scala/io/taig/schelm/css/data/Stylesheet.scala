@@ -2,25 +2,14 @@ package io.taig.schelm.css.data
 
 import cats.Monoid
 
-final case class Stylesheet(values: List[Stylesheet.Statement])
+final case class Stylesheet(values: List[Rule])
 
 object Stylesheet {
   val Empty: Stylesheet = Stylesheet(List.empty)
 
-  sealed abstract class Statement extends Product with Serializable
+  def from(rules: Iterable[Rule]): Stylesheet = Stylesheet(rules.toList)
 
-  object Statement {
-    final case class Context(value: String, styles: Stylesheet) extends Statement
-    final case class Directive(value: String) extends Statement
-    final case class Block(value: String, rules: List[Rule]) extends Statement
-  }
-
-  final case class Rule(name: Rule.Name, value: Rule.Value)
-
-  object Rule {
-    final case class Name(value: String) extends AnyVal
-    final case class Value(value: String) extends AnyVal
-  }
+  def of(rules: Rule*): Stylesheet = Stylesheet(rules.toList)
 
   implicit val monoid: Monoid[Stylesheet] = new Monoid[Stylesheet] {
     override val empty: Stylesheet = Empty

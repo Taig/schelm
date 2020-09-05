@@ -12,7 +12,8 @@ import org.scalajs.dom.raw.HTMLInputElement
 
 import scala.scalajs.js
 
-final class BrowserDom[F[_]: Effect, Event](events: EventManager[F, Event])(implicit F: Sync[F]) extends Dom[F, Event] {
+final class BrowserDom[F[_]: Effect, Event](manager: EventManager[F, Event])(implicit F: Sync[F])
+    extends Dom[F, Event] {
   override type Element = dom.Element
   override type Node = dom.Node
   override type Text = dom.Text
@@ -40,7 +41,7 @@ final class BrowserDom[F[_]: Effect, Event](events: EventManager[F, Event])(impl
   }
 
   def unsafeSubmit(event: Event): Unit =
-    events
+    manager
       .submit(event)
       .runAsync {
         case Right(_) => IO.unit
@@ -113,6 +114,6 @@ final class BrowserDom[F[_]: Effect, Event](events: EventManager[F, Event])(impl
 }
 
 object BrowserDom {
-  def apply[F[_]: Effect, Event](events: EventManager[F, Event]): Dom.Aux[F, Event, dom.Node, dom.Element, dom.Text] =
-    new BrowserDom[F, Event](events)
+  def apply[F[_]: Effect, Event](manager: EventManager[F, Event]): Dom.Aux[F, Event, dom.Node, dom.Element, dom.Text] =
+    new BrowserDom[F, Event](manager)
 }

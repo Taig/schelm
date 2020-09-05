@@ -5,6 +5,6 @@ import io.taig.schelm.algebra.Schelm
 import org.scalajs.dom
 
 object JsCssSchelm {
-  def default[F[_]: ConcurrentEffect, Event]: F[Schelm[F, StylesheetHtml[Event], Event, dom.Element]] =
+  def default[F[_]: ConcurrentEffect, Event]: F[Schelm[F, CssHtml[Event], Event, dom.Element]] =
     ???
 }
