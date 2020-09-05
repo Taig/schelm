@@ -1,5 +1,5 @@
 package io.taig.schelm.algebra
 
-abstract class Attacher[F[_], Structure, Element] {
-  def attach(parent: Element, structure: Structure): F[Unit]
+abstract class Attacher[F[_], Structure] {
+  def attach(structure: Structure): F[Unit]
 }

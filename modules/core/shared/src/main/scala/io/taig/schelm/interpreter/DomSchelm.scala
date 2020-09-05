@@ -5,18 +5,17 @@ import cats.effect.Concurrent
 import cats.effect.implicits._
 import cats.implicits._
 import io.taig.schelm.algebra._
-import io.taig.schelm.data.{Html, Patcher, Result}
+import io.taig.schelm.data.{Patcher, Result}
 
-final class DomSchelm[F[_]: Parallel, View, Event, Structure, Element, Diff](
+final class DomSchelm[F[_]: Parallel, View, Event, Structure, Diff](
     manager: EventManager[F, Event],
     renderer: Renderer[F, View, Structure],
-    attacher: Attacher[F, Structure, Element],
+    attacher: Attacher[F, Structure],
     differ: Differ[View, Diff],
     patcher: Patcher[F, Structure, Diff]
 )(implicit F: Concurrent[F])
-    extends Schelm[F, View, Event, Element] {
+    extends Schelm[F, View, Event] {
   override def start[State, Command](
-      container: Element,
       initial: State,
       render: State => View,
       handler: Handler[F, State, Event, Command]
@@ -25,7 +24,7 @@ final class DomSchelm[F[_]: Parallel, View, Event, Structure, Element, Diff](
 
     for {
       structure <- renderer.render(view)
-      _ <- attacher.attach(container, structure)
+      _ <- attacher.attach(structure)
       _ <- manager.subscription
         .evalMapAccumulate((initial, view)) {
           case ((state, previous), event) =>
@@ -64,22 +63,11 @@ final class DomSchelm[F[_]: Parallel, View, Event, Structure, Element, Diff](
 }
 
 object DomSchelm {
-  def apply[F[_]: Concurrent: Parallel, View, Event, Structure, Element, Diff](
+  def apply[F[_]: Concurrent: Parallel, View, Event, Structure, Diff](
       manager: EventManager[F, Event],
       renderer: Renderer[F, View, Structure],
-      attacher: Attacher[F, Structure, Element],
+      attacher: Attacher[F, Structure],
       differ: Differ[View, Diff],
       patcher: Patcher[F, Structure, Diff]
-  ): Schelm[F, View, Event, Element] = new DomSchelm(manager, renderer, attacher, differ, patcher)
-
-  def default[F[_]: Concurrent: Parallel, View, Event, Structure, Node, Element, Diff](
-      manager: EventManager[F, Event],
-      dom: Dom.Aux[F, Event, Node, Element, _]
-  ): Schelm[F, Html[Event], Event, Element] = {
-    val renderer = HtmlRenderer(dom)
-    val attacher = HtmlAttacher(dom)
-    val differ = HtmlDiffer[Event]
-    val patcher = HtmlPatcher(dom, renderer)
-    DomSchelm(manager, renderer, attacher, differ, patcher)
-  }
+  ): Schelm[F, View, Event] = new DomSchelm(manager, renderer, attacher, differ, patcher)
 }

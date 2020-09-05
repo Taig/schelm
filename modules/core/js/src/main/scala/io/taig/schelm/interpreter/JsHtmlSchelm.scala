@@ -8,6 +8,6 @@ import io.taig.schelm.data.Html
 import org.scalajs.dom
 
 object JsHtmlSchelm {
-  def default[F[_]: ConcurrentEffect: Parallel, Event]: F[Schelm[F, Html[Event], Event, dom.Element]] =
-    QueueEventManager.unbounded[F, Event].map { manager => DomSchelm.default(manager, BrowserDom(manager)) }
+  def default[F[_]: ConcurrentEffect: Parallel, Event](root: dom.Element): F[Schelm[F, Html[Event], Event]] =
+    QueueEventManager.unbounded[F, Event].map(manager => HtmlSchelm.default(root, manager, BrowserDom(manager)))
 }
