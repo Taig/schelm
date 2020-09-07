@@ -72,7 +72,7 @@ final class BrowserDom[F[_]: Effect, Event](manager: EventManager[F, Event])(imp
 
     val childNodes = element.childNodes
 
-    (0 until childNodes.length).foreach { index => result.addOne(childNodes.apply(index)) }
+    (0 until childNodes.length).foreach(index => result += childNodes.apply(index))
 
     result.toList
   }
@@ -106,11 +106,6 @@ final class BrowserDom[F[_]: Effect, Event](manager: EventManager[F, Event])(imp
 
   override def setAttribute(element: Element, key: String, value: String): F[Unit] =
     F.delay(element.setAttribute(key, value))
-
-  override def serialize(node: Node): String = node match {
-    case element: Element => element.outerHTML
-    case _                => node.innerText
-  }
 }
 
 object BrowserDom {

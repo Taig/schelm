@@ -1,11 +1,11 @@
 package io.taig.schelm.css.interpreter
 
 import cats.Parallel
-import cats.implicits._
 import cats.effect.Concurrent
+import cats.implicits._
 import io.taig.schelm.algebra.{Dom, EventManager, Schelm}
 import io.taig.schelm.css.data.CssHtml
-import io.taig.schelm.interpreter.{DomSchelm, HtmlAttacher, HtmlRenderer}
+import io.taig.schelm.interpreter.{DomSchelm, HtmlRenderer}
 
 object CssHtmlSchelm {
   def default[F[_]: Concurrent: Parallel, View, Event, Structure, Node, Element <: Node, Diff](

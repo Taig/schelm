@@ -48,7 +48,7 @@ final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) exte
 
   override def getElementById(id: String): F[Option[JElement]] = F.delay(Option(document.getElementById(id)))
 
-  override def head: F[JElement] = F.delay(document.head)
+  override val head: F[JElement] = F.delay(document.head)
 
   override def innerHtml(element: JElement, value: String): F[Unit] = F.delay(element.wrap(value)).void
 
@@ -67,8 +67,6 @@ final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) exte
 
   override def setAttribute(element: JElement, key: String, value: String): F[Unit] =
     F.delay(element.attr(key, value)).void
-
-  override def serialize(node: JNode): String = node.outerHtml()
 }
 
 object JsoupDom {
