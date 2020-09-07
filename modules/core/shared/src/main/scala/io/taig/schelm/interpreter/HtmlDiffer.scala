@@ -1,15 +1,14 @@
 package io.taig.schelm.interpreter
 
-import cats.data.Ior
 import cats.implicits._
 import io.taig.schelm.algebra.Differ
 import io.taig.schelm.data._
-import io.taig.schelm.util.Collections
 
 final class HtmlDiffer[Event] extends Differ[Html[Event], HtmlDiff[Event]] {
   override def diff(current: Html[Event], next: Html[Event]): Option[HtmlDiff[Event]] =
     (current.node, next.node) match {
       case (current: Element[Event, Html[Event]], next: Element[Event, Html[Event]]) => element(current, next)
+      case (current: Fragment[Html[Event]], next: Fragment[Html[Event]])             => fragment(current, next)
       case (current: Text[Event], next: Text[Event])                                 => text(current, next)
       case _                                                                         => HtmlDiff.Replace(next).some
     }
@@ -28,6 +27,9 @@ final class HtmlDiffer[Event] extends Differ[Html[Event], HtmlDiff[Event]] {
       HtmlDiff.from(diffs ++ types)
     }
   }
+
+  def fragment(current: Fragment[Html[Event]], next: Fragment[Html[Event]]): Option[HtmlDiff[Event]] =
+    children(current.children, next.children)
 
   def text(current: Text[Event], next: Text[Event]): Option[HtmlDiff[Event]] =
     if (current.value != next.value) HtmlDiff.UpdateText(next.value).some else none
@@ -91,8 +93,7 @@ final class HtmlDiffer[Event] extends Differ[Html[Event], HtmlDiff[Event]] {
     val rightLength = right.length
 
     val diffs = (left zip right).zipWithIndex.mapFilter {
-      case ((previous, next), index) =>
-        diff(previous, next).map(HtmlDiff.UpdateChild(index, _))
+      case ((previous, next), index) => diff(previous, next).map(HtmlDiff.UpdateChild(index, _))
     }
 
     if (leftLength < rightLength) {
