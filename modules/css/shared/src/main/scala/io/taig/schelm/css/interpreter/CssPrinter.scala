@@ -5,10 +5,9 @@ import io.taig.schelm.css.data.Rule.{Block, Context, Directive}
 import io.taig.schelm.css.data.{Declaration, Declarations, Rule, Selectors, Stylesheet}
 
 object CssPrinter extends Printer[Stylesheet] { self =>
-  override def print(stylesheet: Stylesheet, pretty: Boolean): String = {
-    val rules = stylesheet.values.map(rule(pretty))
-    if (pretty) rules.mkString("\n\n") else rules.mkString(" ")
-  }
+  override def print(stylesheet: Stylesheet, pretty: Boolean): String = rules(pretty)(stylesheet.values)
+
+  def rules(pretty: Boolean): List[Rule] => String = _.map(rule(pretty)).mkString(if (pretty) "\n\n" else " ")
 
   def rule(pretty: Boolean): Rule => String = {
     case Context(value, stylesheet) if pretty =>

@@ -16,6 +16,8 @@ final class CssStyleAttacher[F[_]: Functor, Element](dom: Dom.Aux[F, _, _, Eleme
 }
 
 object CssStyleAttacher {
+  val Id = "schelm-css"
+
   def apply[F[_]: Functor, Element](
       dom: Dom.Aux[F, _, _, Element, _],
       parent: Element
@@ -28,6 +30,7 @@ object CssStyleAttacher {
   ): F[Attacher[F, Map[Selector, Style], Element]] =
     for {
       style <- dom.createElement("style")
+      _ <- dom.setAttribute(style, "id", Id)
       head <- dom.head
       _ <- dom.appendChild(head, style)
     } yield CssStyleAttacher(dom, style)

@@ -5,7 +5,7 @@ import cats.implicits._
 import cats.effect.Concurrent
 import io.taig.schelm.algebra.{Dom, EventManager, Schelm}
 import io.taig.schelm.css.data.CssHtml
-import io.taig.schelm.interpreter.{DomSchelm, HtmlRenderer}
+import io.taig.schelm.interpreter.{DomSchelm, HtmlAttacher, HtmlRenderer}
 
 object CssHtmlSchelm {
   def default[F[_]: Concurrent: Parallel, View, Event, Structure, Node, Element <: Node, Diff](
