@@ -15,7 +15,12 @@ final class HtmlPatcher[F[_], Event, Node, Element <: Node](
   def patch(nodes: List[Node], diff: HtmlDiff[Event], cursor: Int): F[Unit] = {
     println(diff)
     diff match {
-      case HtmlDiff.AddAttribute(attribute) => ???
+      case HtmlDiff.AddAttribute(attribute) =>
+        for {
+          node <- select(nodes, cursor)
+          element <- element(node)
+          _ <- dom.setAttribute(element, attribute.key.value, attribute.value.value)
+        } yield ()
       case HtmlDiff.AppendChild(html) =>
         for {
           parent <- select(nodes, cursor)
@@ -23,9 +28,13 @@ final class HtmlPatcher[F[_], Event, Node, Element <: Node](
           children <- renderer.render(html)
           _ <- children.traverse_(dom.appendChild(parent, _))
         } yield ()
-      case HtmlDiff.AddListener(listener) => ???
-      case HtmlDiff.Clear                 => select(nodes, cursor).flatMap(element).flatMap(dom.innerHtml(_, ""))
-      case HtmlDiff.Group(diffs)          => diffs.traverse_(patch(nodes, _))
+      case HtmlDiff.AddListener(listener) =>
+        for {
+          node <- select(nodes, cursor)
+          _ <- dom.addEventListener(node, listener.name.value, dom.callback(listener.action))
+        } yield ()
+      case HtmlDiff.Clear        => select(nodes, cursor).flatMap(element).flatMap(dom.innerHtml(_, ""))
+      case HtmlDiff.Group(diffs) => diffs.traverse_(patch(nodes, _))
       case HtmlDiff.Replace(html) =>
         for {
           node <- select(nodes, cursor)
@@ -41,9 +50,21 @@ final class HtmlPatcher[F[_], Event, Node, Element <: Node](
             case None => F.unit
           }
         } yield ()
-      case HtmlDiff.RemoveAttribute(key)  => ???
-      case HtmlDiff.RemoveChild(key)      => ???
-      case HtmlDiff.RemoveListener(event) => ???
+      case HtmlDiff.RemoveAttribute(key) =>
+        for {
+          node <- select(nodes, cursor)
+          element <- element(node)
+          _ <- dom.removeAttribute(element, key.value)
+        } yield ()
+      case HtmlDiff.RemoveChild(index) =>
+        for {
+          node <- select(nodes, cursor)
+          parent <- element(node)
+          child <- child(parent, index)
+          _ <- dom.removeChild(parent, child)
+        } yield ()
+      case HtmlDiff.RemoveListener(event) =>
+        ???
       case HtmlDiff.UpdateAttribute(key, value) =>
         for {
           node <- select(nodes, cursor)

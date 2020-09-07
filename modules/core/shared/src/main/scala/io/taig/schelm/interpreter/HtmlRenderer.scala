@@ -26,7 +26,7 @@ final class HtmlRenderer[F[_]: Monad, Event, Node](dom: Dom.Node[F, Event, Node]
       _ <- tag.attributes.toList.traverse_ {
         case Attribute(key, value) => dom.setAttribute(parent, key.value, value.value)
       }
-      _ <- tag.listeners.values.traverse_ {
+      _ <- tag.listeners.toList.traverse_ {
         case Listener(name, action) => dom.addEventListener(parent, name.value, dom.callback(action))
       }
       _ <- children.traverse_(render(_).flatMap(_.traverse_(dom.appendChild(parent, _))))

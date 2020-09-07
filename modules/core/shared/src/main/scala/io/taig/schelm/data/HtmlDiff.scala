@@ -13,10 +13,10 @@ object HtmlDiff {
   final case class Replace[Event](html: Html[Event]) extends HtmlDiff[Event]
   final case class RemoveAttribute(key: Attribute.Key) extends HtmlDiff[Nothing]
   final case class RemoveChild(index: Int) extends HtmlDiff[Nothing]
-  final case class RemoveListener(event: String) extends HtmlDiff[Nothing]
+  final case class RemoveListener(name: Listener.Name) extends HtmlDiff[Nothing]
   final case class UpdateAttribute(key: Attribute.Key, value: Attribute.Value) extends HtmlDiff[Nothing]
   final case class UpdateChild[A](index: Int, diff: HtmlDiff[A]) extends HtmlDiff[A]
-  final case class UpdateListener[A](event: String, action: Listener.Action[A]) extends HtmlDiff[A]
+  final case class UpdateListener[A](name: Listener.Name, action: Listener.Action[A]) extends HtmlDiff[A]
   final case class UpdateText(value: String) extends HtmlDiff[Nothing]
 
   def from[Event](diffs: List[HtmlDiff[Event]]): Option[HtmlDiff[Event]] = diffs match {

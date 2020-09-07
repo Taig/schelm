@@ -1,8 +1,10 @@
 package io.taig.schelm.interpreter
 
+import cats.data.Ior
 import cats.implicits._
 import io.taig.schelm.algebra.Differ
 import io.taig.schelm.data._
+import io.taig.schelm.util.Collections
 
 final class HtmlDiffer[Event] extends Differ[Html[Event], HtmlDiff[Event]] {
   override def diff(current: Html[Event], next: Html[Event]): Option[HtmlDiff[Event]] =
@@ -16,8 +18,14 @@ final class HtmlDiffer[Event] extends Differ[Html[Event], HtmlDiff[Event]] {
     if (current.tag.name != next.tag.name) HtmlDiff.Replace(Html(next)).some
     else {
       val diffs = attributes(current.tag.attributes, next.tag.attributes).toList ++
-        types(current.tpe, next.tpe)
-      HtmlDiff.from(diffs)
+        listeners(current.tag.listeners, next.tag.listeners).toList
+
+      val types = (current.tpe, next.tpe) match {
+        case (Element.Type.Normal(current), Element.Type.Normal(next)) => children(current, next)
+        case _                                                         => None
+      }
+
+      HtmlDiff.from(diffs ++ types)
     }
   }
 
@@ -42,10 +50,22 @@ final class HtmlDiffer[Event] extends Differ[Html[Event], HtmlDiff[Event]] {
       HtmlDiff.from(diffs)
     }
 
-  def types(current: Element.Type[Html[Event]], next: Element.Type[Html[Event]]): Option[HtmlDiff[Event]] =
-    (current, next) match {
-      case (Element.Type.Normal(current), Element.Type.Normal(next)) => children(current, next)
-      case _                                                         => None
+  def listeners(current: Listeners[Event], next: Listeners[Event]): Option[HtmlDiff[Event]] =
+    if (current.isEmpty && next.isEmpty) None
+    else {
+      val currentKeys = current.values.keys.toList
+      val nextKeys = next.values.keys.toList
+      val unchangedKeys = currentKeys intersect nextKeys
+      val removedKeys = currentKeys diff nextKeys
+      val addedKeys = nextKeys diff currentKeys
+
+      val diffs = unchangedKeys.mapFilter { name =>
+        val value = next.values(name)
+        if (current.values(name) == value) None else Some(HtmlDiff.UpdateListener(name, value))
+      } ++ removedKeys.map(HtmlDiff.RemoveListener) ++
+        addedKeys.map(name => HtmlDiff.AddListener(Listener(name, next.values(name))))
+
+      HtmlDiff.from(diffs)
     }
 
   def children(current: Children[Html[Event]], next: Children[Html[Event]]): Option[HtmlDiff[Event]] =
@@ -88,7 +108,7 @@ final class HtmlDiffer[Event] extends Differ[Html[Event], HtmlDiff[Event]] {
       previous: Children.Identified[Html[Event]],
       next: Children.Identified[Html[Event]]
   ): Option[HtmlDiff[Event]] =
-    throw new UnsupportedOperationException("Diffing identified children is not supported yet")
+    throw new UnsupportedOperationException("Diffing identified children is not implemented yet")
 }
 
 object HtmlDiffer {

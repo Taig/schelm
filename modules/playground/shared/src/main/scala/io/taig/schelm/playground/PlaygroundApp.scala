@@ -25,6 +25,9 @@ final class MyHandler[F[_]: Applicative] extends Handler[F, State, Event, Nothin
   }
 }
 
+// TODO: think about hydration: render the html on the server, and send to client. Then render again on the client with
+// same state, but afterwards remove all listeners. Then patch this version to only add the listeners, everything else
+// should be in place already
 object PlaygroundApp {
   val Initial: State = State(label = "Not clicked ):")
 
