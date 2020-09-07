@@ -30,8 +30,8 @@ object CssHtmlPatcher {
   ): Patcher[F, (List[Node], Map[Selector, Style]), CssHtmlDiff[Event]] =
     new CssHtmlPatcher[F, Event, Node](html, css)
 
-  def default[F[_]: MonadError[*[_], Throwable], Event, Node](
-      dom: Dom.Aux[F, Event, Node, _, _],
+  def default[F[_]: MonadError[*[_], Throwable], Event, Node, Element <: Node](
+      dom: Dom.Aux[F, Event, Node, Element, _],
       renderer: Renderer[F, Html[Event], List[Node]]
   ): Patcher[F, (List[Node], Map[Selector, Style]), CssHtmlDiff[Event]] =
     CssHtmlPatcher(HtmlPatcher(dom, renderer), Patcher.noop)

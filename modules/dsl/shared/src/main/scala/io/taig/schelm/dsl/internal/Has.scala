@@ -1,4 +1,4 @@
-package io.taig.schelm.dsl.data
+package io.taig.schelm.dsl.internal
 
 sealed abstract class Has extends Product with Serializable
 

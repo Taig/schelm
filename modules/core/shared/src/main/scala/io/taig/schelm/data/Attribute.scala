@@ -1,6 +1,8 @@
 package io.taig.schelm.data
 
-final case class Attribute(key: Attribute.Key, value: Attribute.Value)
+final case class Attribute(key: Attribute.Key, value: Attribute.Value) {
+  def toTuple: (Attribute.Key, Attribute.Value) = (key, value)
+}
 
 object Attribute {
   final case class Key(value: String) extends AnyVal
@@ -10,6 +12,8 @@ object Attribute {
   }
 
   final case class Value(value: String) extends AnyVal {
-    def ++(value: Value, separator: String = " "): Value = Value(this.value + separator + value.value)
+    def combine(value: Value, separator: String): Value = Value(this.value + separator + value.value)
+
+    def ++(value: Value): Value = combine(value, separator = " ")
   }
 }

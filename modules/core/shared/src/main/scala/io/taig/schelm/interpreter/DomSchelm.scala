@@ -6,6 +6,7 @@ import cats.effect.implicits._
 import cats.implicits._
 import io.taig.schelm.algebra._
 import io.taig.schelm.data.{Patcher, Result}
+import fs2.Stream
 
 final class DomSchelm[F[_]: Parallel, View, Event, Structure, Target, Diff](
     manager: EventManager[F, Event],
@@ -45,6 +46,14 @@ final class DomSchelm[F[_]: Parallel, View, Event, Structure, Target, Diff](
         }
         .collect { case (_, Some(diff)) => diff }
         .evalMap(patcher.patch(structure, _))
+        .handleErrorWith { throwable =>
+          Stream.eval {
+            F.delay {
+              System.err.println("Failed to patch DOM")
+              throwable.printStackTrace(System.err)
+            }
+          }
+        }
         .compile
         .drain
         .start

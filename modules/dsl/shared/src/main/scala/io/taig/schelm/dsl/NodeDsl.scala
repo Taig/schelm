@@ -2,8 +2,8 @@ package io.taig.schelm.dsl
 
 import io.taig.schelm.css.data._
 import io.taig.schelm.data._
-import io.taig.schelm.dsl.data.Tagged.@@
-import io.taig.schelm.dsl.data.{Has, Tagged}
+import io.taig.schelm.dsl.internal.Tagged.@@
+import io.taig.schelm.dsl.internal.{Has, Tagged}
 import io.taig.schelm.dsl.syntax._
 
 trait NodeDsl {

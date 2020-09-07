@@ -36,7 +36,7 @@ object PlaygroundApp {
     contextual { theme =>
       div.apply(
         button
-          .attrs(style := s"background-color: ${theme.background};")
+          .attrs(style := s"background-color: ${theme.background};", data("yolo") := label)
           .on(click := Listener.Action.Pure(Event.Click))
           .style(color := "white")
           .apply(text(label)),

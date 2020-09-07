@@ -2,8 +2,8 @@ package io.taig.schelm.dsl.operation
 
 import io.taig.schelm.css.CssNavigator
 import io.taig.schelm.css.data.{CssWidget, Style}
-import io.taig.schelm.dsl.data.Tagged
-import io.taig.schelm.dsl.data.Tagged.@@
+import io.taig.schelm.dsl.internal.Tagged
+import io.taig.schelm.dsl.internal.Tagged.@@
 
 final class CssOperation[Event, Context, Tag](widget: CssWidget[Event, Context]) {
   def set(style: Style): CssWidget[Event, Context] @@ Tag = patch(_ => style)

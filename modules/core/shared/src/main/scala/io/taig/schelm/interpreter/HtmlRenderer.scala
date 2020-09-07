@@ -23,7 +23,7 @@ final class HtmlRenderer[F[_]: Monad, Event, Node](dom: Dom.Node[F, Event, Node]
   def render(tag: Tag[Event], children: Children[Html[Event]]): F[List[Node]] =
     for {
       parent <- dom.createElement(tag.name)
-      _ <- tag.attributes.values.traverse_ {
+      _ <- tag.attributes.toList.traverse_ {
         case Attribute(key, value) => dom.setAttribute(parent, key.value, value.value)
       }
       _ <- tag.listeners.values.traverse_ {

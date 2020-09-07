@@ -1,4 +1,4 @@
-package io.taig.schelm.dsl.data
+package io.taig.schelm.dsl.internal
 
 object Tagged {
   def apply[T, U](t: T): T @@ U = t.asInstanceOf[T @@ U]
