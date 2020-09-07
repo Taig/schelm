@@ -7,10 +7,10 @@ import cats.implicits._
 import io.taig.schelm.algebra._
 import io.taig.schelm.data.{Patcher, Result}
 
-final class DomSchelm[F[_]: Parallel, View, Event, Structure, Diff](
+final class DomSchelm[F[_]: Parallel, View, Event, Structure, Target, Diff](
     manager: EventManager[F, Event],
     renderer: Renderer[F, View, Structure],
-    attacher: Attacher[F, Structure],
+    attacher: Attacher[F, Structure, Target],
     differ: Differ[View, Diff],
     patcher: Patcher[F, Structure, Diff]
 )(implicit F: Concurrent[F])
@@ -24,7 +24,7 @@ final class DomSchelm[F[_]: Parallel, View, Event, Structure, Diff](
 
     for {
       structure <- renderer.render(view)
-      _ <- attacher.attach(structure)
+      parent <- attacher.attach(structure)
       _ <- manager.subscription
         .evalMapAccumulate((initial, view)) {
           case ((state, previous), event) =>
@@ -63,10 +63,10 @@ final class DomSchelm[F[_]: Parallel, View, Event, Structure, Diff](
 }
 
 object DomSchelm {
-  def apply[F[_]: Concurrent: Parallel, View, Event, Structure, Diff](
+  def apply[F[_]: Concurrent: Parallel, View, Event, Structure, Target, Diff](
       manager: EventManager[F, Event],
       renderer: Renderer[F, View, Structure],
-      attacher: Attacher[F, Structure],
+      attacher: Attacher[F, Structure, Target],
       differ: Differ[View, Diff],
       patcher: Patcher[F, Structure, Diff]
   ): Schelm[F, View, Event] = new DomSchelm(manager, renderer, attacher, differ, patcher)

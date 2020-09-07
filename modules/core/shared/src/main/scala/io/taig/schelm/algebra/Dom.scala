@@ -59,7 +59,7 @@ abstract class Dom[F[_], Event] {
 }
 
 object Dom {
-  type Aux[F[_], Event, Node0, Element0, Text0] = Dom[F, Event] {
+  type Aux[F[_], Event, Node0, Element0 <: Node0, Text0 <: Node0] = Dom[F, Event] {
     type Node = Node0
 
     type Element = Element0

@@ -1,32 +1,31 @@
 package io.taig.schelm.css.interpreter
 
-import cats.Applicative
+import cats.{Applicative, Monad}
 import cats.implicits._
 import io.taig.schelm.algebra.{Attacher, Dom}
 import io.taig.schelm.css.data.{Selector, Style}
 import io.taig.schelm.interpreter.HtmlAttacher
 
-final class CssHtmlAttacher[F[_]: Applicative, Event, Node, Element](
-    html: Attacher[F, List[Node]],
-    css: Attacher[F, Map[Selector, Style]]
-) extends Attacher[F, (List[Node], Map[Selector, Style])] {
-  override def attach(structure: (List[Node], Map[Selector, Style])): F[Unit] = {
+final class CssHtmlAttacher[F[_]: Applicative, Event, Node, Element, A, B](
+    html: Attacher[F, List[Node], A],
+    css: Attacher[F, Map[Selector, Style], B]
+) extends Attacher[F, (List[Node], Map[Selector, Style]), (A, B)] {
+  override def attach(structure: (List[Node], Map[Selector, Style])): F[(A, B)] = {
     val (nodes, styles) = structure
-    css.attach(styles) *> html.attach(nodes)
+    (html.attach(nodes), css.attach(styles)).tupled
   }
 }
 
 object CssHtmlAttacher {
-  def apply[F[_]: Applicative, Event, Node](
-      html: Attacher[F, List[Node]],
-      css: Attacher[F, Map[Selector, Style]]
-  ): Attacher[F, (List[Node], Map[Selector, Style])] =
+  def apply[F[_]: Applicative, Event, Node, A, B](
+      html: Attacher[F, List[Node], A],
+      css: Attacher[F, Map[Selector, Style], B]
+  ): Attacher[F, (List[Node], Map[Selector, Style]), (A, B)] =
     new CssHtmlAttacher(html, css)
 
-  def default[F[_]: Applicative, Event, Node, Element](
+  def default[F[_]: Monad, Event, Node, Element <: Node, A, B](
       main: Element,
-      style: Element,
       dom: Dom.Aux[F, _, Node, Element, _]
-  ): Attacher[F, (List[Node], Map[Selector, Style])] =
-    CssHtmlAttacher(HtmlAttacher(dom, main), CssAttacher(dom, style))
+  ): F[Attacher[F, (List[Node], Map[Selector, Style]), (Element, Element)]] =
+    CssStyleAttacher.auto(dom).map(CssHtmlAttacher(HtmlAttacher(dom, main), _))
 }

@@ -9,12 +9,9 @@ import io.taig.schelm.interpreter.{BrowserDom, QueueEventManager}
 import org.scalajs.dom
 
 object JsCssSchelm {
-  def default[F[_]: ConcurrentEffect: Parallel, Event](
-      main: dom.Element,
-      style: dom.Element
-  ): F[Schelm[F, CssHtml[Event], Event]] =
-    QueueEventManager.unbounded[F, Event].map { manager =>
+  def default[F[_]: ConcurrentEffect: Parallel, Event](main: dom.Element): F[Schelm[F, CssHtml[Event], Event]] =
+    QueueEventManager.unbounded[F, Event].flatMap { manager =>
       val dom = BrowserDom(manager)
-      CssHtmlSchelm.default(main, style, manager, dom)
+      CssHtmlSchelm.default(main, manager, dom)
     }
 }

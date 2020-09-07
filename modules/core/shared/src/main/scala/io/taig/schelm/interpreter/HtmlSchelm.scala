@@ -6,7 +6,7 @@ import io.taig.schelm.algebra.{Dom, EventManager, Schelm}
 import io.taig.schelm.data.Html
 
 object HtmlSchelm {
-  def default[F[_]: Concurrent: Parallel, View, Event, Structure, Node, Element, Diff](
+  def default[F[_]: Concurrent: Parallel, View, Event, Structure, Node, Element <: Node, Diff](
       root: Element,
       manager: EventManager[F, Event],
       dom: Dom.Aux[F, Event, Node, Element, _]
