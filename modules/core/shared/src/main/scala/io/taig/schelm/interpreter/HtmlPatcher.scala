@@ -5,7 +5,7 @@ import cats.implicits._
 import io.taig.schelm.algebra.{Dom, Renderer}
 import io.taig.schelm.data.{Html, HtmlDiff, Patcher}
 
-final class HtmlPatcher[F[_], Event](val dom: Dom[F, Event], renderer: Renderer[F, Html[Event], List[Dom.Node]])(
+final class HtmlPatcher[F[_], Event](val dom: Dom[F], renderer: Renderer[F, Html[Event], List[Dom.Node]])(
     implicit F: MonadError[F, Throwable]
 ) extends Patcher[F, List[Dom.Node], HtmlDiff[Event]] {
   override def patch(nodes: List[Dom.Node], diff: HtmlDiff[Event]): F[Unit] = patch(nodes, diff, cursor = 0)
@@ -28,7 +28,7 @@ final class HtmlPatcher[F[_], Event](val dom: Dom[F, Event], renderer: Renderer[
       case HtmlDiff.AddListener(listener) =>
         for {
           node <- select(nodes, cursor)
-          _ <- dom.addEventListener(node, listener.name.value, dom.callback(listener.action))
+          //_ <- dom.addEventListener(node, listener.name.value, dom.callback(listener.action))
         } yield ()
       case HtmlDiff.Clear        => select(nodes, cursor).flatMap(element).flatMap(dom.innerHtml(_, ""))
       case HtmlDiff.Group(diffs) => diffs.traverse_(patch(nodes, _))
@@ -108,7 +108,7 @@ final class HtmlPatcher[F[_], Event](val dom: Dom[F, Event], renderer: Renderer[
 
 object HtmlPatcher {
   def apply[F[_]: MonadError[*[_], Throwable], Event](
-      dom: Dom[F, Event],
+      dom: Dom[F],
       renderer: Renderer[F, Html[Event], List[Dom.Node]]
   ): Patcher[F, List[Dom.Node], HtmlDiff[Event]] = new HtmlPatcher[F, Event](dom, renderer)
 }

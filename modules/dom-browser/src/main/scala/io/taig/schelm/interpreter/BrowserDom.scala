@@ -12,32 +12,7 @@ import org.scalajs.dom
 import org.scalajs.dom.document
 import org.scalajs.dom.raw.HTMLInputElement
 
-final class BrowserDom[F[_]: Effect, Event](manager: EventManager[F, Event])(implicit F: Sync[F])
-    extends Dom[F, Event] {
-  override def callback(action: Listener.Action[Event]): js.Function1[dom.Event, _] = action match {
-    case Action.Pure(event) =>
-      native =>
-        native.preventDefault()
-        unsafeSubmit(event)
-    case Action.Input(event) =>
-      native =>
-        val value = native.target.asInstanceOf[HTMLInputElement].value
-        unsafeSubmit(event(value))
-  }
-
-  def unsafeSubmit(event: Event): Unit =
-    manager
-      .submit(event)
-      .runAsync {
-        case Right(_) => IO.unit
-        case Left(throwable) =>
-          IO {
-            System.err.println("Failed to submit event")
-            throwable.printStackTrace(System.err)
-          }
-      }
-      .unsafeRunSync()
-
+final class BrowserDom[F[_]: Effect](implicit F: Sync[F]) extends Dom[F] {
   override def addEventListener(node: dom.Node, name: String, listener: js.Function1[dom.Event, _]): F[Unit] =
     F.delay(node.addEventListener(name, listener))
 

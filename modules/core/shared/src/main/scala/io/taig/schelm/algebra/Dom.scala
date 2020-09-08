@@ -3,8 +3,8 @@ package io.taig.schelm.algebra
 import io.taig.schelm.data.Listener.Action
 import io.taig.schelm.internal.DomPlatform
 
-abstract class Dom[F[_], Event] {
-  def callback(action: Action[Event]): Dom.Listener
+abstract class Dom[F[_]] {
+  // def callback(action: Action[Event]): Dom.Listener
 
   def addEventListener(node: Dom.Node, name: String, listener: Dom.Listener): F[Unit]
 

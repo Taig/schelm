@@ -7,31 +7,34 @@ import io.taig.schelm.data._
 final class HtmlDiffer[Event] extends Differ[Html[Event], HtmlDiff[Event]] {
   override def diff(current: Html[Event], next: Html[Event]): Option[HtmlDiff[Event]] =
     (current.node, next.node) match {
-      case (current: Element[Event, Html[Event]], next: Element[Event, Html[Event]]) => element(current, next)
-      case (current: Fragment[Html[Event]], next: Fragment[Html[Event]])             => fragment(current, next)
-      case (current: Text[Event], next: Text[Event])                                 => text(current, next)
-      case _                                                                         => HtmlDiff.Replace(next).some
+      case (current: Node.Element[Event, Html[Event]], next: Node.Element[Event, Html[Event]]) => element(current, next)
+      case (current: Node.Fragment[Html[Event]], next: Node.Fragment[Html[Event]])             => fragment(current, next)
+      case (current: Node.Text[Event], next: Node.Text[Event])                                 => text(current, next)
+      case _                                                                                   => HtmlDiff.Replace(next).some
     }
 
-  def element(current: Element[Event, Html[Event]], next: Element[Event, Html[Event]]): Option[HtmlDiff[Event]] = {
+  def element(
+      current: Node.Element[Event, Html[Event]],
+      next: Node.Element[Event, Html[Event]]
+  ): Option[HtmlDiff[Event]] = {
     if (current.tag.name != next.tag.name) HtmlDiff.Replace(Html(next)).some
     else {
       val diffs = attributes(current.tag.attributes, next.tag.attributes).toList ++
         listeners(current.tag.listeners, next.tag.listeners).toList
 
       val types = (current.tpe, next.tpe) match {
-        case (Element.Type.Normal(current), Element.Type.Normal(next)) => children(current, next)
-        case _                                                         => None
+        case (Node.Element.Type.Normal(current), Node.Element.Type.Normal(next)) => children(current, next)
+        case _                                                                   => None
       }
 
       HtmlDiff.from(diffs ++ types)
     }
   }
 
-  def fragment(current: Fragment[Html[Event]], next: Fragment[Html[Event]]): Option[HtmlDiff[Event]] =
+  def fragment(current: Node.Fragment[Html[Event]], next: Node.Fragment[Html[Event]]): Option[HtmlDiff[Event]] =
     children(current.children, next.children)
 
-  def text(current: Text[Event], next: Text[Event]): Option[HtmlDiff[Event]] =
+  def text(current: Node.Text[Event], next: Node.Text[Event]): Option[HtmlDiff[Event]] =
     if (current.value != next.value) HtmlDiff.UpdateText(next.value).some else none
 
   def attributes(current: Attributes, next: Attributes): Option[HtmlDiff[Event]] =

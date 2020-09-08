@@ -9,12 +9,13 @@ object HtmlSchelm {
   def default[F[_]: Concurrent: Parallel, View, Event, Structure, Diff](
       root: Dom.Element,
       manager: EventManager[F, Event],
-      dom: Dom[F, Event]
+      dom: Dom[F]
   ): Schelm[F, Html[Event], Event] = {
-    val renderer = HtmlRenderer(dom)
-    val attacher = HtmlAttacher(dom, root)
-    val differ = HtmlDiffer[Event]
-    val patcher = ??? // HtmlPatcher(dom, renderer)
-    DomSchelm(manager, renderer, attacher, differ, patcher)
+//    val renderer = HtmlRenderer[F, Event](dom)
+//    val attacher = HtmlAttacher(dom, root)
+//    val differ = HtmlDiffer[Event]
+//    val patcher = ??? // HtmlPatcher(dom, renderer)
+//    DomSchelm(manager, renderer, attacher, differ, patcher)
+    ???
   }
 }
