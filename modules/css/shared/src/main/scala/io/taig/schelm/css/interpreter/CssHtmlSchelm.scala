@@ -8,10 +8,10 @@ import io.taig.schelm.css.data.CssHtml
 import io.taig.schelm.interpreter.{DomSchelm, HtmlRenderer}
 
 object CssHtmlSchelm {
-  def default[F[_]: Concurrent: Parallel, View, Event, Structure, Node, Element <: Node, Diff](
-      main: Element,
+  def default[F[_]: Concurrent: Parallel, View, Event, Structure, Diff](
+      main: Dom.Element,
       manager: EventManager[F, Event],
-      dom: Dom.Aux[F, Event, Node, Element, _]
+      dom: Dom[F, Event]
   ): F[Schelm[F, CssHtml[Event], Event]] =
     CssHtmlAttacher.default(main, dom).map { attacher =>
       val renderer = HtmlRenderer(dom)

@@ -32,6 +32,30 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
         Nil
   )
 
+lazy val domBrowser = project
+  .in(file("modules/dom-browser"))
+  .enablePlugins(ScalaJSPlugin)
+  .settings(sonatypePublishSettings)
+  .settings(
+    libraryDependencies ++=
+      "org.scala-js" %%% "scalajs-dom" % ScalajsDomVersion ::
+        Nil,
+    name := "dom-browser"
+  )
+  .dependsOn(core.js)
+
+lazy val domJsoup = project
+  .in(file("modules/dom-jsoup"))
+  .settings(sonatypePublishSettings)
+  .settings(
+    libraryDependencies ++=
+      "org.jsoup" % "jsoup" % JsoupVersion ::
+        "org.scala-lang.modules" %% "scala-collection-compat" % ScalaCollectionCompatVersion ::
+        Nil,
+    name := "dom-jsoup"
+  )
+  .dependsOn(core.jvm)
+
 lazy val css = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
   .in(file("modules/css"))

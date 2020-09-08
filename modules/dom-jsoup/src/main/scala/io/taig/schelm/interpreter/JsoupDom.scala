@@ -1,29 +1,14 @@
 package io.taig.schelm.interpreter
 
+import scala.jdk.CollectionConverters._
+
 import cats.effect.Sync
 import cats.implicits._
 import io.taig.schelm.algebra.Dom
 import io.taig.schelm.data.Listener.Action
 import org.jsoup.nodes.{Document => JDocument, Element => JElement, Node => JNode, TextNode => JText}
 
-import scala.jdk.CollectionConverters._
-
 final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) extends Dom[F, Event] {
-  override type Node = JNode
-  override type Element = JElement
-  override type Text = JText
-  override type Listener = Unit
-
-  override def element(node: JNode): Option[JElement] = node match {
-    case element: JElement => Some(element)
-    case _                 => None
-  }
-
-  override def text(node: JNode): Option[JText] = node match {
-    case text: JText => Some(text)
-    case _           => None
-  }
-
   override def callback(action: Action[Event]): Unit = ()
 
   override def addEventListener(node: JNode, event: String, notify: Unit): F[Unit] = F.unit
@@ -32,7 +17,7 @@ final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) exte
 
   override def createElement(name: String): F[JElement] = F.delay(new JElement(name))
 
-  override def createElementNS(namespace: String, name: String): F[Element] = createElement(name)
+  override def createElementNS(namespace: String, name: String): F[JElement] = createElement(name)
 
   override def createTextNode(value: String): F[JText] = F.delay(new JText(value))
 
@@ -52,26 +37,27 @@ final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) exte
 
   override def innerHtml(element: JElement, value: String): F[Unit] = F.delay(element.wrap(value)).void
 
-  override def insertBefore(parent: JElement, node: JNode, reference: Option[Node]): F[Unit] =
-    F.delay(reference.fold[Node](parent.appendChild(node))(reference => reference.before(node))).void
+  override def insertBefore(parent: JElement, node: JNode, reference: Option[JNode]): F[Unit] =
+    F.delay(reference.fold[JNode](parent.appendChild(node))(reference => reference.before(node))).void
 
-  override def parentNode(node: JNode): F[Option[Node]] = F.delay(Option(node.parentNode()))
+  override def parentNode(node: JNode): F[Option[JNode]] = F.delay(Option(node.parentNode()))
 
   override def removeChild(parent: JElement, child: JNode): F[Unit] = F.delay(child.remove())
 
   override def removeAttribute(element: JElement, key: String): F[Unit] = F.delay(element.removeAttr(key)).void
 
-  override def removeEventListener(node: JNode, name: String, listener: Unit): F[Unit] = F.unit
+  override def removeEventListener(node: JNode, name: String, listener: Dom.Listener): F[Unit] = F.unit
 
-  override def replaceChild(parent: JElement, current: JNode, next: JNode): F[Unit] = F.delay(current.replaceWith(next))
+  override def replaceChild(parent: JElement, current: JNode, next: JNode): F[Unit] =
+    F.delay(current.replaceWith(next))
 
   override def setAttribute(element: JElement, key: String, value: String): F[Unit] =
     F.delay(element.attr(key, value)).void
 }
 
 object JsoupDom {
-  def apply[F[_]: Sync, Event](document: JDocument): Dom.Aux[F, Event, JNode, JElement, JText] =
+  def apply[F[_]: Sync, Event](document: JDocument): Dom[F, Event] =
     new JsoupDom[F, Event](document)
 
-  def default[F[_]: Sync, Event]: Dom.Aux[F, Event, JNode, JElement, JText] = JsoupDom[F, Event](new JDocument("/"))
+  def default[F[_]: Sync, Event]: Dom[F, Event] = JsoupDom[F, Event](new JDocument("/"))
 }

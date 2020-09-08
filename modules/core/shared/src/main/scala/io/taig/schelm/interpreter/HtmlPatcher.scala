@@ -5,15 +5,12 @@ import cats.implicits._
 import io.taig.schelm.algebra.{Dom, Renderer}
 import io.taig.schelm.data.{Html, HtmlDiff, Patcher}
 
-final class HtmlPatcher[F[_], Event, Node, Element <: Node](
-    val dom: Dom.Aux[F, Event, Node, Element, _],
-    renderer: Renderer[F, Html[Event], List[Node]]
-)(implicit F: MonadError[F, Throwable])
-    extends Patcher[F, List[Node], HtmlDiff[Event]] {
-  override def patch(nodes: List[Node], diff: HtmlDiff[Event]): F[Unit] = patch(nodes, diff, cursor = 0)
+final class HtmlPatcher[F[_], Event](val dom: Dom[F, Event], renderer: Renderer[F, Html[Event], List[Dom.Node]])(
+    implicit F: MonadError[F, Throwable]
+) extends Patcher[F, List[Dom.Node], HtmlDiff[Event]] {
+  override def patch(nodes: List[Dom.Node], diff: HtmlDiff[Event]): F[Unit] = patch(nodes, diff, cursor = 0)
 
-  def patch(nodes: List[Node], diff: HtmlDiff[Event], cursor: Int): F[Unit] = {
-    println(diff)
+  def patch(nodes: List[Dom.Node], diff: HtmlDiff[Event], cursor: Int): F[Unit] =
     diff match {
       case HtmlDiff.AddAttribute(attribute) =>
         for {
@@ -81,21 +78,27 @@ final class HtmlPatcher[F[_], Event, Node, Element <: Node](
       case HtmlDiff.UpdateListener(event, action) => ???
       case HtmlDiff.UpdateText(value)             => select(nodes, cursor).flatMap(text).flatMap(dom.data(_, value))
     }
-  }
 
-  def select(nodes: List[Node], index: Int): F[Node] =
+  def select(nodes: List[Dom.Node], index: Int): F[Dom.Node] =
     nodes.get(index) match {
       case Some(node) => node.pure[F]
       case None       => fail(s"No node at index $index")
     }
 
-  def element(node: Node): F[dom.Element] = dom.element(node).liftTo[F](error("Expected an element node"))
+  def element(node: Dom.Node): F[Dom.Element] = node match {
+    case node: Dom.Element => node.pure[F]
+    case _                 => fail[Dom.Element]("Expected an element node")
+  }
 
-  def text(node: Node): F[dom.Text] = dom.text(node).liftTo[F](error("Expected a text node"))
+  def text(node: Dom.Node): F[Dom.Text] = node match {
+    case node: Dom.Text => node.pure[F]
+    case _              => fail[Dom.Text]("Expected a text node")
+  }
 
-  def parent(node: Node): F[dom.Node] = dom.parentNode(node).flatMap(_.liftTo[F](error("Node does not have a parent")))
+  def parent(node: Dom.Node): F[Dom.Node] =
+    dom.parentNode(node).flatMap(_.liftTo[F](error("Node does not have a parent")))
 
-  def child(parent: Element, index: Int): F[dom.Node] =
+  def child(parent: Dom.Element, index: Int): F[Dom.Node] =
     dom.childAt(parent, index).flatMap(_.liftTo[F](error(s"No child at index $index")))
 
   def error(message: String): IllegalStateException = new IllegalStateException(s"$message. DOM out of sync?")
@@ -104,8 +107,8 @@ final class HtmlPatcher[F[_], Event, Node, Element <: Node](
 }
 
 object HtmlPatcher {
-  def apply[F[_]: MonadError[*[_], Throwable], Event, Node, Element <: Node](
-      dom: Dom.Aux[F, Event, Node, Element, _],
-      renderer: Renderer[F, Html[Event], List[Node]]
-  ): Patcher[F, List[Node], HtmlDiff[Event]] = new HtmlPatcher[F, Event, Node, Element](dom, renderer)
+  def apply[F[_]: MonadError[*[_], Throwable], Event](
+      dom: Dom[F, Event],
+      renderer: Renderer[F, Html[Event], List[Dom.Node]]
+  ): Patcher[F, List[Dom.Node], HtmlDiff[Event]] = new HtmlPatcher[F, Event](dom, renderer)
 }

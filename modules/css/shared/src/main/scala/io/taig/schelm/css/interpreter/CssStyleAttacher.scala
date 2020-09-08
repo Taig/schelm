@@ -6,9 +6,9 @@ import io.taig.schelm.algebra.{Attacher, Dom}
 import io.taig.schelm.css.data.{Selector, Style}
 
 /** Attach styles to a given `<style>` tag */
-final class CssStyleAttacher[F[_]: Functor, Element](dom: Dom.Aux[F, _, _, Element, _], parent: Element)
-    extends Attacher[F, Map[Selector, Style], Element] {
-  override def attach(styles: Map[Selector, Style]): F[Element] = {
+final class CssStyleAttacher[F[_]: Functor](dom: Dom[F, _], parent: Dom.Element)
+    extends Attacher[F, Map[Selector, Style], Dom.Element] {
+  override def attach(styles: Map[Selector, Style]): F[Dom.Element] = {
     val stylesheet = CssRenderer.render(styles)
     val text = CssPrinter.print(stylesheet, pretty = true)
     dom.innerHtml(parent, text).as(parent)
@@ -18,16 +18,11 @@ final class CssStyleAttacher[F[_]: Functor, Element](dom: Dom.Aux[F, _, _, Eleme
 object CssStyleAttacher {
   val Id = "schelm-css"
 
-  def apply[F[_]: Functor, Element](
-      dom: Dom.Aux[F, _, _, Element, _],
-      parent: Element
-  ): Attacher[F, Map[Selector, Style], Element] =
+  def apply[F[_]: Functor](dom: Dom[F, _], parent: Dom.Element): Attacher[F, Map[Selector, Style], Dom.Element] =
     new CssStyleAttacher(dom, parent)
 
   /** Create a `<style>` tag in the document's `<head>` and attach the styles to it */
-  def auto[F[_]: Monad, Node, Element <: Node](
-      dom: Dom.Aux[F, _, Node, Element, _]
-  ): F[Attacher[F, Map[Selector, Style], Element]] =
+  def auto[F[_]: Monad](dom: Dom[F, _]): F[Attacher[F, Map[Selector, Style], Dom.Element]] =
     for {
       style <- dom.createElement("style")
       _ <- dom.setAttribute(style, "id", Id)
