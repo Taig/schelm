@@ -44,6 +44,12 @@ lazy val dsl = crossProject(JVMPlatform, JSPlatform)
   .settings(sonatypePublishSettings)
   .dependsOn(css)
 
+lazy val materialDesign = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Full)
+  .in(file("modules/material-design"))
+  .settings(sonatypePublishSettings)
+  .dependsOn(dsl)
+
 lazy val playground = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
   .in(file("modules/playground"))
@@ -52,4 +58,4 @@ lazy val playground = crossProject(JVMPlatform, JSPlatform)
     name := "playground",
     scalaJSUseMainModuleInitializer := true
   )
-  .dependsOn(dsl)
+  .dependsOn(materialDesign)

@@ -6,6 +6,7 @@ import io.taig.schelm.algebra.Handler
 import io.taig.schelm.css.data.{CssHtml, CssWidget}
 import io.taig.schelm.data._
 import io.taig.schelm.dsl._
+import io.taig.schelm.mdc.Chip
 
 final case class Theme(background: String)
 
@@ -48,7 +49,9 @@ object PlaygroundApp {
           .attrs(style := s"background-color: white;")
           .on(click := Listener.Action.Pure(Event.Click))
           .style(color := theme.background)
-          .apply(text(label))
+          .apply(text(label)),
+        Chip("hello google", selected = true),
+        Chip("hello google", selected = false)
       )
     }
 

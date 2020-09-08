@@ -48,11 +48,16 @@ trait NodeDsl {
   final val button: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css with Has.Children =
     element("button")
 
-  final val div: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css with Has.Children =
-    element("div")
+  final val div: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css with Has.Children = element(
+    "div"
+  )
 
   final val hr: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css = void("hr")
 
   final val p: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css with Has.Children =
     element("p")
+
+  final val span: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css with Has.Children = element(
+    "span"
+  )
 }
