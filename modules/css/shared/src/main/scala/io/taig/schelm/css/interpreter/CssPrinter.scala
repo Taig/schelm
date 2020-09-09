@@ -1,6 +1,5 @@
 package io.taig.schelm.css.interpreter
 
-import io.taig.schelm.algebra.Printer
 import io.taig.schelm.css.data.Rule.{Block, Context, Directive}
 import io.taig.schelm.css.data.{Declaration, Declarations, Rule, Selectors, Stylesheet}
 

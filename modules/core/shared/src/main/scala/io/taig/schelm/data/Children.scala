@@ -22,6 +22,10 @@ object Children {
 
   val Empty: Children[Nothing] = Indexed(List.empty)
 
+  def from[A](children: Iterable[A]): Children[A] = Indexed(children.toList)
+
+  def of[A](children: A*): Children[A] = from(children)
+
   implicit val monoidK: MonoidK[Children] = new MonoidK[Children] {
     override def empty[A]: Children[A] = Empty
 

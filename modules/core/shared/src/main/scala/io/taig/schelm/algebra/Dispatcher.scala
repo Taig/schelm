@@ -1,11 +1,9 @@
 package io.taig.schelm.algebra
 
-import cats.effect.IO
 import io.taig.schelm.data.Listener
-import io.taig.schelm.data.Listener.Action
 
-abstract class Dispatcher[F[_], Event] {
-  def callback(action: Listener.Action[Event]): Dom.Listener
+abstract class Dispatcher[F[_], Event, Listener] {
+  def callback(action: Listener.Action[Event]): Listener
 
 //  override def callback(action: Listener.Action[Event]): js.Function1[dom.Event, _] = action match {
 //    case Action.Pure(event) =>

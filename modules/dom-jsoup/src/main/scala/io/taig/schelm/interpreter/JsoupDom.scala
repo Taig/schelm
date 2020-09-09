@@ -1,15 +1,22 @@
 package io.taig.schelm.interpreter
 
-import scala.jdk.CollectionConverters._
-
 import cats.effect.Sync
 import cats.implicits._
 import io.taig.schelm.algebra.Dom
-import io.taig.schelm.data.Listener.Action
 import org.jsoup.nodes.{Document => JDocument, Element => JElement, Node => JNode, TextNode => JText}
 
-final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) extends Dom[F, Event] {
-  override def callback(action: Action[Event]): Unit = ()
+import scala.jdk.CollectionConverters._
+
+final class JsoupDom[F[_]](val document: JDocument)(implicit F: Sync[F]) extends Dom[F] {
+  override type Node = JNode
+
+  override type Element = JElement
+
+  override type Text = JText
+
+  override type Document = JDocument
+
+  override type Listener = Unit
 
   override def addEventListener(node: JNode, event: String, notify: Unit): F[Unit] = F.unit
 
@@ -46,7 +53,7 @@ final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) exte
 
   override def removeAttribute(element: JElement, key: String): F[Unit] = F.delay(element.removeAttr(key)).void
 
-  override def removeEventListener(node: JNode, name: String, listener: Dom.Listener): F[Unit] = F.unit
+  override def removeEventListener(node: JNode, name: String, listener: Listener): F[Unit] = F.unit
 
   override def replaceChild(parent: JElement, current: JNode, next: JNode): F[Unit] =
     F.delay(current.replaceWith(next))
@@ -56,8 +63,7 @@ final class JsoupDom[F[_], Event](document: JDocument)(implicit F: Sync[F]) exte
 }
 
 object JsoupDom {
-  def apply[F[_]: Sync, Event](document: JDocument): Dom[F, Event] =
-    new JsoupDom[F, Event](document)
+  def apply[F[_]: Sync](document: JDocument): Dom[F] = new JsoupDom[F](document)
 
-  def default[F[_]: Sync, Event]: Dom[F, Event] = JsoupDom[F, Event](new JDocument("/"))
+  def default[F[_]: Sync]: Dom[F] = JsoupDom[F](new JDocument("/"))
 }

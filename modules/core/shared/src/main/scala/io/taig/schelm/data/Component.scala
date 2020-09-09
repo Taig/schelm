@@ -4,10 +4,10 @@ import cats.implicits._
 import cats.{Applicative, Eval, Traverse}
 import io.taig.schelm.Navigator
 
-sealed abstract class Node[+Event, +A] extends Product with Serializable
+sealed abstract class Component[+Event, +A] extends Product with Serializable
 
-object Node {
-  final case class Element[+Event, +A](tag: Tag[Event], tpe: Element.Type[A]) extends Node[Event, A]
+object Component {
+  final case class Element[+Event, +A](tag: Tag[Event], tpe: Element.Type[A]) extends Component[Event, A]
 
   object Element {
 
@@ -72,28 +72,28 @@ object Node {
       }
   }
 
-  final case class Fragment[+A](children: Children[A]) extends Node[Nothing, A]
+  final case class Fragment[+A](children: Children[A]) extends Component[Nothing, A]
 
-  final case class Text[+Event](value: String, listeners: Listeners[Event]) extends Node[Event, Nothing]
+  final case class Text[+Event](value: String, listeners: Listeners[Event]) extends Component[Event, Nothing]
 
-  implicit def traverse[Event]: Traverse[Node[Event, *]] = new Traverse[Node[Event, *]] {
+  implicit def traverse[Event]: Traverse[Component[Event, *]] = new Traverse[Component[Event, *]] {
     override def traverse[G[_]: Applicative, A, B](
-        fa: Node[Event, A]
-    )(f: A => G[B]): G[Node[Event, B]] =
+        fa: Component[Event, A]
+    )(f: A => G[B]): G[Component[Event, B]] =
       fa match {
         case node: Element[Event, A] => node.traverse(f).widen
         case node: Fragment[A]       => node.children.traverse(f).map(children => node.copy(children = children))
         case node: Text[Event]       => node.pure[G].widen
       }
 
-    override def foldLeft[A, B](fa: Node[Event, A], b: B)(f: (B, A) => B): B =
+    override def foldLeft[A, B](fa: Component[Event, A], b: B)(f: (B, A) => B): B =
       fa match {
         case node: Element[Event, A] => node.foldl(b)(f)
         case node: Fragment[A]       => node.children.foldl(b)(f)
         case _: Text[Event]          => b
       }
 
-    override def foldRight[A, B](fa: Node[Event, A], lb: Eval[B])(
+    override def foldRight[A, B](fa: Component[Event, A], lb: Eval[B])(
         f: (A, Eval[B]) => Eval[B]
     ): Eval[B] =
       fa match {
@@ -103,34 +103,35 @@ object Node {
       }
   }
 
-  implicit def navigator[Event, A]: Navigator[Event, Node[Event, A], A] = new Navigator[Event, Node[Event, A], A] {
-    override def attributes(
-        node: Node[Event, A],
-        f: Attributes => Attributes
-    ): Node[Event, A] =
-      node match {
-        case node: Element[Event, A]         => Navigator[Event, Element[Event, A], A].attributes(node, f)
-        case _: Fragment[A] | _: Text[Event] => node
-      }
+  implicit def navigator[Event, A]: Navigator[Event, Component[Event, A], A] =
+    new Navigator[Event, Component[Event, A], A] {
+      override def attributes(
+          node: Component[Event, A],
+          f: Attributes => Attributes
+      ): Component[Event, A] =
+        node match {
+          case node: Element[Event, A]         => Navigator[Event, Element[Event, A], A].attributes(node, f)
+          case _: Fragment[A] | _: Text[Event] => node
+        }
 
-    override def listeners(
-        node: Node[Event, A],
-        f: Listeners[Event] => Listeners[Event]
-    ): Node[Event, A] =
-      node match {
-        case node: Element[Event, A] => Navigator[Event, Element[Event, A], A].listeners(node, f)
-        case node: Text[Event]       => node.copy(listeners = f(node.listeners))
-        case _: Fragment[A]          => node
-      }
+      override def listeners(
+          node: Component[Event, A],
+          f: Listeners[Event] => Listeners[Event]
+      ): Component[Event, A] =
+        node match {
+          case node: Element[Event, A] => Navigator[Event, Element[Event, A], A].listeners(node, f)
+          case node: Text[Event]       => node.copy(listeners = f(node.listeners))
+          case _: Fragment[A]          => node
+        }
 
-    override def children(
-        node: Node[Event, A],
-        f: Children[A] => Children[A]
-    ): Node[Event, A] =
-      node match {
-        case node: Element[Event, A] => Navigator[Event, Element[Event, A], A].children(node, f)
-        case node: Text[Event]       => node
-        case node: Fragment[A]       => node.copy(children = f(node.children))
-      }
-  }
+      override def children(
+          node: Component[Event, A],
+          f: Children[A] => Children[A]
+      ): Component[Event, A] =
+        node match {
+          case node: Element[Event, A] => Navigator[Event, Element[Event, A], A].children(node, f)
+          case node: Text[Event]       => node
+          case node: Fragment[A]       => node.copy(children = f(node.children))
+        }
+    }
 }
