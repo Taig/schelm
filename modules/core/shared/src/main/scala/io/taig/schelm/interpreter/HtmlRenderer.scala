@@ -6,7 +6,7 @@ import io.taig.schelm.algebra.{Dom, Renderer}
 import io.taig.schelm.data._
 
 object HtmlRenderer {
-  def apply[F[_]: Monad, Event](
+  def apply[F[+_]: Monad, Event](
       dom: Dom[F]
   ): Renderer[F, Html[Event], HtmlReference[Event, dom.Node, dom.Element, dom.Text]] =
     new Renderer[F, Html[Event], HtmlReference[Event, dom.Node, dom.Element, dom.Text]] {

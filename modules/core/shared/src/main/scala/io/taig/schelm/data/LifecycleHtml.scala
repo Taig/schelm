@@ -1,14 +1,13 @@
 package io.taig.schelm.data
 
-final case class LifecycleHtml[F[_], Event, Node, Element <: Node, Text <: Node](
-    node: Lifecycle[
-      F,
-      Component[Event, LifecycleHtml[F, Event, Node, Element, Text]],
-      HtmlReference[Event, Node, Element, Text]
-    ]
-)
+import scala.annotation.unchecked.uncheckedVariance
 
-object LifecycleHtml {
-//  def toHtml[F[_], Event](html: LifecycleHtml[F, Event]): Html[Event] = ???
-//    Html(html.node.lifecycle.node.map(toHtml[F, Event]))
+import cats.implicits._
+
+final case class LifecycleHtml[+F[_], +Event, +Node, +Element <: Node, +Text <: Node](
+    // format: off
+    lifecycle: Lifecycle[F, HtmlReference[Event, Node, Element, Text], Component[Event, LifecycleHtml[F, Event, Node, Element, Text]]]
+    // format: on
+) extends AnyVal {
+  def toHtml: Html[Event] = Html(lifecycle.value.map(_.toHtml))
 }

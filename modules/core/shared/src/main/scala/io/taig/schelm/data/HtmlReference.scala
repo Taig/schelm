@@ -1,6 +1,6 @@
 package io.taig.schelm.data
 
-final case class HtmlReference[+Event, Node, Element <: Node, Text <: Node](
+final case class HtmlReference[+Event, +Node, +Element <: Node, +Text <: Node](
     reference: NodeReference[Event, Element, Text, HtmlReference[Event, Node, Element, Text]]
 ) extends AnyVal {
   def toNodes: List[Node] = reference match {

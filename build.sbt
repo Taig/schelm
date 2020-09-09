@@ -20,23 +20,13 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
         Nil,
     name := "core"
   )
-  .jvmSettings(
-    libraryDependencies ++=
-      "org.jsoup" % "jsoup" % JsoupVersion ::
-        "org.scala-lang.modules" %% "scala-collection-compat" % ScalaCollectionCompatVersion ::
-        Nil
-  )
-  .jsSettings(
-    libraryDependencies ++=
-      "org.scala-js" %%% "scalajs-dom" % ScalajsDomVersion ::
-        Nil
-  )
 
 lazy val domBrowser = project
   .in(file("modules/dom-browser"))
   .enablePlugins(ScalaJSPlugin)
   .settings(sonatypePublishSettings)
   .settings(
+    scalaJSUseMainModuleInitializer := true,
     libraryDependencies ++=
       "org.scala-js" %%% "scalajs-dom" % ScalajsDomVersion ::
         Nil,

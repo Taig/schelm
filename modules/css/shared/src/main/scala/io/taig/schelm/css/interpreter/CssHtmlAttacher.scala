@@ -4,7 +4,7 @@ import cats.{Applicative, Monad}
 import cats.implicits._
 import io.taig.schelm.algebra.{Attacher, Dom}
 import io.taig.schelm.css.data.{Selector, Style}
-import io.taig.schelm.interpreter.HtmlAttacher
+import io.taig.schelm.interpreter.NodeAttacher
 
 final class CssHtmlAttacher[F[_]: Applicative, Event, A, B](
     html: Attacher[F, List[Dom.Node], A],

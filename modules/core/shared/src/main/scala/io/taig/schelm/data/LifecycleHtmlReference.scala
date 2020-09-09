@@ -1,9 +1,11 @@
-//package io.taig.schelm.data
-//
-//import io.taig.schelm.algebra.Dom
-//
-//// format: off
-//final case class LifecycleHtmlReference[F[_], Event](
-//    reference: Reference[Event, LifecycleNode[F, Event, LifecycleHtmlReference[F, Event]]]
-//) extends AnyVal
-//// format: on
+package io.taig.schelm.data
+
+import cats.implicits._
+
+final case class LifecycleHtmlReference[F[_], +Event, +Node, +Element <: Node, +Text <: Node](
+    // format: off
+    lifecycle: Lifecycle[F, HtmlReference[Event, Node, Element, Text], NodeReference[Event, Element, Text, LifecycleHtmlReference[F, Event, Node, Element, Text]]]
+    // format: on
+) extends AnyVal {
+  def toHtmlReference: HtmlReference[Event, Node, Element, Text] = HtmlReference(lifecycle.value.map(_.toHtmlReference))
+}
