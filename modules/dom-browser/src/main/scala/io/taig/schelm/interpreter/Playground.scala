@@ -11,7 +11,7 @@ object Playground extends IOApp {
     val html = LifecycleHtml(
       Lifecycle(
         value = Component.Text("hello world", Listeners.Empty),
-        mounted = (reference: HtmlReference[Nothing, dom.Node, dom.Element, dom.Text]) => IO(println(s"lol here we are: ${reference.reference}"))
+        mounted = (reference: HtmlReference[dom.Node, dom.Element, dom.Text]) => IO(println(s"lol here we are: ${reference.reference}"))
 //        unmount = (_: HtmlReference[Nothing, dom.Node, dom.Element, dom.Text]) => IO.unit
       )
     )

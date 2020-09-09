@@ -1,7 +1,12 @@
 package io.taig.schelm.data
 
+import simulacrum.typeclass
+
 object Has {
-  trait Element[A] {
-    def element[Event]: Component.Element[Event, A]
+  @typeclass
+  trait Element[In] {
+    type Out
+
+    def get(component: In): Component.Element[Out, Component.Element.Type[Out]]
   }
 }

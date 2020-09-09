@@ -22,9 +22,9 @@ object Widget {
     override def map[A, B](fa: Widget[Context, A])(f: A => B): Widget[Context, B] = fa.map(f)
   }
 
-  implicit def navigator[Event, Context, F[_], A](
-      implicit navigator: Navigator[Event, F[A], A]
-  ): Navigator[Event, Widget[Context, F[A]], A] = new Navigator[Event, Widget[Context, F[A]], A] {
+  implicit def navigator[Context, F[_], A](
+      implicit navigator: Navigator[F[A], A]
+  ): Navigator[Widget[Context, F[A]], A] = new Navigator[Widget[Context, F[A]], A] {
     override def attributes(widget: Widget[Context, F[A]], f: Attributes => Attributes): Widget[Context, F[A]] =
       widget match {
         case widget: Patch[Context, F[A]]  => Patch(widget.f, attributes(widget.widget, f))
@@ -32,10 +32,7 @@ object Widget {
         case widget: Render[Context, F[A]] => Render(context => attributes(widget.f(context), f))
       }
 
-    override def listeners(
-        widget: Widget[Context, F[A]],
-        f: Listeners[Event] => Listeners[Event]
-    ): Widget[Context, F[A]] =
+    override def listeners(widget: Widget[Context, F[A]], f: Listeners => Listeners): Widget[Context, F[A]] =
       widget match {
         case widget: Patch[Context, F[A]]  => Patch(widget.f, listeners(widget.widget, f))
         case widget: Pure[F[A]]            => Pure(navigator.listeners(widget.node, f))

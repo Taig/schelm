@@ -1,19 +1,19 @@
-package io.taig.schelm.data
-
-import io.taig.schelm.Navigator
-
-final case class Html[+Event](component: Component[Event, Html[Event]]) extends AnyVal
-
-object Html {
-  implicit def navigator[Event]: Navigator[Event, Html[Event], Html[Event]] =
-    new Navigator[Event, Html[Event], Html[Event]] {
-      override def attributes(html: Html[Event], f: Attributes => Attributes): Html[Event] =
-        Html(Navigator[Event, Component[Event, Html[Event]], Html[Event]].attributes(html.component, f))
-
-      override def listeners(html: Html[Event], f: Listeners[Event] => Listeners[Event]): Html[Event] =
-        Html(Navigator[Event, Component[Event, Html[Event]], Html[Event]].listeners(html.component, f))
-
-      override def children(html: Html[Event], f: Children[Html[Event]] => Children[Html[Event]]): Html[Event] =
-        Html(Navigator[Event, Component[Event, Html[Event]], Html[Event]].children(html.component, f))
-    }
-}
+//package io.taig.schelm.data
+//
+//import io.taig.schelm.Navigator
+//
+//final case class Html(component: Component[Html]) extends AnyVal
+//
+//object Html {
+//  implicit val navigator: Navigator[Html, Html] =
+//    new Navigator[Html, Html] {
+//      override def attributes(html: Html, f: Attributes => Attributes): Html =
+//        Html(Navigator[Component[Html], Html].attributes(html.component, f))
+//
+//      override def listeners(html: Html, f: Listeners => Listeners): Html =
+//        Html(Navigator[Component[Html], Html].listeners(html.component, f))
+//
+//      override def children(html: Html, f: Children[Html] => Children[Html]): Html =
+//        Html(Navigator[Component[Html], Html].children(html.component, f))
+//    }
+//}
