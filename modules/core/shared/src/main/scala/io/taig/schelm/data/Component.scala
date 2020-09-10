@@ -7,7 +7,7 @@ import io.taig.schelm.Navigator
 sealed abstract class Component[+A] extends Product with Serializable
 
 object Component {
-  final case class Element[+A, +T <: Element.Type[A]](tag: Tag, tpe: T) extends Component[A]
+  final case class Element[+A](tag: Tag, tpe: Element.Type[A]) extends Component[A]
 
   object Element {
 
@@ -34,12 +34,6 @@ object Component {
           case tpe: Normal[A] => tpe.children.foldr(lb)(f)
           case Void           => lb
         }
-      }
-
-      implicit def has[A]: Has.Element[Element[A, Type[A]]] = new Has.Element[Element[A, Type[A]]] {
-        override type Out = A
-
-        override def get(component: Element[A, Type[A]]): Element[A, Type[A]] = component
       }
 
       implicit def navigator[A]: Navigator[Type[A], A] = new Navigator[Type[A], A] {
