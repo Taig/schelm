@@ -4,10 +4,11 @@ import cats.implicits._
 import cats.{Applicative, Eval, Traverse}
 import io.taig.schelm.Navigator
 
-sealed abstract class Component[+A] extends Product with Serializable
+sealed abstract class Component[F[_], +A] extends Product with Serializable
 
 object Component {
-  final case class Element[+A](tag: Tag, tpe: Element.Type[A]) extends Component[A]
+  final case class Element[F[_], +A](tag: Tag, tpe: Element.Type[A], lifecycle: Lifecycle[Callback.Element[F]])
+      extends Component[F, A]
 
   object Element {
 
@@ -74,9 +75,11 @@ object Component {
 //      }
   }
 
-  final case class Fragment[+A](children: Children[A]) extends Component[A]
+  final case class Fragment[F[_], +A](children: Children[A], lifecycle: Lifecycle[Callback.Fragment[F]])
+      extends Component[F, A]
 
-  final case class Text(value: String, listeners: Listeners) extends Component[Nothing]
+  final case class Text[F[_]](value: String, listeners: Listeners, lifecycle: Lifecycle[Callback.Text[F]])
+      extends Component[F, Nothing]
 
 //  implicit def traverse: Traverse[Component[*]] = new Traverse[Component[*]] {
 //    override def traverse[G[_]: Applicative, A, B](

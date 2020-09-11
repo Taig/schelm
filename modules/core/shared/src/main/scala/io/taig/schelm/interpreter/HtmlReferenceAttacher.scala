@@ -1,19 +1,33 @@
-//package io.taig.schelm.interpreter
-//
-//import cats.Applicative
-//import io.taig.schelm.algebra.{Attacher, Dom}
-//import io.taig.schelm.data.HtmlReference
-//
-//object HtmlReferenceAttacher {
-//  def apply[F[+_], Node, Element <: Node, Text <: Node](
-//      attacher: Attacher[F, List[Node], Element]
-//  ): Attacher[F, HtmlReference[Node, Element, Text], Element] =
-//    new Attacher[F, HtmlReference[Node, Element, Text], Element] {
-//      override def attach(html: HtmlReference[Node, Element, Text]): F[Element] = attacher.attach(html.toNodes)
-//    }
-//
-//  def default[F[+_]: Applicative, Event](
-//      dom: Dom[F]
-//  )(parent: dom.Element): Attacher[F, HtmlReference[dom.Node, dom.Element, dom.Text], dom.Element] =
-//    HtmlReferenceAttacher(NodeAttacher(dom)(parent))
-//}
+package io.taig.schelm.interpreter
+
+import cats.Applicative
+import cats.implicits._
+import io.taig.schelm.algebra.{Attacher, Dom}
+import io.taig.schelm.data.{Component, ComponentReference, HtmlReference}
+
+object HtmlReferenceAttacher {
+  def apply[F[+_]: Applicative](dom: Dom[F])(
+      attacher: Attacher[F, List[dom.Node], dom.Element]
+  ): Attacher[F, HtmlReference[F, dom.Node, dom.Element, dom.Text], dom.Element] =
+    new Attacher[F, HtmlReference[F, dom.Node, dom.Element, dom.Text], dom.Element] {
+      override def attach(html: HtmlReference[F, dom.Node, dom.Element, dom.Text]): F[dom.Element] =
+        attacher.attach(html.toNodes) <* notify(html)
+
+      def notify(html: HtmlReference[F, dom.Node, dom.Element, dom.Text]): F[Unit] =
+        html.reference match {
+          case ComponentReference.Element(Component.Element(_, Component.Element.Type.Normal(children), lifecycle), element) =>
+            children.traverse_(notify) *> lifecycle.mounted.apply(dom)(element)
+          case ComponentReference.Element(Component.Element(_, Component.Element.Type.Void, lifecycle), element) =>
+            lifecycle.mounted(dom)(element)
+          case ComponentReference.Fragment(component) =>
+            component.children.traverse_(notify) *> component.lifecycle.mounted.apply(dom)(html.toNodes)
+          case ComponentReference.Text(component, text) =>
+            component.lifecycle.mounted.apply(dom)(text)
+        }
+    }
+
+  def default[F[+_]: Applicative, Event](
+      dom: Dom[F]
+  )(parent: dom.Element): Attacher[F, HtmlReference[F, dom.Node, dom.Element, dom.Text], dom.Element] =
+    HtmlReferenceAttacher(dom)(NodeAttacher(dom)(parent))
+}

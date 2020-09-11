@@ -1,10 +1,10 @@
-//package io.taig.schelm.data
-//
-//import io.taig.schelm.Navigator
-//
-//final case class Html(component: Component[Html]) extends AnyVal
-//
-//object Html {
+package io.taig.schelm.data
+
+import io.taig.schelm.Navigator
+
+final case class Html[F[_]](component: Component[F, Html[F]]) extends AnyVal
+
+object Html {
 //  implicit val navigator: Navigator[Html, Html] =
 //    new Navigator[Html, Html] {
 //      override def attributes(html: Html, f: Attributes => Attributes): Html =
@@ -16,4 +16,4 @@
 //      override def children(html: Html, f: Children[Html] => Children[Html]): Html =
 //        Html(Navigator[Component[Html], Html].children(html.component, f))
 //    }
-//}
+}
