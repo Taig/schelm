@@ -14,11 +14,11 @@ object Playground extends IOApp {
         "hello world",
         Listeners.Empty,
         lifecycle = Lifecycle(
-          mounted = new Callback.Text[IO] {
+          mounted = Some(new Callback.Text[IO] {
             override def apply(dom: Dom[IO])(reference: dom.Text): IO[Unit] =
-            IO(println("I'm attached to le dom <3"))
-          },
-          unmount = Callback.Text.noop[IO]
+              dom.data(reference, "yolo")
+          }),
+          unmount = None
         )
       )
     )

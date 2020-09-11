@@ -6,7 +6,7 @@ import io.taig.schelm.algebra.{Dom, Renderer}
 import io.taig.schelm.data._
 
 object ComponentRenderer {
-  def apply[F[+_]: Monad, A, B](dom: Dom[F], renderer: Renderer[F, A, B])(
+  def apply[F[_]: Monad, A, B](dom: Dom[F], renderer: Renderer[F, A, B])(
       extract: B => List[dom.Node]
   ): Renderer[F, Component[F, A], ComponentReference[F, dom.Element, dom.Text, B]] =
     new Renderer[F, Component[F, A], ComponentReference[F, dom.Element, dom.Text, B]] {

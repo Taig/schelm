@@ -7,7 +7,7 @@ import io.taig.schelm.Navigator
 sealed abstract class Component[F[_], +A] extends Product with Serializable
 
 object Component {
-  final case class Element[F[_], +A](tag: Tag, tpe: Element.Type[A], lifecycle: Lifecycle[Callback.Element[F]])
+  final case class Element[+F[_], +A](tag: Tag, tpe: Element.Type[A], lifecycle: Lifecycle[Callback.Element[F]])
       extends Component[F, A]
 
   object Element {
@@ -75,13 +75,14 @@ object Component {
 //      }
   }
 
-  final case class Fragment[F[_], +A](children: Children[A], lifecycle: Lifecycle[Callback.Fragment[F]])
+  final case class Fragment[+F[_], +A](children: Children[A], lifecycle: Lifecycle[Callback.Fragment[F]])
       extends Component[F, A]
 
-  final case class Text[F[_]](value: String, listeners: Listeners, lifecycle: Lifecycle[Callback.Text[F]])
+  final case class Text[+F[_]](value: String, listeners: Listeners, lifecycle: Lifecycle[Callback.Text[F]])
       extends Component[F, Nothing]
 
-//  implicit def traverse: Traverse[Component[*]] = new Traverse[Component[*]] {
+  implicit def traverse[F[_]]: Traverse[Component[F, *]] = ???
+//    new Traverse[Component[*]] {
 //    override def traverse[G[_]: Applicative, A, B](
 //        fa: Component[A]
 //    )(f: A => G[B]): G[Component[B]] =

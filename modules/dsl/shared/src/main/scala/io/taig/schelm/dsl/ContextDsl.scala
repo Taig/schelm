@@ -4,6 +4,6 @@ import io.taig.schelm.css.data.CssWidget
 import io.taig.schelm.data.Widget
 
 trait ContextDsl {
-  final def contextual[Event, Context](f: Context => CssWidget[Event, Any]): CssWidget[Event, Context] =
+  final def contextual[F[_], Context](f: Context => CssWidget[F, Any]): CssWidget[F, Context] =
     CssWidget(Widget.Render((context: Context) => f(context).widget))
 }

@@ -4,8 +4,14 @@ import cats.Applicative
 import io.taig.schelm.algebra.Dom
 
 object Callback {
-  abstract class Element[F[_]] {
+  abstract class Element[+F[_]] {
     def apply(dom: Dom[F])(reference: dom.Element): F[Unit]
+  }
+
+  object Element {
+    def noop[F[_]](implicit F: Applicative[F]): Element[F] = new Element[F] {
+      override def apply(dom: Dom[F])(reference: dom.Element): F[Unit] = F.unit
+    }
   }
 
   abstract class Fragment[F[_]] {

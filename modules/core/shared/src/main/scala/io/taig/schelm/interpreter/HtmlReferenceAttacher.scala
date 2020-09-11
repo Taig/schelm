@@ -6,7 +6,7 @@ import io.taig.schelm.algebra.{Attacher, Dom}
 import io.taig.schelm.data.{Component, ComponentReference, HtmlReference}
 
 object HtmlReferenceAttacher {
-  def apply[F[+_]: Applicative](dom: Dom[F])(
+  def apply[F[_]: Applicative](dom: Dom[F])(
       attacher: Attacher[F, List[dom.Node], dom.Element]
   ): Attacher[F, HtmlReference[F, dom.Node, dom.Element, dom.Text], dom.Element] =
     new Attacher[F, HtmlReference[F, dom.Node, dom.Element, dom.Text], dom.Element] {
@@ -15,18 +15,19 @@ object HtmlReferenceAttacher {
 
       def notify(html: HtmlReference[F, dom.Node, dom.Element, dom.Text]): F[Unit] =
         html.reference match {
-          case ComponentReference.Element(Component.Element(_, Component.Element.Type.Normal(children), lifecycle), element) =>
-            children.traverse_(notify) *> lifecycle.mounted.apply(dom)(element)
+          case ComponentReference
+                .Element(Component.Element(_, Component.Element.Type.Normal(children), lifecycle), element) =>
+            children.traverse_(notify) *> lifecycle.mounted.traverse_(_.apply(dom)(element))
           case ComponentReference.Element(Component.Element(_, Component.Element.Type.Void, lifecycle), element) =>
-            lifecycle.mounted(dom)(element)
+            lifecycle.mounted.traverse_(_.apply(dom)(element))
           case ComponentReference.Fragment(component) =>
-            component.children.traverse_(notify) *> component.lifecycle.mounted.apply(dom)(html.toNodes)
+            component.children.traverse_(notify) *> component.lifecycle.mounted.traverse_(_.apply(dom)(html.toNodes))
           case ComponentReference.Text(component, text) =>
-            component.lifecycle.mounted.apply(dom)(text)
+            component.lifecycle.mounted.traverse_(_.apply(dom)(text))
         }
     }
 
-  def default[F[+_]: Applicative, Event](
+  def default[F[_]: Applicative, Event](
       dom: Dom[F]
   )(parent: dom.Element): Attacher[F, HtmlReference[F, dom.Node, dom.Element, dom.Text], dom.Element] =
     HtmlReferenceAttacher(dom)(NodeAttacher(dom)(parent))
