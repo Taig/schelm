@@ -6,13 +6,10 @@ import io.taig.schelm.Navigator
 import io.taig.schelm.css.CssNavigator
 import io.taig.schelm.data._
 
-sealed abstract class CssNode[+F[_], +A] extends Product with Serializable
+final case class CssNode[+A](component: A, style: Style)
 
 object CssNode {
-  final case class Styled[+F[_], A](element: Component.Element[F, A], style: Style) extends CssNode[F, A]
-  final case class Unstyled[+F[_], A](component: Component[F, A]) extends CssNode[F, A]
-
-  implicit def traverse[F[_]]: Traverse[CssNode[F, *]] = ???
+  implicit def traverse: Traverse[CssNode] = ???
 //    new Traverse[CssNode[Event, *]] {
 //    override def traverse[G[_]: Applicative, A, B](fa: CssNode[Event, A])(f: A => G[B]): G[CssNode[Event, B]] =
 //      fa match {

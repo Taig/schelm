@@ -1,5 +1,6 @@
 package io.taig.schelm.css.interpreter
 
+import cats.effect.Sync
 import cats.{Applicative, Monad}
 import cats.implicits._
 import io.taig.schelm.algebra.{Dom, Renderer}
@@ -15,8 +16,6 @@ object CssHtmlRenderer {
     renderer.render(html).tupleRight(stylesheet)
   }
 
-  def default[F[_]: Monad](
-      dom: Dom[F]
-  ): Renderer[F, CssHtml[F], (HtmlReference[F, dom.Node, dom.Element, dom.Text], Map[Selector, Style])] =
+  def default[F[_]: Sync](dom: Dom): Renderer[F, CssHtml[F], (HtmlReference[F, dom.Node, dom.Element, dom.Text], Map[Selector, Style])] =
     CssHtmlRenderer(HtmlRenderer(dom))
 }

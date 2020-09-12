@@ -4,7 +4,7 @@ import cats.implicits._
 import cats.{Applicative, Eval, Traverse}
 import io.taig.schelm.Navigator
 
-sealed abstract class Component[F[_], +A] extends Product with Serializable
+sealed abstract class Component[+F[_], +A] extends Product with Serializable
 
 object Component {
   final case class Element[+F[_], +A](tag: Tag, tpe: Element.Type[A], lifecycle: Lifecycle[Callback.Element[F]])

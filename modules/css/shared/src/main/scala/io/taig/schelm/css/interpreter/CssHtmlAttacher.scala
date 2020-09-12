@@ -1,5 +1,6 @@
 package io.taig.schelm.css.interpreter
 
+import cats.effect.Sync
 import cats.{Applicative, Monad}
 import cats.implicits._
 import io.taig.schelm.algebra.{Attacher, Dom}
@@ -19,10 +20,8 @@ object CssHtmlAttacher {
       }
     }
 
-  def default[F[_]: Monad, Event, A, B](dom: Dom[F])(
+  def default[F[_]: Sync, Event, A, B](dom: Dom)(
       main: dom.Element
-  ): F[
-    Attacher[F, (HtmlReference[F, dom.Node, dom.Element, dom.Text], Map[Selector, Style]), (dom.Element, dom.Element)]
-  ] =
+  ): F[Attacher[F, (HtmlReference[F, dom.Node, dom.Element, dom.Text], Map[Selector, Style]), (dom.Element, dom.Element)]] =
     CssStyleAttacher.auto(dom).map(CssHtmlAttacher(HtmlReferenceAttacher.default(dom)(main), _))
 }

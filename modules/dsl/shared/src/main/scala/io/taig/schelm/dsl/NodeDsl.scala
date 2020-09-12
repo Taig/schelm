@@ -4,7 +4,6 @@ import io.taig.schelm.css.data._
 import io.taig.schelm.data._
 import io.taig.schelm.dsl.internal.Tagged.@@
 import io.taig.schelm.dsl.internal.{Has, Tagged}
-import io.taig.schelm.dsl.syntax._
 
 trait NodeDsl {
 //  implicit def normalElementSyntax[Event, Context](
@@ -25,7 +24,7 @@ trait NodeDsl {
 //      widget: CssWidget[Event, Context] @@ TextSyntax.Tag
 //  ): TextSyntax[Event, Context] = new TextSyntax[Event, Context](widget)
 
-  def element(name: String): CssWidget[Nothing, Any] = {
+  def element(name: String): CssWidget[Nothing, Any] @@ Has.Attributes @@ Has.Css @@ Has.Listeners @@ Has.Children = {
     val element = Component.Element(
       Tag(name, Attributes.Empty, Listeners.Empty),
       Component.Element.Type.Normal(Children.Empty),

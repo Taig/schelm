@@ -1,7 +1,6 @@
 package io.taig.schelm.css.interpreter
 
-import cats.{Functor, Monad}
-import cats.implicits._
+import cats.effect.Sync
 import io.taig.schelm.algebra.{Attacher, Dom}
 import io.taig.schelm.css.data.{Selector, Style}
 
@@ -9,21 +8,22 @@ import io.taig.schelm.css.data.{Selector, Style}
 object CssStyleAttacher {
   val Id = "schelm-css"
 
-  def apply[F[_]: Functor](dom: Dom[F])(parent: dom.Element): Attacher[F, Map[Selector, Style], dom.Element] =
+  def apply[F[_]](dom: Dom)(parent: dom.Element)(implicit F: Sync[F]): Attacher[F, Map[Selector, Style], dom.Element] =
     new Attacher[F, Map[Selector, Style], dom.Element] {
-      override def attach(styles: Map[Selector, Style]): F[dom.Element] = {
+      override def attach(styles: Map[Selector, Style]): F[dom.Element] = F.delay {
         val stylesheet = CssRenderer.render(styles)
         val text = CssPrinter(stylesheet, pretty = true)
-        dom.innerHtml(parent, text).as(parent)
+        dom.innerHtml(parent, text)
+        parent
       }
     }
 
   /** Create a `<style>` tag in the document's `<head>` and attach the styles to it */
-  def auto[F[_]: Monad](dom: Dom[F]): F[Attacher[F, Map[Selector, Style], dom.Element]] =
-    for {
-      style <- dom.createElement("style")
-      _ <- dom.setAttribute(style, "id", Id)
-      head <- dom.head
-      _ <- dom.appendChild(head, style)
-    } yield CssStyleAttacher(dom)(style)
+  def auto[F[_]](dom: Dom)(implicit F: Sync[F]): F[Attacher[F, Map[Selector, Style], dom.Element]] =
+  F.delay {
+    val  style = dom.createElement("style")
+      dom.setAttribute(style, "id", Id)
+      dom.appendChild(dom.head, style)
+    CssStyleAttacher(dom)(style)
+  }
 }

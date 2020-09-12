@@ -4,31 +4,33 @@ import cats.implicits._
 import io.taig.schelm.Navigator
 import io.taig.schelm.data.{Attribute, Attributes, Component, Html}
 
-final case class CssHtml[+F[_]](node: CssNode[F, CssHtml[F]]) extends AnyVal
+final case class CssHtml[F[_]](node: CssNode[Component[F, CssHtml[F]]]) extends AnyVal
 
 object CssHtml {
   private val EmptyStyles: Map[Selector, Style] = Map.empty
 
   def toHtml[F[_]](css: CssHtml[F]): (Html[F], Map[Selector, Style]) = {
-    val nodes: CssNode[F, (Html[F], Map[Selector, Style])] = css.node.map(toHtml[F])
+    val nodes = css.node.map(_.map(toHtml[F]))
     val navigator: Navigator[Component.Element[F, (Html[F], Map[Selector, Style])], (Html[F], Map[Selector, Style])] =
       ??? // Navigator[Component.Element[F, (Html[F], Map[Selector, Style])], (Html[F], Map[Selector, Style])]
 
-    val (node, rules) = nodes match {
-      case css: CssNode.Styled[F, (Html[F], Map[Selector, Style])] if !css.style.isEmpty =>
-        val identifier = Identifier(css.style.hashCode)
-        val selector = identifier.toSelector
-        val attribute = Attribute(Attribute.Key.Class, Attribute.Value(identifier.toClass))
-        val update = navigator.attributes(css.element, Attributes.of(attribute) ++ _)
-        (update, Map(selector -> css.style))
-      case css: CssNode.Styled[F, (Html[F], Map[Selector, Style])] => (css.element, EmptyStyles)
-      case css: CssNode.Unstyled[F, (Html[F], Map[Selector, Style])]     => (css.component, EmptyStyles)
-    }
+//    val (node, rules) = nodes match {
+//      case css: CssNode.Styled[F, (Html[F], Map[Selector, Style])] if !css.style.isEmpty =>
+//        val identifier = Identifier(css.style.hashCode)
+//        val selector = identifier.toSelector
+//        val attribute = Attribute(Attribute.Key.Class, Attribute.Value(identifier.toClass))
+//        val update = navigator.attributes(css.element, Attributes.of(attribute) ++ _)
+//        (update, Map(selector -> css.style))
+//      case css: CssNode.Styled[F, (Html[F], Map[Selector, Style])] => (css.element, EmptyStyles)
+//      case css: CssNode.Unstyled[F, (Html[F], Map[Selector, Style])]     => (css.component, EmptyStyles)
+//    }
+//
+//    val html = Html(node.map { case (html, _) => html })
+//    val styles = nodes.foldl(rules) { case (left, (_, right)) => left ++ right }
+//
+//    (html, styles)
 
-    val html = Html(node.map { case (html, _) => html })
-    val styles = nodes.foldl(rules) { case (left, (_, right)) => left ++ right }
-
-    (html, styles)
+    ???
   }
 
 //  implicit def navigator[Event]: CssNavigator[Event, CssHtml[Event], CssHtml[Event]] =

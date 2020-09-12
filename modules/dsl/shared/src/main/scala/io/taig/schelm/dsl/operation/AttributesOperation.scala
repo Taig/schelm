@@ -6,9 +6,12 @@ import io.taig.schelm.data.Attributes
 import io.taig.schelm.dsl.internal.Tagged
 import io.taig.schelm.dsl.internal.Tagged.@@
 
-final class AttributesOperation[Event, Context, Tag](widget: CssWidget[Event, Context]) {
-  def set(attributes: Attributes): CssWidget[Event, Context] @@ Tag = patch(_ => attributes)
+final class AttributesOperation[F[_], Context, Tag](css: CssWidget[F, Context]) {
+  def set(attributes: Attributes): CssWidget[F, Context] @@ Tag = patch(_ => attributes)
 
-  def patch(f: Attributes => Attributes): CssWidget[Event, Context] @@ Tag =
-    Tagged(Navigator[Event, CssWidget[Event, Context], CssWidget[Event, Context]].attributes(widget, f))
+  def patch(f: Attributes => Attributes): CssWidget[F, Context] @@ Tag = {
+    import cats.implicits._
+    css.widget.map()
+    Tagged(Navigator[CssWidget[F, Context], CssWidget[F, Context]].attributes(css, f))
+  }
 }
