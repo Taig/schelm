@@ -4,14 +4,14 @@ import io.taig.schelm.algebra.Dom
 
 object Callback {
   abstract class Element[+F[_]] {
-    def apply(dom: Dom)(reference: dom.Element): F[Unit]
+    def apply(element: Dom.Element): F[Unit]
   }
 
   abstract class Fragment[+F[_]] {
-    def apply(dom: Dom)(reference: List[dom.Node]): F[Unit]
+    def apply(nodes: List[Dom.Node]): F[Unit]
   }
 
   abstract class Text[+F[_]] {
-    def apply(dom: Dom)(reference: dom.Text): F[Unit]
+    def apply(text: Dom.Text): F[Unit]
   }
 }

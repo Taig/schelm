@@ -1,53 +1,47 @@
 package io.taig.schelm.algebra
 
+import io.taig.schelm.internal.Platform
+
 abstract class Dom {
-  type Node
+  def addEventListener(node: Dom.Node, name: String, listener: Dom.Listener): Unit
 
-  type Element <: Node
+  def appendChild(parent: Dom.Element, child: Dom.Node): Unit
 
-  type Text <: Node
+  def createElement(name: String): Dom.Element
 
-  type Document <: Node
+  def createElementNS(namespace: String, name: String): Dom.Element
 
-  type Listener
+  def createTextNode(value: String): Dom.Text
 
-  def addEventListener(node: Node, name: String, listener: Listener): Unit
+  def childAt(element: Dom.Element, index: Int): Option[Dom.Node]
 
-  def appendChild(parent: Element, child: Node): Unit
+  def children(element: Dom.Element): List[Dom.Node]
 
-  def createElement(name: String): Element
+  def data(text: Dom.Text, value: String): Unit
 
-  def createElementNS(namespace: String, name: String): Element
+  def document: Dom.Document
 
-  def createTextNode(value: String): Text
+  def insertBefore(parent: Dom.Element, node: Dom.Node, reference: Option[Dom.Node]): Unit
 
-  def childAt(element: Element, index: Int): Option[Node]
+  def getAttribute(element: Dom.Element, key: String): Option[String]
 
-  def children(element: Element): List[Node]
+  def getElementById(id: String): Option[Dom.Element]
 
-  def data(text: Text, value: String): Unit
+  def head: Dom.Element
 
-  def document: Document
+  def innerHtml(element: Dom.Element, value: String): Unit
 
-  def insertBefore(parent: Element, node: Node, reference: Option[Node]): Unit
+  def parentNode(node: Dom.Node): Option[Dom.Node]
 
-  def getAttribute(element: Element, key: String): Option[String]
+  def removeAttribute(element: Dom.Element, key: String): Unit
 
-  def getElementById(id: String): Option[Element]
+  def removeChild(parent: Dom.Element, child: Dom.Node): Unit
 
-  def head: Element
+  def removeEventListener(node: Dom.Node, name: String, listener: Dom.Listener): Unit
 
-  def innerHtml(element: Element, value: String): Unit
+  def replaceChild(parent: Dom.Element, current: Dom.Node, next: Dom.Node): Unit
 
-  def parentNode(node: Node): Option[Node]
-
-  def removeAttribute(element: Element, key: String): Unit
-
-  def removeChild(parent: Element, child: Node): Unit
-
-  def removeEventListener(node: Node, name: String, listener: Listener): Unit
-
-  def replaceChild(parent: Element, current: Node, next: Node): Unit
-
-  def setAttribute(element: Element, key: String, value: String): Unit
+  def setAttribute(element: Dom.Element, key: String, value: String): Unit
 }
+
+object Dom extends Platform

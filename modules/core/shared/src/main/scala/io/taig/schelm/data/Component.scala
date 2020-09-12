@@ -2,7 +2,6 @@ package io.taig.schelm.data
 
 import cats.implicits._
 import cats.{Applicative, Eval, Traverse}
-import io.taig.schelm.Navigator
 
 sealed abstract class Component[+F[_], +A] extends Product with Serializable
 
@@ -36,43 +35,17 @@ object Component {
           case Void           => lb
         }
       }
-
-      implicit def navigator[A]: Navigator[Type[A], A] = new Navigator[Type[A], A] {
-        override def attributes(tpe: Type[A], f: Attributes => Attributes): Type[A] = tpe
-
-        override def listeners(tpe: Type[A], f: Listeners => Listeners): Type[A] = tpe
-
-        override def children(tpe: Type[A], f: Children[A] => Children[A]): Type[A] =
-          tpe match {
-            case Normal(children) => Normal(f(children))
-            case Void             => Void
-          }
-      }
     }
 
-//    implicit val traverse: Traverse[Element[*]] = new Traverse[Element[*]] {
-//      override def traverse[G[_]: Applicative, A, B](fa: Element[A])(f: A => G[B]): G[Element[B]] =
-//        fa.tpe.traverse(f).map(tpe => fa.copy(tpe = tpe))
-//
-//      override def foldLeft[A, B](fa: Element[A], b: B)(f: (B, A) => B): B = fa.tpe.foldl(b)(f)
-//
-//      override def foldRight[A, B](fa: Element[A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
-//        fa.tpe.foldr(lb)(f)
-//    }
-//
-//    implicit def has[A]: Has.Element.Aux[Element[A], A] = Has.Element.instance(identity)
-//
-//    implicit def navigator[A, B]: Navigator[Element[B], B] =
-//      new Navigator[Element[B], B] {
-//        override def attributes(element: Element[B], f: Attributes => Attributes): Element[B] =
-//          element.copy(tag = Navigator[Tag, Nothing].attributes(element.tag, f))
-//
-//        override def listeners(element: Element[B], f: Listeners => Listeners): Element[B] =
-//          element.copy(tag = Navigator[Tag, Nothing].listeners(element.tag, f))
-//
-//        override def children(element: Element[B], f: Children[B] => Children[B]): Element[B] =
-//          element.copy(tpe = Navigator[Type[B], B].children(element.tpe, f))
-//      }
+    implicit def traverse[F[_]]: Traverse[Element[F, *]] = new Traverse[Element[F, *]] {
+      override def traverse[G[_]: Applicative, A, B](fa: Element[F, A])(f: A => G[B]): G[Element[F, B]] =
+        fa.tpe.traverse(f).map(tpe => fa.copy(tpe = tpe))
+
+      override def foldLeft[A, B](fa: Element[F, A], b: B)(f: (B, A) => B): B = fa.tpe.foldl(b)(f)
+
+      override def foldRight[A, B](fa: Element[F, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
+        fa.tpe.foldr(lb)(f)
+    }
   }
 
   final case class Fragment[+F[_], +A](children: Children[A], lifecycle: Lifecycle[Callback.Fragment[F]])
@@ -81,60 +54,27 @@ object Component {
   final case class Text[+F[_]](value: String, listeners: Listeners, lifecycle: Lifecycle[Callback.Text[F]])
       extends Component[F, Nothing]
 
-  implicit def traverse[F[_]]: Traverse[Component[F, *]] = ???
-//    new Traverse[Component[*]] {
-//    override def traverse[G[_]: Applicative, A, B](
-//        fa: Component[A]
-//    )(f: A => G[B]): G[Component[B]] =
-//      fa match {
-//        case node: Element[A] => node.traverse(f).widen
-//        case node: Fragment[A]       => node.children.traverse(f).map(children => node.copy(children = children))
-//        case node: Text       => node.pure[G].widen
-//      }
-//
-//    override def foldLeft[A, B](fa: Component[A], b: B)(f: (B, A) => B): B =
-//      fa match {
-//        case node: Element[A] => node.foldl(b)(f)
-//        case node: Fragment[A]       => node.children.foldl(b)(f)
-//        case _: Text          => b
-//      }
-//
-//    override def foldRight[A, B](fa: Component[A], lb: Eval[B])(
-//        f: (A, Eval[B]) => Eval[B]
-//    ): Eval[B] =
-//      fa match {
-//        case node: Element[A] => node.foldr(lb)(f)
-//        case node: Fragment[A]       => node.children.foldr(lb)(f)
-//        case _: Text          => lb
-//      }
-//  }
+  implicit def traverse[F[_]]: Traverse[Component[F, *]] = new Traverse[Component[F, *]] {
+    override def traverse[G[_]: Applicative, A, B](fa: Component[F, A])(f: A => G[B]): G[Component[F, B]] =
+      fa match {
+        case component: Element[F, A] => component.traverse(f).widen
+        case component: Fragment[F, A] =>
+          component.children.traverse(f).map(children => component.copy(children = children))
+        case component: Text[F] => component.pure[G].widen
+      }
 
-//  implicit def navigator[A]: Navigator[Component[A], A] =
-//    new Navigator[Component[A], A] {
-//      override def attributes(
-//          node: Component[A],
-//          f: Attributes => Attributes
-//      ): Component[A] =
-//        node match {
-//          case node: Element[A]         => Navigator[Element[A], A].attributes(node, f)
-//          case _: Fragment[A] | _: Text => node
-//        }
-//
-//      override def listeners(node: Component[A], f: Listeners => Listeners): Component[A] =
-//        node match {
-//          case node: Element[A] => Navigator[Element[A], A].listeners(node, f)
-//          case node: Text       => node.copy(listeners = f(node.listeners))
-//          case _: Fragment[A]          => node
-//        }
-//
-//      override def children(
-//          node: Component[A],
-//          f: Children[A] => Children[A]
-//      ): Component[A] =
-//        node match {
-//          case node: Element[A] => Navigator[Element[A], A].children(node, f)
-//          case node: Text       => node
-//          case node: Fragment[A]       => node.copy(children = f(node.children))
-//        }
-//    }
+    override def foldLeft[A, B](fa: Component[F, A], b: B)(f: (B, A) => B): B =
+      fa match {
+        case component: Element[F, A]  => component.foldl(b)(f)
+        case component: Fragment[F, A] => component.children.foldl(b)(f)
+        case _: Text[F]                => b
+      }
+
+    override def foldRight[A, B](fa: Component[F, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
+      fa match {
+        case component: Element[F, A]  => component.foldr(lb)(f)
+        case component: Fragment[F, A] => component.children.foldr(lb)(f)
+        case _: Text[F]                => lb
+      }
+  }
 }

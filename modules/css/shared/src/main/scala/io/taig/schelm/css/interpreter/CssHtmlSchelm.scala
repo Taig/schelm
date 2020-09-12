@@ -16,7 +16,10 @@ object CssHtmlSchelm {
     CssHtmlAttacher.default(dom)(main).map { attacher =>
       val renderer = HtmlRenderer[F](dom)
       val differ = CssHtmlDiffer.default[F]
-      val patcher = Patcher.noop[F, (HtmlReference[F, dom.Node, dom.Element, dom.Text], Map[Selector, Style]), CssHtmlDiff[F]] // CssHtmlPatcher.default(dom, renderer)
+      val patcher =
+        Patcher.noop[F, (HtmlReference[F, dom.Node, dom.Element, dom.Text], Map[Selector, Style]), CssHtmlDiff[
+          F
+        ]] // CssHtmlPatcher.default(dom, renderer)
       DomSchelm(manager, CssHtmlRenderer(renderer), attacher, differ, patcher)
     }
 }
