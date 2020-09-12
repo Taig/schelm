@@ -20,10 +20,10 @@ object CssStyleAttacher {
 
   /** Create a `<style>` tag in the document's `<head>` and attach the styles to it */
   def auto[F[_]](dom: Dom)(implicit F: Sync[F]): F[Attacher[F, Map[Selector, Style], dom.Element]] =
-  F.delay {
-    val  style = dom.createElement("style")
+    F.delay {
+      val style = dom.createElement("style")
       dom.setAttribute(style, "id", Id)
       dom.appendChild(dom.head, style)
-    CssStyleAttacher(dom)(style)
-  }
+      CssStyleAttacher(dom)(style)
+    }
 }

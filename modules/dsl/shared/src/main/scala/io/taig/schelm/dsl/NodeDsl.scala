@@ -4,6 +4,7 @@ import io.taig.schelm.css.data._
 import io.taig.schelm.data._
 import io.taig.schelm.dsl.internal.Tagged.@@
 import io.taig.schelm.dsl.internal.{Has, Tagged}
+import io.taig.schelm.dsl.syntax.AttributesSyntax
 
 trait NodeDsl {
 //  implicit def normalElementSyntax[Event, Context](
@@ -24,14 +25,18 @@ trait NodeDsl {
 //      widget: CssWidget[Event, Context] @@ TextSyntax.Tag
 //  ): TextSyntax[Event, Context] = new TextSyntax[Event, Context](widget)
 
-  def element(name: String): CssWidget[Nothing, Any] @@ Has.Attributes @@ Has.Css @@ Has.Listeners @@ Has.Children = {
+  implicit def attributesSyntax[F[_], Context, Tag](
+      widget: CssWidget[F, Context] @@ Has.Attributes with Tag
+  ): AttributesSyntax[F, Context, Tag] = new AttributesSyntax[F, Context, Tag](widget)
+
+  def element(name: String): CssWidget[Nothing, Any] @@ Has.Attributes with Has.Children = {
     val element = Component.Element(
       Tag(name, Attributes.Empty, Listeners.Empty),
       Component.Element.Type.Normal(Children.Empty),
       Lifecycle.Empty
     )
 
-    Tagged(CssWidget(Widget.Pure(CssNode.Unstyled(element))))
+    Tagged(CssWidget(Widget.Pure(CssNode(element, Style.Empty))))
   }
 
 //  final val fragment: CssWidget[Nothing, Any] @@ Has.Children =
@@ -50,9 +55,9 @@ trait NodeDsl {
 //  final val button: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css with Has.Children =
 //    element("button")
 //
-//  final val div: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css with Has.Children = element(
-//    "div"
-//  )
+  final val div: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Children = element(
+    "div"
+  )
 //
 //  final val hr: CssWidget[Nothing, Any] @@ Has.Attributes with Has.Listeners with Has.Css = void("hr")
 //

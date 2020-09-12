@@ -28,6 +28,8 @@ object HtmlReferenceAttacher {
         }
     }
 
-  def default[F[_]: Sync, Event](dom: Dom)(parent: dom.Element): Attacher[F, HtmlReference[F, dom.Node, dom.Element, dom.Text], dom.Element] =
+  def default[F[_]: Sync](
+      dom: Dom
+  )(parent: dom.Element): Attacher[F, HtmlReference[F, dom.Node, dom.Element, dom.Text], dom.Element] =
     HtmlReferenceAttacher(dom)(NodeAttacher(dom)(parent))
 }

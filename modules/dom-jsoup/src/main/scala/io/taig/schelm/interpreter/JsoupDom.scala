@@ -30,7 +30,8 @@ final class JsoupDom(val document: JDocument) extends Dom {
   override def data(text: JText, value: String): Unit = text.text(value)
 
   override def childAt(element: JElement, index: Int): Option[JNode] =
-    try { element.child(index).some } catch { case _: IndexOutOfBoundsException => None }
+    try { element.child(index).some }
+    catch { case _: IndexOutOfBoundsException => None }
 
   override def children(element: JElement): List[JNode] = element.childNodes().asScala.toList
 

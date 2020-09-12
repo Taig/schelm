@@ -3,7 +3,7 @@ import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 val CatsEffectVersion = "2.2.0"
 val Fs2Version = "2.4.4"
 val JsoupVersion = "1.13.1"
-val ScalaCollectionCompatVersion = "2.1.6"
+val ScalaCollectionCompatVersion = "2.2.0"
 val ScalajsDomVersion = "1.1.0"
 val ShapelessVersion = "2.3.3"
 
@@ -50,18 +50,32 @@ lazy val css = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
   .in(file("modules/css"))
   .settings(sonatypePublishSettings)
+  .settings(
+    name := "css"
+  )
+  .jsSettings(
+    libraryDependencies ++=
+      "org.scala-js" %%% "scalajs-dom" % ScalajsDomVersion ::
+        Nil
+  )
   .dependsOn(core)
 
 lazy val dsl = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
   .in(file("modules/dsl"))
   .settings(sonatypePublishSettings)
+  .settings(
+    name := "dsl"
+  )
   .dependsOn(css)
 
 lazy val mdc = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
   .in(file("modules/mdc"))
   .settings(sonatypePublishSettings)
+  .settings(
+    name := "mdc"
+  )
   .dependsOn(dsl)
 
 lazy val playground = crossProject(JVMPlatform, JSPlatform)
@@ -73,3 +87,5 @@ lazy val playground = crossProject(JVMPlatform, JSPlatform)
     scalaJSUseMainModuleInitializer := true
   )
   .dependsOn(mdc)
+  .jvmConfigure(_.dependsOn(domJsoup))
+  .jsConfigure(_.dependsOn(domBrowser))

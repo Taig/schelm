@@ -1,6 +1,7 @@
 package io.taig.schelm.playground
 
 import cats.Applicative
+import cats.effect.IO
 import cats.implicits._
 import io.taig.schelm.algebra.Handler
 import io.taig.schelm.css.data.{CssHtml, CssWidget}
@@ -32,31 +33,32 @@ final class MyHandler[F[_]: Applicative] extends Handler[F, State, Event, Nothin
 object PlaygroundApp {
   val Initial: State = State(label = "Not clicked ):")
 
-  def render(state: State): Html[Event] = html(state.label)
+  def render(state: State): Html[IO] = html(state.label)
 
-  def renderCss(state: State): CssHtml[Event] = stylesheetHtml(state.label)
+  def renderCss(state: State): CssHtml[IO] = stylesheetHtml(state.label)
 
-  def cssWidget(label: String): CssWidget[Event, Theme] =
+  def cssWidget(label: String): CssWidget[IO, Theme] =
     contextual { theme =>
-      div.apply(
-        button
-          .attrs(style := s"background-color: ${theme.background};", data("yolo") := label)
-          .on(click := Listener.Action.Pure(Event.Click))
-          .style(color := "white")
-          .apply(text(label)),
-        hr,
-        button
-          .attrs(style := s"background-color: white;")
-          .on(click := Listener.Action.Pure(Event.Click))
-          .style(color := theme.background)
-          .apply(text(label)),
-        Chip("hello google", selected = true),
-        Chip("hello google", selected = false)
-      )
+      Chip("hello google", selected = false)
+//      div.apply(
+//        button
+//          .attrs(style := s"background-color: ${theme.background};", data("yolo") := label)
+//          .on(click := Listener.Action.Pure(Event.Click))
+//          .style(color := "white")
+//          .apply(text(label)),
+//        hr,
+//        button
+//          .attrs(style := s"background-color: white;")
+//          .on(click := Listener.Action.Pure(Event.Click))
+//          .style(color := theme.background)
+//          .apply(text(label)),
+//        Chip("hello google", selected = true),
+//        Chip("hello google", selected = false)
+//      )
     }
 
-  def stylesheetHtml(label: String): CssHtml[Event] =
+  def stylesheetHtml(label: String): CssHtml[IO] =
     CssWidget.toStylesheetHtml(cssWidget(label), Theme(background = "red"))
 
-  def html(label: String): Html[Event] = CssHtml.toHtml(stylesheetHtml(label))._1
+  def html(label: String): Html[IO] = CssHtml.toHtml(stylesheetHtml(label))._1
 }

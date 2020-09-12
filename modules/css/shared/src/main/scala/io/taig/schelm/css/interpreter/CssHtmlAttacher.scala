@@ -22,6 +22,8 @@ object CssHtmlAttacher {
 
   def default[F[_]: Sync, Event, A, B](dom: Dom)(
       main: dom.Element
-  ): F[Attacher[F, (HtmlReference[F, dom.Node, dom.Element, dom.Text], Map[Selector, Style]), (dom.Element, dom.Element)]] =
+  ): F[
+    Attacher[F, (HtmlReference[F, dom.Node, dom.Element, dom.Text], Map[Selector, Style]), (dom.Element, dom.Element)]
+  ] =
     CssStyleAttacher.auto(dom).map(CssHtmlAttacher(HtmlReferenceAttacher.default(dom)(main), _))
 }
