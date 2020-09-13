@@ -24,9 +24,12 @@ object ComponentRenderer {
 
               val tpe: F[Component.Element.Type[B]] = component.tpe match {
                 case Component.Element.Type.Normal(children) =>
-                  children.traverse(renderer.render).flatTap { children =>
-                    F.delay(children.indexed.flatMap(extract).foreach(dom.appendChild(element, _)))
-                  }.map(Component.Element.Type.Normal(_))
+                  children
+                    .traverse(renderer.render)
+                    .flatTap { children =>
+                      F.delay(children.indexed.flatMap(extract).foreach(dom.appendChild(element, _)))
+                    }
+                    .map(Component.Element.Type.Normal(_))
                 case Component.Element.Type.Void => Component.Element.Type.Void.pure[F].widen
               }
 
@@ -37,7 +40,8 @@ object ComponentRenderer {
 ////            children
 ////              .traverse(renderer.render)
 ////              .map(children => ComponentReference.Fragment(Component.Fragment(children, lifecycle)))
-//          case node @ Component.Text(value, _, _) => ??? //dom.createTextNode(value).map(ComponentReference.Text(node, _))
+          case component: Component.Text[F] =>
+            F.delay(ComponentReference.Text(component, dom.createTextNode(component.value)))
         }
     }
 }

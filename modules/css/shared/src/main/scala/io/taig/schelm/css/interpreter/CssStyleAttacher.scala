@@ -8,9 +8,9 @@ import io.taig.schelm.css.data.{Selector, Style}
 object CssStyleAttacher {
   val Id = "schelm-css"
 
-  def apply[F[_]](dom: Dom)(parent: dom.Element)(implicit F: Sync[F]): Attacher[F, Map[Selector, Style], dom.Element] =
-    new Attacher[F, Map[Selector, Style], dom.Element] {
-      override def attach(styles: Map[Selector, Style]): F[dom.Element] = F.delay {
+  def apply[F[_]](dom: Dom)(parent: Dom.Element)(implicit F: Sync[F]): Attacher[F, Map[Selector, Style], Dom.Element] =
+    new Attacher[F, Map[Selector, Style], Dom.Element] {
+      override def attach(styles: Map[Selector, Style]): F[Dom.Element] = F.delay {
         val stylesheet = CssRenderer.render(styles)
         val text = CssPrinter(stylesheet, pretty = true)
         dom.innerHtml(parent, text)
@@ -19,7 +19,7 @@ object CssStyleAttacher {
     }
 
   /** Create a `<style>` tag in the document's `<head>` and attach the styles to it */
-  def auto[F[_]](dom: Dom)(implicit F: Sync[F]): F[Attacher[F, Map[Selector, Style], dom.Element]] =
+  def auto[F[_]](dom: Dom)(implicit F: Sync[F]): F[Attacher[F, Map[Selector, Style], Dom.Element]] =
     F.delay {
       val style = dom.createElement("style")
       dom.setAttribute(style, "id", Id)

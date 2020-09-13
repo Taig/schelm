@@ -44,4 +44,14 @@ abstract class Dom {
   def setAttribute(element: Dom.Element, key: String, value: String): Unit
 }
 
-object Dom extends Platform
+object Dom extends Platform {
+  type Node
+
+  type Element <: Node
+
+  type Text <: Node
+
+  type Document <: Node
+
+  type Listener
+}

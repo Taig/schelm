@@ -7,17 +7,7 @@ import org.jsoup.nodes.{Document => JDocument, Element => JElement, Node => JNod
 import scala.jdk.CollectionConverters._
 
 final class JsoupDom(val document: JDocument) extends Dom {
-  override type Node = JNode
-
-  override type Element = JElement
-
-  override type Text = JText
-
-  override type Document = JDocument
-
-  override type Listener = Unit
-
-  override def addEventListener(node: JNode, event: String, notify: Unit): Unit = ()
+  override def addEventListener(node: JNode, event: String, listener: Dom.Listener): Unit = ()
 
   override def appendChild(parent: JElement, child: JNode): Unit = parent.appendChild(child)
 
@@ -53,7 +43,7 @@ final class JsoupDom(val document: JDocument) extends Dom {
 
   override def removeAttribute(element: JElement, key: String): Unit = element.removeAttr(key)
 
-  override def removeEventListener(node: JNode, name: String, listener: Listener): Unit = ()
+  override def removeEventListener(node: JNode, name: String, listener: Dom.Listener): Unit = ()
 
   override def replaceChild(parent: JElement, current: JNode, next: JNode): Unit =
     current.replaceWith(next)

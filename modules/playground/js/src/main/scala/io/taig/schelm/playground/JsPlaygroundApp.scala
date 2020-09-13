@@ -6,11 +6,13 @@ import io.taig.schelm.interpreter.BrowserDom
 import org.scalajs.dom.document
 
 object JsPlaygroundApp extends IOApp {
-  override def run(args: List[String]): IO[ExitCode] =
+  override def run(args: List[String]): IO[ExitCode] = {
+    val dom = BrowserDom
     JsCssSchelm
-      .default[IO, Event](BrowserDom)(document.getElementById("main"))
+      .default[IO, Event](dom)(document.getElementById("main"))
       .flatMap(schelm => schelm.start(PlaygroundApp.Initial, PlaygroundApp.renderCss, new MyHandler[IO]))
       .as(ExitCode.Success)
+  }
 
   //    JsHtmlSchelm
 //      .default[IO, Event](document.getElementById("main"))

@@ -3,7 +3,7 @@ package io.taig.schelm
 import io.taig.schelm.css.data.Declaration
 import io.taig.schelm.data.{Attribute, Listener}
 
-package object dsl extends AttributeDsl with ContextDsl with ListenerDsl with NodeDsl with StylesheetDsl {
+package object dsl extends AttributeDsl with ContextDsl with ListenerDsl with ElementDsl with StylesheetDsl {
   implicit class AttributeKeySyntax(key: Attribute.Key) {
     def :=(value: String): Attribute = Attribute(key, Attribute.Value(value))
 

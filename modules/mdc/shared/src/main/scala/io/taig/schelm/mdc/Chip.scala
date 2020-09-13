@@ -1,16 +1,13 @@
 package io.taig.schelm.mdc
 
 import cats.implicits._
-import io.taig.schelm.css.data.CssWidget
 import io.taig.schelm.dsl._
-import io.taig.schelm.dsl.internal.Has
-import io.taig.schelm.dsl.internal.Tagged.@@
 
 object Chip {
   def apply(
       label: String,
       selected: Boolean = false
-  ): CssWidget[Nothing, Any] @@ Has.Children = {
+  ): DslWidget.Element.Normal[Nothing, Any] = {
     val classes = List("mdc-chip") ++ selected.guard[List].as("mdc-chip--selected")
 
     div.attrs(cls := classes, role := "row")

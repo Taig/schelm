@@ -33,13 +33,13 @@ final class MyHandler[F[_]: Applicative] extends Handler[F, State, Event, Nothin
 object PlaygroundApp {
   val Initial: State = State(label = "Not clicked ):")
 
-  def render(state: State): Html[IO] = html(state.label)
+//  def render(state: State): Html[IO] = html(state.label)
+//
+//  def renderCss(state: State): CssHtml[IO] = stylesheetHtml(state.label)
 
-  def renderCss(state: State): CssHtml[IO] = stylesheetHtml(state.label)
-
-  def cssWidget(label: String): CssWidget[IO, Theme] =
-    contextual { theme =>
-      Chip("hello google", selected = false)
+  def cssWidget(label: String): DslWidget.Element.Normal[IO, Theme] =
+//    contextual { theme =>
+    Chip("hello google", selected = false)
 //      div.apply(
 //        button
 //          .attrs(style := s"background-color: ${theme.background};", data("yolo") := label)
@@ -55,10 +55,10 @@ object PlaygroundApp {
 //        Chip("hello google", selected = true),
 //        Chip("hello google", selected = false)
 //      )
-    }
+//    }
 
-  def stylesheetHtml(label: String): CssHtml[IO] =
-    CssWidget.toStylesheetHtml(cssWidget(label), Theme(background = "red"))
-
-  def html(label: String): Html[IO] = CssHtml.toHtml(stylesheetHtml(label))._1
+//  def stylesheetHtml(label: String): CssHtml[IO] =
+//    CssWidget.toStylesheetHtml(cssWidget(label), Theme(background = "red"))
+//
+//  def html(label: String): Html[IO] = CssHtml.toHtml(stylesheetHtml(label))._1
 }

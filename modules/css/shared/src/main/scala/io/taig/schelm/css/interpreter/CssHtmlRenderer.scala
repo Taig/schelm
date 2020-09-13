@@ -9,15 +9,13 @@ import io.taig.schelm.data.{Html, HtmlReference}
 import io.taig.schelm.interpreter.HtmlRenderer
 
 object CssHtmlRenderer {
-  def apply[F[_]: Applicative, Node, Element <: Node, Text <: Node](
-      renderer: Renderer[F, Html[F], HtmlReference[F, Node, Element, Text]]
-  ): Renderer[F, CssHtml[F], (HtmlReference[F, Node, Element, Text], Map[Selector, Style])] = { view =>
+  def apply[F[_]: Applicative](
+      renderer: Renderer[F, Html[F], HtmlReference[F]]
+  ): Renderer[F, CssHtml[F], (HtmlReference[F], Map[Selector, Style])] = { view =>
     val (html, stylesheet) = CssHtml.toHtml(view)
     renderer.render(html).tupleRight(stylesheet)
   }
 
-  def default[F[_]: Sync](
-      dom: Dom
-  ): Renderer[F, CssHtml[F], (HtmlReference[F, dom.Node, dom.Element, dom.Text], Map[Selector, Style])] =
+  def default[F[_]: Sync](dom: Dom): Renderer[F, CssHtml[F], (HtmlReference[F], Map[Selector, Style])] =
     CssHtmlRenderer(HtmlRenderer(dom))
 }
