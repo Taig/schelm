@@ -69,6 +69,7 @@ lazy val mdc = crossProject(JVMPlatform, JSPlatform)
     name := "mdc"
   )
   .dependsOn(dsl)
+  .jsConfigure(_.dependsOn(domBrowser))
 
 lazy val playground = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
@@ -79,3 +80,5 @@ lazy val playground = crossProject(JVMPlatform, JSPlatform)
     scalaJSUseMainModuleInitializer := true
   )
   .dependsOn(mdc)
+  .jsConfigure(_.dependsOn(domBrowser))
+  .jvmConfigure(_.dependsOn(domJsoup))

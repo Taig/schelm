@@ -2,22 +2,23 @@ package io.taig.schelm.mdc
 
 import cats.implicits._
 import io.taig.schelm.dsl._
+import io.taig.schelm.mdc.Mdc
 
 object Chip {
   def apply(
       label: String,
-      selected: Boolean = false
-  ): DslWidget.Element.Normal[Nothing, Any] = {
+      selected: Boolean = false,
+           index: Int = 0
+  ): DslWidget.Element.Normal[Any] = {
     val classes = List("mdc-chip") ++ selected.guard[List].as("mdc-chip--selected")
 
-    div.attrs(cls := classes, role := "row")
-//    (
-//      div.attrs(cls := "mdc-chip__ripple"),
-//      span.attrs(role := "gridcell")(
-//        span.attrs(role := "button", tabindex := "0", cls := "mdc-chip__primary-action")(
-//          span.attrs(cls := "mdc-chip__text")(text(label))
-//        )
-//      )
-//    )
+    div.attrs(cls := classes, role := "row").mounted(Mdc.chip)(
+      div.attrs(cls := "mdc-chip__ripple"),
+      span.attrs(role := "gridcell")(
+        span.attrs(cls := "mdc-chip__primary-action", role := "button", tabindex := String.valueOf(index))(
+          span.attrs(cls := "mdc-chip__text")(text(label))
+        )
+      )
+    )
   }
 }

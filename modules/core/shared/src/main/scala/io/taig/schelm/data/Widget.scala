@@ -5,7 +5,7 @@ import cats.Functor
 sealed abstract class Widget[-Context, +A] extends Product with Serializable {
   final def map[B](f: A => B): Widget[Context, B] = this match {
     case widget: Widget.Patch[Context, A] => Widget.Patch(widget.f, widget.widget.map(f))
-    case Widget.Pure(node)                => Widget.Pure(f(node))
+    case Widget.Pure(component)           => Widget.Pure(f(component))
     case Widget.Render(g)                 => Widget.Render(context => g(context).map(f))
   }
 }
@@ -13,7 +13,7 @@ sealed abstract class Widget[-Context, +A] extends Product with Serializable {
 object Widget {
   final case class Patch[Context, +A](f: Context => Context, widget: Widget[Context, A]) extends Widget[Context, A]
 
-  final case class Pure[+A](node: A) extends Widget[Any, A]
+  final case class Pure[+A](component: A) extends Widget[Any, A]
 
   final case class Render[-Context, +A](f: Context => Widget[Context, A]) extends Widget[Context, A]
 

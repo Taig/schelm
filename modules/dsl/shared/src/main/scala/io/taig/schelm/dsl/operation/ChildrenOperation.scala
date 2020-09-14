@@ -5,17 +5,19 @@ import io.taig.schelm.css.data.CssNode
 import io.taig.schelm.data.{Children, Component, Widget}
 import io.taig.schelm.dsl.DslWidget
 
-final class ChildrenOperation[+F[_], -Context, +A](
-    widget: Widget[Context, CssNode[Component[F, DslWidget[F, Context]]]],
-    lift: Widget[Context, CssNode[Component[F, DslWidget[F, Context]]]] => A
+abstract class ChildrenOperation[+F[-_], -Context](
+    widget: Widget[Context, CssNode[Component[DslWidget[Context]]]]
 ) {
-//  def set(children: Children[DslWidget[F, Context]]): A = patch(_ => children)
+  def lift[A <: Context](widget: Widget[A, CssNode[Component[DslWidget[A]]]]): F[A]
 
-  def patch[B](f: Children[B] => Children[DslWidget[F, Context]]): A =
+  def set[A <: Context](children: Children[DslWidget[A]]): F[A] = patch(_ => children)
+
+  def patch[A <: Context](f: Children[DslWidget[Context]] => Children[DslWidget[A]]): F[A] =
     lift(widget.map(_.map {
       case component @ Component.Element(_, Component.Element.Type.Normal(children), _) =>
         component.copy(tpe = Component.Element.Type.Normal(f(children)))
-      case component @ Component.Fragment(children, _) => component.copy(children = f(children))
-      case component                                   => component
+      case component @ Component.Element(_, Component.Element.Type.Void, _) => component
+      case component @ Component.Fragment(children, _)                      => component.copy(children = f(children))
+      case component: Component.Text                                        => component
     }))
 }

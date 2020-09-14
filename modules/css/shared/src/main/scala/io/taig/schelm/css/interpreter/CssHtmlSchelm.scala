@@ -9,14 +9,14 @@ import io.taig.schelm.data.{HtmlReference, Patcher}
 import io.taig.schelm.interpreter.{DomSchelm, HtmlRenderer}
 
 object CssHtmlSchelm {
-  def default[F[_]: Concurrent: Parallel, View, Event, Structure, Diff](dom: Dom)(
-      main: Dom.Element,
+  def default[F[_]: Concurrent: Parallel, View, Event, Structure, Diff](dom: Dom[F])(
+      main: dom.Element,
       manager: EventManager[F, Event]
-  ): F[Schelm[F, CssHtml[F], Event]] =
+  ): F[Schelm[F, CssHtml, Event]] =
     CssHtmlAttacher.default(dom)(main).map { attacher =>
       val renderer = HtmlRenderer[F](dom)
-      val differ = CssHtmlDiffer.default[F]
-      val patcher = Patcher.noop[F, (HtmlReference[F], Map[Selector, Style]), CssHtmlDiff[F]] // CssHtmlPatcher.default(dom, renderer)
+      val differ = CssHtmlDiffer.default
+      val patcher = Patcher.noop[F, (HtmlReference[dom.Node, dom.Element, dom.Text], Map[Selector, Style]), CssHtmlDiff] // CssHtmlPatcher.default(dom, renderer)
       DomSchelm(manager, CssHtmlRenderer(renderer), attacher, differ, patcher)
     }
 }

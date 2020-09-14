@@ -71,5 +71,5 @@ final class BrowserDom[F[_]](implicit F: Sync[F]) extends Dom[F] with BrowserPla
 }
 
 object BrowserDom {
-  def apply[F[_]: Sync]: Dom[F] = new BrowserDom[F]
+  def apply[F[_]: Sync]: BrowserDom[F] = new BrowserDom[F]
 }

@@ -10,4 +10,8 @@ trait Platform {
   type Document <: Node
 
   type Listener
+
+  def isJs: Boolean
+
+  def isJvm: Boolean
 }

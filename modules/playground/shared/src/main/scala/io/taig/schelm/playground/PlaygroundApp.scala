@@ -7,7 +7,7 @@ import io.taig.schelm.algebra.Handler
 import io.taig.schelm.css.data.{CssHtml, CssWidget}
 import io.taig.schelm.data._
 import io.taig.schelm.dsl._
-import io.taig.schelm.mdc.Chip
+import io.taig.schelm.mdc.{Chip, ChipSet}
 
 final case class Theme(background: String)
 
@@ -37,9 +37,13 @@ object PlaygroundApp {
 //
 //  def renderCss(state: State): CssHtml[IO] = stylesheetHtml(state.label)
 
-  def cssWidget(label: String): DslWidget.Element.Normal[IO, Theme] =
+  def widget(label: String): DslWidget.Element.Normal[Theme] =
 //    contextual { theme =>
-    Chip("hello google", selected = false)
+    ChipSet()
+      .apply(
+        Chip("hello google", selected = false),
+        Chip("hello google", selected = true)
+      )
 //      div.apply(
 //        button
 //          .attrs(style := s"background-color: ${theme.background};", data("yolo") := label)

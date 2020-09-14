@@ -53,7 +53,7 @@ final class JsoupDom[F[_]](val document: JDocument)(implicit F: Sync[F]) extends
 }
 
 object JsoupDom {
-  def apply[F[_]: Sync](document: JDocument): Dom[F] = new JsoupDom[F](document)
+  def apply[F[_]: Sync](document: JDocument): JsoupDom[F] = new JsoupDom[F](document)
 
-  def default[F[_]: Sync]: Dom[F] = JsoupDom(new JDocument("/"))
+  def default[F[_]: Sync]: JsoupDom[F] = JsoupDom(new JDocument("/"))
 }

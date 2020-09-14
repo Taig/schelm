@@ -3,15 +3,14 @@ package io.taig.schelm.css.data
 import cats.implicits._
 import io.taig.schelm.data.{Component, Widget}
 
-final case class CssWidget[+F[_], -Context](widget: Widget[Context, CssNode[Component[F, CssWidget[F, Context]]]])
-    extends AnyVal
+final case class CssWidget[-Context](widget: Widget[Context, CssNode[Component[CssWidget[Context]]]]) extends AnyVal
 
 object CssWidget {
-  def toStylesheetHtml[F[_], Context](css: CssWidget[F, Context], context: Context): CssHtml[F] =
+  def toStylesheetHtml[Context](css: CssWidget[Context], context: Context): CssHtml =
     css.widget match {
-      case patch: Widget.Patch[Context, CssNode[Component[F, CssWidget[F, Context]]]] =>
+      case patch: Widget.Patch[Context, CssNode[Component[CssWidget[Context]]]] =>
         toStylesheetHtml(CssWidget(patch.widget), patch.f(context))
-      case Widget.Pure(node) => CssHtml(node.map(_.map(toStylesheetHtml(_, context))))
-      case Widget.Render(f)  => toStylesheetHtml(CssWidget(f(context)), context)
+      case Widget.Pure(component) => CssHtml(component.map(_.map(toStylesheetHtml(_, context))))
+      case Widget.Render(f)       => toStylesheetHtml(CssWidget(f(context)), context)
     }
 }
