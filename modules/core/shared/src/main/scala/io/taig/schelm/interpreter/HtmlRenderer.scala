@@ -6,11 +6,16 @@ import io.taig.schelm.algebra.{Dom, Renderer}
 import io.taig.schelm.data._
 
 object HtmlRenderer {
-  def apply[F[_]: Sync](dom: Dom): Renderer[F, Html[F], HtmlReference[F]] =
-    new Renderer[F, Html[F], HtmlReference[F]] {
-      val renderer: Renderer[F, Component[F, Html[F]], ComponentReference[F, HtmlReference[F]]] =
+  def apply[F[_]: Sync](dom: Dom[F]): Renderer[F, Html, HtmlReference[dom.Node, dom.Element, dom.Text]] =
+    new Renderer[F, Html, HtmlReference[dom.Node, dom.Element, dom.Text]] {
+      val renderer: Renderer[F, Component[Html], ComponentReference[
+        dom.Element,
+        dom.Text,
+        HtmlReference[dom.Node, dom.Element, dom.Text]
+      ]] =
         ComponentRenderer(dom, this)(_.toNodes)
 
-      override def render(html: Html[F]): F[HtmlReference[F]] = renderer.render(html.component).map(HtmlReference(_))
+      override def render(html: Html): F[HtmlReference[dom.Node, dom.Element, dom.Text]] =
+        renderer.render(html.component).map(HtmlReference(_))
     }
 }

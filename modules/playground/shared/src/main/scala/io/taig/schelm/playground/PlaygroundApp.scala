@@ -1,7 +1,7 @@
 package io.taig.schelm.playground
 
 import cats.Applicative
-import cats.effect.IO
+import cats.effect.{ConcurrentEffect, IO}
 import cats.implicits._
 import io.taig.schelm.algebra.Handler
 import io.taig.schelm.css.data.{CssHtml, CssWidget}

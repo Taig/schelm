@@ -1,17 +1,17 @@
 package io.taig.schelm.data
 
-import io.taig.schelm.algebra.Dom
+import cats.effect.IO
 
 object Callback {
-  abstract class Element[+F[_]] {
-    def apply(element: Dom.Element): F[Unit]
+  abstract class Element {
+    def apply(platform: Platform)(element: platform.Element): IO[Unit]
   }
 
-  abstract class Fragment[+F[_]] {
-    def apply(nodes: List[Dom.Node]): F[Unit]
+  abstract class Fragment {
+    def apply(platform: Platform)(nodes: List[platform.Node]): IO[Unit]
   }
 
-  abstract class Text[+F[_]] {
-    def apply(text: Dom.Text): F[Unit]
+  abstract class Text {
+    def apply(platform: Platform)(text: platform.Text): IO[Unit]
   }
 }

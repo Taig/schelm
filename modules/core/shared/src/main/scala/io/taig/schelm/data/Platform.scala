@@ -1,8 +1,13 @@
 package io.taig.schelm.data
 
-sealed abstract class Platform extends Product with Serializable
+trait Platform {
+  type Node
 
-object Platform {
-  final case object Js extends Platform
-  final case object Jvm extends Platform
+  type Element <: Node
+
+  type Text <: Node
+
+  type Document <: Node
+
+  type Listener
 }
