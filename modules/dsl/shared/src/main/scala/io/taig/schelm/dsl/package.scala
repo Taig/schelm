@@ -1,9 +1,9 @@
 package io.taig.schelm
 
-import io.taig.schelm.data.Attribute
-import io.taig.schelm.dsl.keyword.{AttributeKeyword, ElementKeyword}
+import io.taig.schelm.data.{Attribute, Callback, Lifecycle}
+import io.taig.schelm.dsl.keyword.{AttributeKeyword, NodeKeyword}
 
-package object dsl extends ContextDsl with ElementKeyword with ListenerDsl with StylesheetDsl {
+package object dsl extends ContextDsl with NodeKeyword with ListenerDsl with StylesheetDsl {
   implicit class AttributeKeySyntax(key: Attribute.Key) {
     def :=(value: String): Attribute = Attribute(key, Attribute.Value(value))
 
@@ -15,6 +15,13 @@ package object dsl extends ContextDsl with ElementKeyword with ListenerDsl with 
   }
 
   object a extends AttributeKeyword
+
+  object lifecycle {
+    def element[Event](
+        mounted: Callback.Element[Event] = Callback.Element.noop,
+        unmount: Callback.Element[Event] = Callback.Element.noop
+    ): Lifecycle[Callback.Element[Event]] = Lifecycle(mounted, unmount)
+  }
 
 //  implicit class ListenerNameSyntax(name: Listener.Name) {
 //    def :=[Event](action: Listener.Action[Event]): Listener[Event] = Listener(name, action)

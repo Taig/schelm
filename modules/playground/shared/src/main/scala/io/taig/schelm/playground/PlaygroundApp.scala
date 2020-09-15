@@ -8,7 +8,7 @@ import io.taig.schelm.css.data.{CssHtml, CssWidget}
 import io.taig.schelm.data._
 import io.taig.schelm.dsl._
 import io.taig.schelm.dsl.data.DslWidget
-import io.taig.schelm.mdc.{Chip, ChipSet}
+import io.taig.schelm.mdc.{Chip, ChipSet, MdcCommand, MdcEvent}
 
 final case class Theme(background: String)
 
@@ -21,10 +21,10 @@ object Event {
 final case class State(label: String)
 
 final class MyHandler[F[_]: Applicative] extends Handler[F, State, Event, Nothing] {
-  override def command(value: Nothing): F[Option[Event]] = none[Event].pure[F]
+  override val command: Nothing => F[Option[Event]] = _ => none[Event].pure[F]
 
-  override def event(state: State, event: Event): Result[State, Nothing] = event match {
-    case Event.Click => Result(State(label = "Clicked (:").some, List.empty)
+  override def event: (State, Event) => Result[State, Nothing] = {
+    case (_, Event.Click) => Result(State(label = "Clicked (:").some, List.empty)
   }
 }
 
@@ -34,11 +34,11 @@ final class MyHandler[F[_]: Applicative] extends Handler[F, State, Event, Nothin
 object PlaygroundApp {
   val Initial: State = State(label = "Not clicked ):")
 
-  def render(label: String): DslWidget[Event, Theme] =
+  def render(label: String): DslWidget[MdcEvent[Event], Theme] =
     ChipSet(chips =
       Children.of(
-        Chip(label, selected = false, tabindex = 1),
-        Chip("hello google", selected = false, tabindex = 2, icon = "event".some)
+        Chip(label, tabindex = 1, icon = ("event", Chip.Icon.Position.Leading).some),
+        Chip("hello google", tabindex = 2, icon = ("event", Chip.Icon.Position.Trailing).some)
       )
     )
 }

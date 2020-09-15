@@ -9,7 +9,7 @@ object Node {
   final case class Element[+Event, +A](
       tag: Tag[Event],
       tpe: Element.Type[A],
-      lifecycle: Lifecycle[Callback.Element[Event]]
+      lifecycle: Lifecycle.Element[Event]
   ) extends Node[Event, A]
 
   object Element {
@@ -51,7 +51,7 @@ object Node {
     }
   }
 
-  final case class Fragment[+Event, +A](children: Children[A], lifecycle: Lifecycle[Callback.Fragment[Event]])
+  final case class Fragment[+Event, +A](children: Children[A], lifecycle: Lifecycle.Fragment[Event])
       extends Node[Event, A]
 
   object Fragment {
@@ -66,7 +66,7 @@ object Node {
     }
   }
 
-  final case class Text[+Event](value: String, listeners: Listeners[Event], lifecycle: Lifecycle[Callback.Text[Event]])
+  final case class Text[+Event](value: String, listeners: Listeners[Event], lifecycle: Lifecycle.Text[Event])
       extends Node[Event, Nothing]
 
   implicit def traverse[Event]: Traverse[Node[Event, *]] = new Traverse[Node[Event, *]] {

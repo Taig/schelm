@@ -19,19 +19,13 @@ object HtmlReferenceAttacher {
 
       def notify(html: HtmlReference[Event, platform.Node, platform.Element, platform.Text]): F[Unit] =
         html.reference match {
-          case NodeReference
-                .Element(Node.Element(_, Node.Element.Type.Normal(children), lifecycle), element) =>
-            children.traverse_(notify) *> lifecycle.mounted.traverse_ { callback =>
-              callback.apply(platform)(element).traverse_(manager.submit)
-            }
+          case NodeReference.Element(Node.Element(_, Node.Element.Type.Normal(children), lifecycle), element) =>
+            children.traverse_(notify) *> lifecycle.mounted(platform)(element).traverse_(manager.submit)
           case NodeReference.Element(Node.Element(_, Node.Element.Type.Void, lifecycle), element) =>
-            lifecycle.mounted.traverse_(callback => callback.apply(platform)(element).traverse_(manager.submit))
+            lifecycle.mounted(platform)(element).traverse_(manager.submit)
           case NodeReference.Fragment(node) =>
-            node.children.traverse_(notify) *> node.lifecycle.mounted.traverse_ { callback =>
-              callback.apply(platform)(html.toNodes).traverse_(manager.submit)
-            }
-          case NodeReference.Text(node, text) =>
-            node.lifecycle.mounted.traverse_(callback => callback.apply(platform)(text).traverse_(manager.submit))
+            node.children.traverse_(notify) *> node.lifecycle.mounted(platform)(html.toNodes).traverse_(manager.submit)
+          case NodeReference.Text(node, text) => node.lifecycle.mounted(platform)(text).traverse_(manager.submit)
         }
     }
 

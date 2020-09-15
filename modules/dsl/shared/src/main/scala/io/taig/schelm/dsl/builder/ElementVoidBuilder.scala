@@ -9,7 +9,7 @@ final class ElementVoidBuilder(val name: String) extends AnyVal {
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[Event] = Listeners.Empty,
       style: Style = Style.Empty,
-      lifecycle: Lifecycle[Callback.Element[Event]] = Lifecycle.Empty
+      lifecycle: Lifecycle.Element[Event] = Lifecycle.Element.Empty
   ): DslWidget[Event, Context] = {
     val element = Node.Element(Tag(name, attributes, listeners), Node.Element.Type.Void, lifecycle)
     DslWidget.Pure[Event, Context](Widget.Pure(CssNode(element, style)))
