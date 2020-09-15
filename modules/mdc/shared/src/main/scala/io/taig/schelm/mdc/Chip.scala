@@ -16,26 +16,25 @@ final case class Chip(
       MdcEvent.ComponentMounted(Component.Chip, element).some
   }
 
+  val body: DslWidget[Nothing, Any] = span(
+    attributes = Attributes.of(a.role := "gridcell"),
+    children = Children.of(
+      span(
+        attributes = Attributes.of(a.cls := "mdc-chip__primary-action", a.role := "button", a.tabindex := tabindex),
+        children = Children.of(
+          span(attributes = Attributes.of(a.cls := "mdc-chip__text"), children = Children.of(text(label)))
+        )
+      )
+    )
+  )
+
   override val render: DslWidget[MdcEvent[Nothing], Any] = div(
     attributes =
       Attributes.of(a.cls := List("mdc-chip") ++ selected.guard[List].as("mdc-chip--selected"), a.role := "row"),
     lifecycle = lifecycle.element(mounted = mounted),
     children = Children.of(div(attributes = Attributes.of(a.cls := "mdc-chip__ripple"))) ++
       Children.from(icon.collect { case (name, position @ Chip.Icon.Position.Leading) => Chip.Icon(name, position) }) ++
-      Children.of(
-        span(
-          attributes = Attributes.of(a.role := "gridcell"),
-          children = Children.of(
-            span(
-              attributes =
-                Attributes.of(a.cls := "mdc-chip__primary-action", a.role := "button", a.tabindex := tabindex),
-              children = Children.of(
-                span(attributes = Attributes.of(a.cls := "mdc-chip__text"), children = Children.of(text(label)))
-              )
-            )
-          )
-        )
-      ) ++
+      Children.of(body) ++
       Children.from(icon.collect {
         case (name, position @ Chip.Icon.Position.Trailing) =>
           span(
