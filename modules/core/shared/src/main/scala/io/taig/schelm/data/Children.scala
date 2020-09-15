@@ -13,6 +13,12 @@ sealed abstract class Children[+A] extends Product with Serializable {
     case Children.Indexed(values)    => values.mapWithIndex((value, index) => (String.valueOf(index), value))
     case Children.Identified(values) => values
   }
+
+  def ++[B >: A](children: Children[B]): Children[B] = (this, children) match {
+    case (Children.Indexed(x), Children.Indexed(y))       => Children.Indexed(x ++ y)
+    case (Children.Identified(x), Children.Identified(y)) => Children.Identified(x ++ y)
+    case (x, y)                                           => Children.Identified(x.identified ++ y.identified)
+  }
 }
 
 object Children {
@@ -29,11 +35,7 @@ object Children {
   implicit val monoidK: MonoidK[Children] = new MonoidK[Children] {
     override def empty[A]: Children[A] = Empty
 
-    override def combineK[A](x: Children[A], y: Children[A]): Children[A] = (x, y) match {
-      case (Indexed(x), Indexed(y))       => Indexed(x ++ y)
-      case (Identified(x), Identified(y)) => Identified(x ++ y)
-      case (x, y)                         => Identified(x.identified ++ y.identified)
-    }
+    override def combineK[A](x: Children[A], y: Children[A]): Children[A] = x ++ y
   }
 
   implicit val functor: Functor[Children] = new Functor[Children] {

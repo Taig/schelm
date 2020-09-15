@@ -7,6 +7,7 @@ import io.taig.schelm.algebra.Handler
 import io.taig.schelm.css.data.{CssHtml, CssWidget}
 import io.taig.schelm.data._
 import io.taig.schelm.dsl._
+import io.taig.schelm.dsl.data.DslWidget
 import io.taig.schelm.mdc.{Chip, ChipSet}
 
 final case class Theme(background: String)
@@ -33,36 +34,9 @@ final class MyHandler[F[_]: Applicative] extends Handler[F, State, Event, Nothin
 object PlaygroundApp {
   val Initial: State = State(label = "Not clicked ):")
 
-//  def render(state: State): Html[IO] = html(state.label)
-//
-//  def renderCss(state: State): CssHtml[IO] = stylesheetHtml(state.label)
-
-  def widget(label: String): DslWidget.Element.Normal[Theme] =
-//    contextual { theme =>
-    ChipSet()
-      .apply(
-        Chip("hello google", selected = false),
-        Chip("hello google", selected = true)
-      )
-//      div.apply(
-//        button
-//          .attrs(style := s"background-color: ${theme.background};", data("yolo") := label)
-//          .on(click := Listener.Action.Pure(Event.Click))
-//          .style(color := "white")
-//          .apply(text(label)),
-//        hr,
-//        button
-//          .attrs(style := s"background-color: white;")
-//          .on(click := Listener.Action.Pure(Event.Click))
-//          .style(color := theme.background)
-//          .apply(text(label)),
-//        Chip("hello google", selected = true),
-//        Chip("hello google", selected = false)
-//      )
-//    }
-
-//  def stylesheetHtml(label: String): CssHtml[IO] =
-//    CssWidget.toStylesheetHtml(cssWidget(label), Theme(background = "red"))
-//
-//  def html(label: String): Html[IO] = CssHtml.toHtml(stylesheetHtml(label))._1
+  def render(label: String): DslWidget.Element.Normal[Theme] =
+    ChipSet(children = Children.of(
+      Chip(label, selected = false, tabindex = 1),
+      Chip("hello google", selected = false, tabindex = 2, icon = "event".some)
+    ))
 }

@@ -16,4 +16,10 @@ object Attribute {
 
     def ++(value: Value): Value = combine(value, separator = " ")
   }
+
+  object Value {
+    def fromInt(value: Int): Value = Value(String.valueOf(value))
+
+    def fromLong(value: Long): Value = Value(String.valueOf(value))
+  }
 }

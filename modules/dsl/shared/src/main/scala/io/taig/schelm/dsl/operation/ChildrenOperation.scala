@@ -3,7 +3,7 @@ package io.taig.schelm.dsl.operation
 import cats.implicits._
 import io.taig.schelm.css.data.CssNode
 import io.taig.schelm.data.{Children, Component, Widget}
-import io.taig.schelm.dsl.DslWidget
+import io.taig.schelm.dsl.data.DslWidget
 
 abstract class ChildrenOperation[+F[-_], -Context](
     widget: Widget[Context, CssNode[Component[DslWidget[Context]]]]

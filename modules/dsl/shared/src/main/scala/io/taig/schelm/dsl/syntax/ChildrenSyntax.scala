@@ -1,7 +1,7 @@
 package io.taig.schelm.dsl.syntax
 
 import io.taig.schelm.data.Children
-import io.taig.schelm.dsl.DslWidget
+import io.taig.schelm.dsl.data.DslWidget
 import io.taig.schelm.dsl.operation.ChildrenOperation
 
 trait ChildrenSyntax[+F[-_], -Context] { self =>

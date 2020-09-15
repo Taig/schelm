@@ -13,7 +13,7 @@ trait JsoupPlatform extends Platform {
 
   final override type Listener = Unit
 
-  override final val isJs: Boolean = false
+  final override val isJs: Boolean = false
 
-  override final val isJvm: Boolean = true
+  final override val isJvm: Boolean = true
 }

@@ -15,7 +15,7 @@ trait BrowserPlatform extends Platform {
 
   final override type Listener = js.Function1[dom.Event, _]
 
-  override final val isJs: Boolean = true
+  final override val isJs: Boolean = true
 
-  override final val isJvm: Boolean = false
+  final override val isJvm: Boolean = false
 }

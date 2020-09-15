@@ -1,8 +1,8 @@
-package io.taig.schelm.dsl
+package io.taig.schelm.dsl.keyword
 
 import io.taig.schelm.data.Attribute
 
-trait AttributeDsl {
+trait AttributeKeyword {
   def data(name: String): Attribute.Key = Attribute.Key(s"data-$name")
 
   val cls: Attribute.Key = Attribute.Key("class")
@@ -12,3 +12,5 @@ trait AttributeDsl {
   val style: Attribute.Key = Attribute.Key("style")
   val tabindex: Attribute.Key = Attribute.Key("tabindex")
 }
+
+object AttributeKeyword extends AttributeKeyword
