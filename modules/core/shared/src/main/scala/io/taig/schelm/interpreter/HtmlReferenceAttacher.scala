@@ -4,7 +4,7 @@ import cats.Applicative
 import cats.effect.LiftIO
 import cats.implicits._
 import io.taig.schelm.algebra.{Attacher, Dom}
-import io.taig.schelm.data.{Component, ComponentReference, HtmlReference, Platform}
+import io.taig.schelm.data.{ComponentReference, HtmlReference, Node, Platform}
 
 object HtmlReferenceAttacher {
   def apply[F[_]: Applicative: LiftIO](platform: Platform)(
@@ -17,9 +17,9 @@ object HtmlReferenceAttacher {
       def notify(html: HtmlReference[platform.Node, platform.Element, platform.Text]): F[Unit] =
         html.reference match {
           case ComponentReference
-                .Element(Component.Element(_, Component.Element.Type.Normal(children), lifecycle), element) =>
+                .Element(Node.Element(_, Node.Element.Type.Normal(children), lifecycle), element) =>
             children.traverse_(notify) *> lifecycle.mounted.traverse_(_.apply(platform)(element).to[F])
-          case ComponentReference.Element(Component.Element(_, Component.Element.Type.Void, lifecycle), element) =>
+          case ComponentReference.Element(Node.Element(_, Node.Element.Type.Void, lifecycle), element) =>
             lifecycle.mounted.traverse_(_.apply(platform)(element).to[F])
           case ComponentReference.Fragment(component) =>
             component.children.traverse_(notify) *> component.lifecycle.mounted

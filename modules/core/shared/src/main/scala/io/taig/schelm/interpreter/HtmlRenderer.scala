@@ -9,7 +9,7 @@ import io.taig.schelm.data._
 object HtmlRenderer {
   def apply[F[_]: Monad](dom: Dom[F]): Renderer[F, Html, HtmlReference[dom.Node, dom.Element, dom.Text]] =
     new Renderer[F, Html, HtmlReference[dom.Node, dom.Element, dom.Text]] {
-      val renderer: Renderer[F, Component[Html], ComponentReference[
+      val renderer: Renderer[F, Node[Html], ComponentReference[
         dom.Element,
         dom.Text,
         HtmlReference[dom.Node, dom.Element, dom.Text]

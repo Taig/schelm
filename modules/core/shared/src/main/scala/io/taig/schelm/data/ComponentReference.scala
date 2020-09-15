@@ -6,10 +6,9 @@ import cats.{Applicative, Eval, Traverse}
 sealed abstract class ComponentReference[+Element, +Text, +A] extends Product with Serializable
 
 object ComponentReference {
-  final case class Element[Dom, A](component: Component.Element[A], dom: Dom)
-      extends ComponentReference[Dom, Nothing, A]
-  final case class Fragment[A](component: Component.Fragment[A]) extends ComponentReference[Nothing, Nothing, A]
-  final case class Text[Dom](component: Component.Text, dom: Dom) extends ComponentReference[Nothing, Dom, Nothing]
+  final case class Element[Dom, A](component: Node.Element[A], dom: Dom) extends ComponentReference[Dom, Nothing, A]
+  final case class Fragment[A](component: Node.Fragment[A]) extends ComponentReference[Nothing, Nothing, A]
+  final case class Text[Dom](component: Node.Text, dom: Dom) extends ComponentReference[Nothing, Dom, Nothing]
 
   implicit def traverse[Element, Text]: Traverse[ComponentReference[Element, Text, *]] =
     new Traverse[ComponentReference[Element, Text, *]] {

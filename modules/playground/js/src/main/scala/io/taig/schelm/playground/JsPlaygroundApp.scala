@@ -15,7 +15,8 @@ object JsPlaygroundApp extends IOApp {
       .flatMap(
         _.start(
           PlaygroundApp.Initial,
-          (_: State) => DslWidget.toCssHtml(PlaygroundApp.render("hello").widget, Theme(background = "red")),
+          (_: State) =>
+            DslWidget.toCssHtml(DslWidget.toWidget(PlaygroundApp.render("hello")), Theme(background = "red")),
           new MyHandler[IO]
         )
       )

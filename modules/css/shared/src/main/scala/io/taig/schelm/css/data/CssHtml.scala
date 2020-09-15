@@ -1,9 +1,9 @@
 package io.taig.schelm.css.data
 
 import cats.implicits._
-import io.taig.schelm.data.{Attribute, Component, Html}
+import io.taig.schelm.data.{Attribute, Html, Node}
 
-final case class CssHtml(node: CssNode[Component[CssHtml]]) extends AnyVal
+final case class CssHtml(node: CssNode[Node[CssHtml]]) extends AnyVal
 
 object CssHtml {
   private val EmptyStyles: Map[Selector, Style] = Map.empty
@@ -12,7 +12,7 @@ object CssHtml {
     val nodes = css.node.map(_.map(toHtml))
 
     val (node, rules) = nodes match {
-      case CssNode(component: Component.Element[(Html, Map[Selector, Style])], style) if !style.isEmpty =>
+      case CssNode(component: Node.Element[(Html, Map[Selector, Style])], style) if !style.isEmpty =>
         val identifier = Identifier(style.hashCode)
         val selector = identifier.toSelector
         val attribute = Attribute(Attribute.Key.Class, Attribute.Value(identifier.toClass))

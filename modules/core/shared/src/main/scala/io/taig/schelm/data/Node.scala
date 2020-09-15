@@ -3,11 +3,10 @@ package io.taig.schelm.data
 import cats.implicits._
 import cats.{Applicative, Eval, Traverse}
 
-sealed abstract class Component[+A] extends Product with Serializable
+sealed abstract class Node[+A] extends Product with Serializable
 
-object Component {
-  final case class Element[+A](tag: Tag, tpe: Element.Type[A], lifecycle: Lifecycle[Callback.Element])
-      extends Component[A]
+object Node {
+  final case class Element[+A](tag: Tag, tpe: Element.Type[A], lifecycle: Lifecycle[Callback.Element]) extends Node[A]
 
   object Element {
 
@@ -48,7 +47,7 @@ object Component {
     }
   }
 
-  final case class Fragment[+A](children: Children[A], lifecycle: Lifecycle[Callback.Fragment]) extends Component[A]
+  final case class Fragment[+A](children: Children[A], lifecycle: Lifecycle[Callback.Fragment]) extends Node[A]
 
   object Fragment {
     implicit val traverse: Traverse[Fragment] = new Traverse[Fragment] {
@@ -62,25 +61,24 @@ object Component {
     }
   }
 
-  final case class Text(value: String, listeners: Listeners, lifecycle: Lifecycle[Callback.Text])
-      extends Component[Nothing]
+  final case class Text(value: String, listeners: Listeners, lifecycle: Lifecycle[Callback.Text]) extends Node[Nothing]
 
-  implicit val traverse: Traverse[Component] = new Traverse[Component] {
-    override def traverse[G[_]: Applicative, A, B](fa: Component[A])(f: A => G[B]): G[Component[B]] =
+  implicit val traverse: Traverse[Node] = new Traverse[Node] {
+    override def traverse[G[_]: Applicative, A, B](fa: Node[A])(f: A => G[B]): G[Node[B]] =
       fa match {
         case component: Element[A]  => component.traverse(f).widen
         case component: Fragment[A] => component.traverse(f).widen
         case component: Text        => component.pure[G].widen
       }
 
-    override def foldLeft[A, B](fa: Component[A], b: B)(f: (B, A) => B): B =
+    override def foldLeft[A, B](fa: Node[A], b: B)(f: (B, A) => B): B =
       fa match {
         case component: Element[A]  => component.foldl(b)(f)
         case component: Fragment[A] => component.foldl(b)(f)
         case _: Text                => b
       }
 
-    override def foldRight[A, B](fa: Component[A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
+    override def foldRight[A, B](fa: Node[A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
       fa match {
         case component: Element[A]  => component.foldr(lb)(f)
         case component: Fragment[A] => component.foldr(lb)(f)
