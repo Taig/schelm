@@ -3,7 +3,7 @@ package io.taig.schelm.css.interpreter
 import cats.effect.LiftIO
 import cats.implicits._
 import cats.{Applicative, MonadError}
-import io.taig.schelm.algebra.{Attacher, Dom}
+import io.taig.schelm.algebra.{Attacher, Dom, EventManager}
 import io.taig.schelm.css.data.{Selector, Style}
 import io.taig.schelm.data.HtmlReference
 import io.taig.schelm.interpreter.HtmlReferenceAttacher
@@ -20,10 +20,12 @@ object CssHtmlAttacher {
       }
     }
 
-  def default[F[_]: MonadError[*[_], Throwable]: LiftIO, Event](dom: Dom[F])(main: dom.Element): F[Attacher[
+  def default[F[_]: MonadError[*[_], Throwable]: LiftIO, Event](dom: Dom[F], manager: EventManager[F, Event])(
+      main: dom.Element
+  ): F[Attacher[
     F,
     (HtmlReference[Event, dom.Node, dom.Element, dom.Text], Map[Selector, Style]),
     (dom.Element, dom.Element)
   ]] =
-    CssStyleAttacher.auto(dom).map(CssHtmlAttacher(HtmlReferenceAttacher.default(dom)(main), _))
+    CssStyleAttacher.auto(dom).map(CssHtmlAttacher(HtmlReferenceAttacher.default(dom, manager)(main), _))
 }

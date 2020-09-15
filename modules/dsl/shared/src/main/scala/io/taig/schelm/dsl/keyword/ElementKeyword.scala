@@ -11,7 +11,7 @@ trait ElementKeyword {
   final def void(name: String): ElementVoidBuilder = new ElementVoidBuilder(name)
 
   final def fragment[Event, Context](
-      lifecycle: Lifecycle[Callback.Fragment] = Lifecycle.Empty,
+      lifecycle: Lifecycle[Callback.Fragment[Event]] = Lifecycle.Empty,
       children: Children[DslWidget[Event, Context]] = Children.Empty
   ): DslWidget[Event, Context] =
     DslWidget.Pure(Widget.Pure(CssNode(Node.Fragment(children, lifecycle), Style.Empty)))

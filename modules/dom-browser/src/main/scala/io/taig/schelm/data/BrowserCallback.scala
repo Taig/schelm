@@ -3,9 +3,9 @@ import cats.effect.IO
 import org.scalajs.dom
 
 object BrowserCallback {
-  def element(f: dom.Element => IO[Unit]): Callback.Element =
-    new Callback.Element {
-      override def apply(platform: Platform)(element: platform.Element): IO[Unit] =
-        if (platform.isJs) f(element.asInstanceOf[dom.Element]) else IO.unit
+  def element[Event](f: dom.Element => Event): Callback.Element[Event] =
+    new Callback.Element[Event] {
+      override def apply(platform: Platform)(element: platform.Element): Option[Event] =
+        if (platform.isJs) Some(f(element.asInstanceOf[dom.Element])) else None
     }
 }

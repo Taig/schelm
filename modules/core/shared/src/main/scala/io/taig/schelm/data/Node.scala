@@ -6,8 +6,11 @@ import cats.{Applicative, Eval, Traverse}
 sealed abstract class Node[+Event, +A] extends Product with Serializable
 
 object Node {
-  final case class Element[+Event, +A](tag: Tag[Event], tpe: Element.Type[A], lifecycle: Lifecycle[Callback.Element])
-      extends Node[Event, A]
+  final case class Element[+Event, +A](
+      tag: Tag[Event],
+      tpe: Element.Type[A],
+      lifecycle: Lifecycle[Callback.Element[Event]]
+  ) extends Node[Event, A]
 
   object Element {
 
@@ -48,43 +51,44 @@ object Node {
     }
   }
 
-  final case class Fragment[+A](children: Children[A], lifecycle: Lifecycle[Callback.Fragment]) extends Node[Nothing, A]
+  final case class Fragment[+Event, +A](children: Children[A], lifecycle: Lifecycle[Callback.Fragment[Event]])
+      extends Node[Event, A]
 
   object Fragment {
-    implicit val traverse: Traverse[Fragment] = new Traverse[Fragment] {
-      override def traverse[G[_]: Applicative, A, B](fa: Fragment[A])(f: A => G[B]): G[Fragment[B]] =
+    implicit def traverse[Event]: Traverse[Fragment[Event, *]] = new Traverse[Fragment[Event, *]] {
+      override def traverse[G[_]: Applicative, A, B](fa: Fragment[Event, A])(f: A => G[B]): G[Fragment[Event, B]] =
         fa.children.traverse(f).map(children => fa.copy(children = children))
 
-      override def foldLeft[A, B](fa: Fragment[A], b: B)(f: (B, A) => B): B = fa.children.foldl(b)(f)
+      override def foldLeft[A, B](fa: Fragment[Event, A], b: B)(f: (B, A) => B): B = fa.children.foldl(b)(f)
 
-      override def foldRight[A, B](fa: Fragment[A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
+      override def foldRight[A, B](fa: Fragment[Event, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
         fa.children.foldr(lb)(f)
     }
   }
 
-  final case class Text[+Event](value: String, listeners: Listeners[Event], lifecycle: Lifecycle[Callback.Text])
+  final case class Text[+Event](value: String, listeners: Listeners[Event], lifecycle: Lifecycle[Callback.Text[Event]])
       extends Node[Event, Nothing]
 
   implicit def traverse[Event]: Traverse[Node[Event, *]] = new Traverse[Node[Event, *]] {
     override def traverse[G[_]: Applicative, A, B](fa: Node[Event, A])(f: A => G[B]): G[Node[Event, B]] =
       fa match {
-        case component: Element[Event, A] => component.traverse(f).widen
-        case component: Fragment[A]       => component.traverse(f).widen
-        case component: Text[Event]       => component.pure[G].widen
+        case component: Element[Event, A]  => component.traverse(f).widen
+        case component: Fragment[Event, A] => component.traverse(f).widen
+        case component: Text[Event]        => component.pure[G].widen
       }
 
     override def foldLeft[A, B](fa: Node[Event, A], b: B)(f: (B, A) => B): B =
       fa match {
-        case component: Element[Event, A] => component.foldl(b)(f)
-        case component: Fragment[A]       => component.foldl(b)(f)
-        case _: Text[Event]               => b
+        case component: Element[Event, A]  => component.foldl(b)(f)
+        case component: Fragment[Event, A] => component.foldl(b)(f)
+        case _: Text[Event]                => b
       }
 
     override def foldRight[A, B](fa: Node[Event, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
       fa match {
-        case component: Element[Event, A] => component.foldr(lb)(f)
-        case component: Fragment[A]       => component.foldr(lb)(f)
-        case _: Text[Event]               => lb
+        case component: Element[Event, A]  => component.foldr(lb)(f)
+        case component: Fragment[Event, A] => component.foldr(lb)(f)
+        case _: Text[Event]                => lb
       }
   }
 }

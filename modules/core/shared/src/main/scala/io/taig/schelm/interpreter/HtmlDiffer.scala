@@ -10,9 +10,10 @@ object HtmlDiffer {
       (current.node, next.node) match {
         case (current: Node.Element[Event, Html[Event]], next: Node.Element[Event, Html[Event]]) =>
           element(current, next)
-        case (current: Node.Fragment[Html[Event]], next: Node.Fragment[Html[Event]]) => fragment(current, next)
-        case (current: Node.Text[Event], next: Node.Text[Event])                     => text(current, next)
-        case _                                                                       => HtmlDiff.Replace(next).some
+        case (current: Node.Fragment[Event, Html[Event]], next: Node.Fragment[Event, Html[Event]]) =>
+          fragment(current, next)
+        case (current: Node.Text[Event], next: Node.Text[Event]) => text(current, next)
+        case _                                                   => HtmlDiff.Replace(next).some
       }
 
     def element(
@@ -33,7 +34,10 @@ object HtmlDiffer {
       }
     }
 
-    def fragment(current: Node.Fragment[Html[Event]], next: Node.Fragment[Html[Event]]): Option[HtmlDiff[Event]] =
+    def fragment(
+        current: Node.Fragment[Event, Html[Event]],
+        next: Node.Fragment[Event, Html[Event]]
+    ): Option[HtmlDiff[Event]] =
       children(current.children, next.children)
 
     def text(current: Node.Text[Event], next: Node.Text[Event]): Option[HtmlDiff[Event]] =

@@ -7,7 +7,8 @@ import io.taig.schelm.data.{BrowserCallback, Callback}
 import scala.scalajs.js
 
 object Mdc {
-  val chip: Callback.Element = BrowserCallback.element { element =>
-    IO(js.Dynamic.newInstance(js.Dynamic.global.mdc.chips.MDCChip)(element)).void
-  }
+  val chip: Callback.Element[Nothing] = Callback.Element.noop
+//    BrowserCallback.element { element =>
+//    IO(js.Dynamic.newInstance(js.Dynamic.global.mdc.chips.MDCChip)(element)).void
+//  }
 }
