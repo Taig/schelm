@@ -3,10 +3,11 @@ package io.taig.schelm.data
 import cats.implicits._
 import cats.{Applicative, Eval, Traverse}
 
-sealed abstract class Node[+A] extends Product with Serializable
+sealed abstract class Node[+Event, +A] extends Product with Serializable
 
 object Node {
-  final case class Element[+A](tag: Tag, tpe: Element.Type[A], lifecycle: Lifecycle[Callback.Element]) extends Node[A]
+  final case class Element[+Event, +A](tag: Tag[Event], tpe: Element.Type[A], lifecycle: Lifecycle[Callback.Element])
+      extends Node[Event, A]
 
   object Element {
 
@@ -36,18 +37,18 @@ object Node {
       }
     }
 
-    implicit val traverse: Traverse[Element] = new Traverse[Element] {
-      override def traverse[G[_]: Applicative, A, B](fa: Element[A])(f: A => G[B]): G[Element[B]] =
+    implicit def traverse[Event]: Traverse[Element[Event, *]] = new Traverse[Element[Event, *]] {
+      override def traverse[G[_]: Applicative, A, B](fa: Element[Event, A])(f: A => G[B]): G[Element[Event, B]] =
         fa.tpe.traverse(f).map(tpe => fa.copy(tpe = tpe))
 
-      override def foldLeft[A, B](fa: Element[A], b: B)(f: (B, A) => B): B = fa.tpe.foldl(b)(f)
+      override def foldLeft[A, B](fa: Element[Event, A], b: B)(f: (B, A) => B): B = fa.tpe.foldl(b)(f)
 
-      override def foldRight[A, B](fa: Element[A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
+      override def foldRight[A, B](fa: Element[Event, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
         fa.tpe.foldr(lb)(f)
     }
   }
 
-  final case class Fragment[+A](children: Children[A], lifecycle: Lifecycle[Callback.Fragment]) extends Node[A]
+  final case class Fragment[+A](children: Children[A], lifecycle: Lifecycle[Callback.Fragment]) extends Node[Nothing, A]
 
   object Fragment {
     implicit val traverse: Traverse[Fragment] = new Traverse[Fragment] {
@@ -61,28 +62,29 @@ object Node {
     }
   }
 
-  final case class Text(value: String, listeners: Listeners, lifecycle: Lifecycle[Callback.Text]) extends Node[Nothing]
+  final case class Text[+Event](value: String, listeners: Listeners[Event], lifecycle: Lifecycle[Callback.Text])
+      extends Node[Event, Nothing]
 
-  implicit val traverse: Traverse[Node] = new Traverse[Node] {
-    override def traverse[G[_]: Applicative, A, B](fa: Node[A])(f: A => G[B]): G[Node[B]] =
+  implicit def traverse[Event]: Traverse[Node[Event, *]] = new Traverse[Node[Event, *]] {
+    override def traverse[G[_]: Applicative, A, B](fa: Node[Event, A])(f: A => G[B]): G[Node[Event, B]] =
       fa match {
-        case component: Element[A]  => component.traverse(f).widen
-        case component: Fragment[A] => component.traverse(f).widen
-        case component: Text        => component.pure[G].widen
+        case component: Element[Event, A] => component.traverse(f).widen
+        case component: Fragment[A]       => component.traverse(f).widen
+        case component: Text[Event]       => component.pure[G].widen
       }
 
-    override def foldLeft[A, B](fa: Node[A], b: B)(f: (B, A) => B): B =
+    override def foldLeft[A, B](fa: Node[Event, A], b: B)(f: (B, A) => B): B =
       fa match {
-        case component: Element[A]  => component.foldl(b)(f)
-        case component: Fragment[A] => component.foldl(b)(f)
-        case _: Text                => b
+        case component: Element[Event, A] => component.foldl(b)(f)
+        case component: Fragment[A]       => component.foldl(b)(f)
+        case _: Text[Event]               => b
       }
 
-    override def foldRight[A, B](fa: Node[A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
+    override def foldRight[A, B](fa: Node[Event, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
       fa match {
-        case component: Element[A]  => component.foldr(lb)(f)
-        case component: Fragment[A] => component.foldr(lb)(f)
-        case _: Text                => lb
+        case component: Element[Event, A] => component.foldr(lb)(f)
+        case component: Fragment[A]       => component.foldr(lb)(f)
+        case _: Text[Event]               => lb
       }
   }
 }

@@ -34,7 +34,7 @@ final class MyHandler[F[_]: Applicative] extends Handler[F, State, Event, Nothin
 object PlaygroundApp {
   val Initial: State = State(label = "Not clicked ):")
 
-  def render(label: String): DslWidget[Theme] =
+  def render(label: String): DslWidget[Event, Theme] =
     ChipSet(chips =
       Children.of(
         Chip(label, selected = false, tabindex = 1),

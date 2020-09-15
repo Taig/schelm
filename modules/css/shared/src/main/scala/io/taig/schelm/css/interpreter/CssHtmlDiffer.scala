@@ -7,15 +7,15 @@ import io.taig.schelm.data.{Html, HtmlDiff}
 import io.taig.schelm.interpreter.HtmlDiffer
 
 object CssHtmlDiffer {
-  def apply(
-      html: Differ[Html, HtmlDiff],
+  def apply[Event](
+      html: Differ[Html[Event], HtmlDiff[Event]],
       css: Differ[Map[Selector, Style], NonEmptyList[CssDiff]]
-  ): Differ[CssHtml, CssHtmlDiff] = new Differ[CssHtml, CssHtmlDiff] {
-    override def diff(current: CssHtml, next: CssHtml): Option[CssHtmlDiff] = {
+  ): Differ[CssHtml[Event], CssHtmlDiff[Event]] = new Differ[CssHtml[Event], CssHtmlDiff[Event]] {
+    override def diff(current: CssHtml[Event], next: CssHtml[Event]): Option[CssHtmlDiff[Event]] = {
       val ((currentHtml, currentCss), (nextHtml, nextCss)) = (CssHtml.toHtml(current), CssHtml.toHtml(next))
       CssHtmlDiff.fromOptions(html.diff(currentHtml, nextHtml), css.diff(currentCss, nextCss))
     }
   }
 
-  def default: Differ[CssHtml, CssHtmlDiff] = CssHtmlDiffer(HtmlDiffer, CssDiffer)
+  def default[Event]: Differ[CssHtml[Event], CssHtmlDiff[Event]] = CssHtmlDiffer(HtmlDiffer[Event], CssDiffer)
 }

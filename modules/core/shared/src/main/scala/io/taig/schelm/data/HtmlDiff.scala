@@ -2,24 +2,24 @@ package io.taig.schelm.data
 
 import cats.data.NonEmptyList
 
-sealed abstract class HtmlDiff extends Product with Serializable
+sealed abstract class HtmlDiff[+Event] extends Product with Serializable
 
 object HtmlDiff {
-  final case class AddAttribute(attribute: Attribute) extends HtmlDiff
-  final case class AppendChild(html: Html) extends HtmlDiff
-  final case class AddListener(listener: Listener) extends HtmlDiff
-  final case object Clear extends HtmlDiff
-  final case class Group(diffs: NonEmptyList[HtmlDiff]) extends HtmlDiff
-  final case class Replace(html: Html) extends HtmlDiff
-  final case class RemoveAttribute(key: Attribute.Key) extends HtmlDiff
-  final case class RemoveChild(index: Int) extends HtmlDiff
-  final case class RemoveListener(name: Listener.Name) extends HtmlDiff
-  final case class UpdateAttribute(key: Attribute.Key, value: Attribute.Value) extends HtmlDiff
-  final case class UpdateChild(index: Int, diff: HtmlDiff) extends HtmlDiff
-  final case class UpdateListener(name: Listener.Name, action: Listener.Action) extends HtmlDiff
-  final case class UpdateText(value: String) extends HtmlDiff
+  final case class AddAttribute(attribute: Attribute) extends HtmlDiff[Nothing]
+  final case class AppendChild[Event](html: Html[Event]) extends HtmlDiff[Event]
+  final case class AddListener[Event](listener: Listener[Event]) extends HtmlDiff[Event]
+  final case object Clear extends HtmlDiff[Nothing]
+  final case class Group[Event](diffs: NonEmptyList[HtmlDiff[Event]]) extends HtmlDiff[Event]
+  final case class Replace[Event](html: Html[Event]) extends HtmlDiff[Event]
+  final case class RemoveAttribute(key: Attribute.Key) extends HtmlDiff[Nothing]
+  final case class RemoveChild(index: Int) extends HtmlDiff[Nothing]
+  final case class RemoveListener(name: Listener.Name) extends HtmlDiff[Nothing]
+  final case class UpdateAttribute(key: Attribute.Key, value: Attribute.Value) extends HtmlDiff[Nothing]
+  final case class UpdateChild[Event](index: Int, diff: HtmlDiff[Event]) extends HtmlDiff[Event]
+  final case class UpdateListener[Event](name: Listener.Name, action: Listener.Action[Event]) extends HtmlDiff[Event]
+  final case class UpdateText(value: String) extends HtmlDiff[Nothing]
 
-  def from(diffs: List[HtmlDiff]): Option[HtmlDiff] = diffs match {
+  def from[Event](diffs: List[HtmlDiff[Event]]): Option[HtmlDiff[Event]] = diffs match {
     case Nil          => None
     case head :: Nil  => Some(head)
     case head :: tail => Some(Group(NonEmptyList(head, tail)))

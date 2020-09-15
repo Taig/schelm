@@ -7,15 +7,18 @@ import io.taig.schelm.algebra.{Dom, Renderer}
 import io.taig.schelm.data._
 
 object HtmlRenderer {
-  def apply[F[_]: Monad](dom: Dom[F]): Renderer[F, Html, HtmlReference[dom.Node, dom.Element, dom.Text]] =
-    new Renderer[F, Html, HtmlReference[dom.Node, dom.Element, dom.Text]] {
-      val renderer: Renderer[F, Node[Html], ComponentReference[
+  def apply[F[_]: Monad, Event](
+      dom: Dom[F]
+  ): Renderer[F, Html[Event], HtmlReference[Event, dom.Node, dom.Element, dom.Text]] =
+    new Renderer[F, Html[Event], HtmlReference[Event, dom.Node, dom.Element, dom.Text]] {
+      val renderer: Renderer[F, Node[Event, Html[Event]], NodeReference[
+        Event,
         dom.Element,
         dom.Text,
-        HtmlReference[dom.Node, dom.Element, dom.Text]
-      ]] = ComponentRenderer(dom, this)(_.toNodes)
+        HtmlReference[Event, dom.Node, dom.Element, dom.Text]
+      ]] = NodeRenderer(dom, this)(_.toNodes)
 
-      override def render(html: Html): F[HtmlReference[dom.Node, dom.Element, dom.Text]] =
-        renderer.render(html.component).map(HtmlReference(_))
+      override def render(html: Html[Event]): F[HtmlReference[Event, dom.Node, dom.Element, dom.Text]] =
+        renderer.render(html.node).map(HtmlReference(_))
     }
 }

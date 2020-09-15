@@ -1,19 +1,19 @@
 package io.taig.schelm.data
 
-final case class Listeners(values: Map[Listener.Name, Listener.Action]) extends AnyVal {
+final case class Listeners[+Event](values: Map[Listener.Name, Listener.Action[Event]]) extends AnyVal {
   def isEmpty: Boolean = values.isEmpty
 
-  def ++(listeners: Listeners): Listeners = Listeners(values ++ listeners.values)
+  def ++[A >: Event](listeners: Listeners[A]): Listeners[A] = Listeners(values ++ listeners.values)
 
-  def +(listener: Listener): Listeners = Listeners(values + listener.toTuple)
+  def +[A >: Event](listener: Listener[A]): Listeners[A] = Listeners(values + listener.toTuple)
 
-  def toList: List[Listener] = values.map { case (name, action) => Listener(name, action) }.toList
+  def toList: List[Listener[Event]] = values.map { case (name, action) => Listener(name, action) }.toList
 }
 
 object Listeners {
-  val Empty: Listeners = Listeners(Map.empty)
+  val Empty: Listeners[Nothing] = Listeners(Map.empty)
 
-  def from(listeners: Iterable[Listener]): Listeners = Listeners(listeners.map(_.toTuple).toMap)
+  def from[Event](listeners: Iterable[Listener[Event]]): Listeners[Event] = Listeners(listeners.map(_.toTuple).toMap)
 
-  def of(listeners: Listener*): Listeners = from(listeners)
+  def of[Event](listeners: Listener[Event]*): Listeners[Event] = from(listeners)
 }

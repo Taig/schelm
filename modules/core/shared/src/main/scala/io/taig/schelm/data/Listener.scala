@@ -1,16 +1,16 @@
 package io.taig.schelm.data
 
-final case class Listener(name: Listener.Name, action: Listener.Action) {
-  def toTuple: (Listener.Name, Listener.Action) = (name, action)
+final case class Listener[+Event](name: Listener.Name, action: Listener.Action[Event]) {
+  def toTuple: (Listener.Name, Listener.Action[Event]) = (name, action)
 }
 
 object Listener {
   final case class Name(value: String) extends AnyVal
 
-  sealed abstract class Action extends Product with Serializable
+  sealed abstract class Action[+Event] extends Product with Serializable
 
   object Action {
-    final case class Pure(event: Event) extends Action
-    final case class Input(event: String => Event) extends Action
+    final case class Pure[Event](event: Event) extends Action[Event]
+    final case class Input[Event](event: String => Event) extends Action[Event]
   }
 }

@@ -6,25 +6,31 @@ import io.taig.schelm.data.{Node, Widget}
 
 import scala.annotation.tailrec
 
-sealed abstract class DslWidget[-Context] extends Product with Serializable
+sealed abstract class DslWidget[+Event, -Context] extends Product with Serializable
 
 object DslWidget {
-  final case class Pure[Context](widget: Widget[Context, CssNode[Node[DslWidget[Context]]]]) extends DslWidget[Context]
+  final case class Pure[Event, Context](widget: Widget[Context, CssNode[Node[Event, DslWidget[Event, Context]]]])
+      extends DslWidget[Event, Context]
 
-  abstract class Component[Context] extends DslWidget[Context] {
-    def render: DslWidget[Context]
+  abstract class Component[Event, Context] extends DslWidget[Event, Context] {
+    def render: DslWidget[Event, Context]
   }
 
   @tailrec
-  def toWidget[Context](dsl: DslWidget[Context]): Widget[Context, CssNode[Node[DslWidget[Context]]]] =
+  def toWidget[Event, Context](
+      dsl: DslWidget[Event, Context]
+  ): Widget[Context, CssNode[Node[Event, DslWidget[Event, Context]]]] =
     dsl match {
-      case Pure(widget)                  => widget
-      case component: Component[Context] => toWidget(component.render)
+      case Pure(widget)                         => widget
+      case component: Component[Event, Context] => toWidget(component.render)
     }
 
-  def toCssHtml[Context](widget: Widget[Context, CssNode[Node[DslWidget[Context]]]], context: Context): CssHtml =
+  def toCssHtml[Event, Context](
+      widget: Widget[Context, CssNode[Node[Event, DslWidget[Event, Context]]]],
+      context: Context
+  ): CssHtml[Event] =
     widget match {
-      case widget: Widget.Patch[Context, CssNode[Node[DslWidget[Context]]]] =>
+      case widget: Widget.Patch[Context, CssNode[Node[Event, DslWidget[Event, Context]]]] =>
         toCssHtml(widget.widget, widget.f(context))
       case Widget.Pure(component) => CssHtml(component.map(_.map(dsl => toCssHtml(toWidget(dsl), context))))
       case Widget.Render(f)       => toCssHtml(f(context), context)

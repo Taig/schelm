@@ -12,8 +12,8 @@ final case class Chip(
     icon: Option[String] = None,
     selected: Boolean = false,
     tabindex: Int = -1
-) extends DslWidget.Component[Any] {
-  override val render: DslWidget[Any] = div(
+) extends DslWidget.Component[Nothing, Any] {
+  override val render: DslWidget[Nothing, Any] = div(
     attributes =
       Attributes.of(a.cls := List("mdc-chip") ++ selected.guard[List].as("mdc-chip--selected"), a.role := "row"),
     lifecycle = Lifecycle(mounted = Mdc.chip.some, unmount = none),
