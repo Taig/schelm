@@ -1,7 +1,7 @@
 package io.taig.schelm.mdc
 
 import cats.implicits._
-import io.taig.schelm.data.{Attributes, Callback, Children, Platform}
+import io.taig.schelm.data.{Attributes, Children, Platform}
 import io.taig.schelm.dsl._
 import io.taig.schelm.dsl.data.DslWidget
 

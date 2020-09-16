@@ -1,11 +1,9 @@
 package io.taig.schelm.mdc
 
-import io.taig.schelm.data.Platform
-
-sealed abstract class MdcEvent[+Element, +Event] extends Product with Serializable
+sealed abstract class MdcEvent[+Event] extends Product with Serializable
 
 object MdcEvent {
-  final case class Domain[Event](event: Event) extends MdcEvent[Nothing, Event]
+  final case class Domain[Event](event: Event) extends MdcEvent[Event]
 
-  final case class ComponentMounted[Element](component: Component, element: Element) extends MdcEvent[Element, Nothing]
+  final case class ComponentMounted(component: Component, element: Any) extends MdcEvent[Nothing]
 }

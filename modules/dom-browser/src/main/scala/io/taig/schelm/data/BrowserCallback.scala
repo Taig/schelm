@@ -1,5 +1,5 @@
 package io.taig.schelm.data
-import cats.effect.IO
+
 import org.scalajs.dom
 
 object BrowserCallback {

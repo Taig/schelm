@@ -1,6 +1,6 @@
 package io.taig.schelm
 
-import io.taig.schelm.data.{Attribute, Callback, Lifecycle, Platform}
+import io.taig.schelm.data.{Attribute, Lifecycle, Platform}
 import io.taig.schelm.dsl.keyword.{AttributeKeyword, NodeKeyword}
 
 package object dsl extends ContextDsl with NodeKeyword with ListenerDsl with StylesheetDsl {

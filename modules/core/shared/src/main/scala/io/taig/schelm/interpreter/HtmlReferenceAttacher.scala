@@ -1,32 +1,53 @@
 package io.taig.schelm.interpreter
 
-import cats.Applicative
 import cats.effect.LiftIO
 import cats.implicits._
+import cats.{Applicative, Monad}
 import io.taig.schelm.algebra.{Attacher, Dom, EventManager}
-import io.taig.schelm.data.{HtmlReference, Node, NodeReference, Platform}
+import io.taig.schelm.data._
 
 object HtmlReferenceAttacher {
-  def apply[F[_]: Applicative: LiftIO, Event](platform: Platform)(
+  def apply[F[_]: Monad: LiftIO, Event](platform: Platform)(
       attacher: Attacher[F, List[platform.Node], platform.Element],
       manager: EventManager[F, Event]
-  ): Attacher[F, HtmlReference[Event, platform.Node, platform.Element, platform.Text], platform.Element] =
-    new Attacher[F, HtmlReference[Event, platform.Node, platform.Element, platform.Text], platform.Element] {
+  ): Attacher[F, HtmlReference[Event, platform.Node, platform.Element, platform.Text], HtmlAttachedReference[
+    Event,
+    platform.Node,
+    platform.Element,
+    platform.Text
+  ]] =
+    new Attacher[
+      F,
+      HtmlReference[Event, platform.Node, platform.Element, platform.Text],
+      HtmlAttachedReference[Event, platform.Node, platform.Element, platform.Text]
+    ] {
       override def attach(
           html: HtmlReference[Event, platform.Node, platform.Element, platform.Text]
-      ): F[platform.Element] =
-        attacher.attach(html.toNodes) <* notify(html)
+      ): F[HtmlAttachedReference[Event, platform.Node, platform.Element, platform.Text]] =
+        attacher.attach(html.toNodes) *> notify(html)
 
-      def notify(html: HtmlReference[Event, platform.Node, platform.Element, platform.Text]): F[Unit] =
+      def notify(
+          html: HtmlReference[Event, platform.Node, platform.Element, platform.Text]
+      ): F[HtmlAttachedReference[Event, platform.Node, platform.Element, platform.Text]] = {
         html.reference match {
-          case NodeReference.Element(Node.Element(_, Node.Element.Type.Normal(children), lifecycle), element) =>
-            children.traverse_(notify) *> lifecycle.mounted(platform)(element).traverse_(manager.submit)
-          case NodeReference.Element(Node.Element(_, Node.Element.Type.Void, lifecycle), element) =>
-            lifecycle.mounted(platform)(element).traverse_(manager.submit)
-          case NodeReference.Fragment(node) =>
-            node.children.traverse_(notify) *> node.lifecycle.mounted(platform)(html.toNodes).traverse_(manager.submit)
-          case NodeReference.Text(node, text) => node.lifecycle.mounted(platform)(text).traverse_(manager.submit)
+          case NodeReference.Element(Node.Element(_, _, lifecycle), element) =>
+            html.reference.traverse(notify(_)).flatMap { reference =>
+              lifecycle.apply(platform)(element).allocated.to[F].map {
+                case (_, release) => HtmlAttachedReference(reference, release)
+              }
+            }
+          case NodeReference.Fragment(Node.Fragment(_, lifecycle)) =>
+            html.reference.traverse(notify(_)).flatMap { reference =>
+              lifecycle.apply(platform)(html.toNodes).allocated.to[F].map {
+                case (_, release) => HtmlAttachedReference(reference, release)
+              }
+            }
+          case reference @ NodeReference.Text(Node.Text(_, _, lifecycle), text) =>
+            lifecycle.apply(platform)(text).allocated.to[F].map {
+              case (_, release) => HtmlAttachedReference(reference, release)
+            }
         }
+      }
     }
 
   def default[F[_]: Applicative: LiftIO, Event](

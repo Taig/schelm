@@ -1,23 +1,17 @@
 package io.taig.schelm.data
 
-final case class Lifecycle[+A](mounted: A, unmount: A)
+import cats.effect.{IO, Resource}
 
 object Lifecycle {
-  type Element[+Event] = Lifecycle[Callback.Element[Event]]
-
-  object Element {
-    val Empty: Lifecycle.Element[Nothing] = Lifecycle(Callback.Element.noop, Callback.Element.noop)
+  abstract class Element[+Event] {
+    def apply[A](platform: Platform)(element: platform.Element): Resource[IO, A]
   }
 
-  type Fragment[+Event] = Lifecycle[Callback.Fragment[Event]]
-
-  object Fragment {
-    val Empty: Lifecycle.Fragment[Nothing] = Lifecycle(Callback.Fragment.noop, Callback.Fragment.noop)
+  abstract class Fragment[+Event] {
+    def apply[A](platform: Platform)(nodes: List[platform.Node]): Resource[IO, A]
   }
 
-  type Text[+Event] = Lifecycle[Callback.Text[Event]]
-
-  object Text {
-    val Empty: Lifecycle.Text[Nothing] = Lifecycle(Callback.Text.noop, Callback.Text.noop)
+  abstract class Text[+Event] {
+    def apply[A](platform: Platform)(text: platform.Text): Resource[IO, A]
   }
 }
