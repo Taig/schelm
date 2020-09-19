@@ -5,7 +5,8 @@ import cats.implicits._
 import io.taig.schelm.algebra.Handler
 import io.taig.schelm.data._
 import io.taig.schelm.dsl.data.DslWidget
-import io.taig.schelm.mdc.{Chip, ChipSet}
+import io.taig.schelm.dsl._
+import io.taig.schelm.mdc.{MdcChip, MdcChipSet, MdcTopAppBar}
 
 final case class Theme(background: String)
 
@@ -31,11 +32,22 @@ final class MyHandler[F[_]: Applicative] extends Handler[F, State, Event, Nothin
 object PlaygroundApp {
   val Initial: State = State(label = "Not clicked ):")
 
-  def render(label: String): DslWidget[Event, Theme] =
-    ChipSet(chips =
-      Children.of(
-        Chip(label, tabindex = 1, icon = ("event", Chip.Icon.Position.Leading).some),
-        Chip("hello google", tabindex = 2, icon = ("event", Chip.Icon.Position.Trailing).some)
+  def render(label: String): DslWidget[Event, Theme] = {
+    fragment(
+      children = Children.of(
+        MdcTopAppBar.regular(title = "Yolo"),
+        div(
+          attributes = Attributes.of(a.cls := "mdc-top-app-bar--fixed-adjust"),
+          children = Children.of(
+            MdcChipSet(chips =
+              Children.of(
+                MdcChip(label, tabindex = 1, icon = ("event", MdcChip.Icon.Position.Leading).some),
+                MdcChip("hello google", tabindex = 2, icon = ("event", MdcChip.Icon.Position.Trailing).some)
+              )
+            )
+          )
+        )
       )
     )
+  }
 }

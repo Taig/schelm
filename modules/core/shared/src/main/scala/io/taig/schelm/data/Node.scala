@@ -6,7 +6,8 @@ import cats.{Applicative, Eval, Traverse}
 sealed abstract class Node[+Event, +A] extends Product with Serializable
 
 object Node {
-  final case class Element[+Event, +A](tag: Tag[Event], tpe: Element.Type[A], lifecycle: Lifecycle.Element) extends Node[Event, A]
+  final case class Element[+Event, +A](tag: Tag[Event], tpe: Element.Type[A], lifecycle: Lifecycle.Element)
+      extends Node[Event, A]
 
   object Element {
 

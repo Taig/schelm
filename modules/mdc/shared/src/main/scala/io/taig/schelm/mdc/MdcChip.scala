@@ -4,11 +4,12 @@ import cats.implicits._
 import io.taig.schelm.data.{Attributes, Children}
 import io.taig.schelm.dsl._
 import io.taig.schelm.dsl.data.DslWidget
+import io.taig.schelm.mdc.MdcChip.Prefix
 import io.taig.schelm.mdc.internal.MdcLifecycle
 
-final case class Chip(
+final case class MdcChip(
     label: String,
-    icon: Option[(String, Chip.Icon.Position)] = None,
+    icon: Option[(String, MdcChip.Icon.Position)] = None,
     selected: Boolean = false,
     tabindex: Int = -1
 ) extends DslWidget.Component[Nothing, Any] {
@@ -16,32 +17,35 @@ final case class Chip(
     attributes = Attributes.of(a.role := "gridcell"),
     children = Children.of(
       span(
-        attributes = Attributes.of(a.cls := "mdc-chip__primary-action", a.role := "button", a.tabindex := tabindex),
+        attributes = Attributes.of(a.cls := s"${Prefix}__primary-action", a.role := "button", a.tabindex := tabindex),
         children = Children.of(
-          span(attributes = Attributes.of(a.cls := "mdc-chip__text"), children = Children.of(text(label)))
+          span(attributes = Attributes.of(a.cls := s"${Prefix}__text"), children = Children.of(text(label)))
         )
       )
     )
   )
 
   override val render: DslWidget[Nothing, Any] = div(
-    attributes =
-      Attributes.of(a.cls := List("mdc-chip") ++ selected.guard[List].as("mdc-chip--selected"), a.role := "row"),
+    attributes = Attributes.of(a.cls := List(Prefix) ++ selected.guard[List].as(s"$Prefix--selected"), a.role := "row"),
     lifecycle = MdcLifecycle.chip,
-    children = Children.of(div(attributes = Attributes.of(a.cls := "mdc-chip__ripple"))) ++
-      Children.from(icon.collect { case (name, position @ Chip.Icon.Position.Leading) => Chip.Icon(name, position) }) ++
+    children = Children.of(div(attributes = Attributes.of(a.cls := s"${Prefix}__ripple"))) ++
+      Children.from(icon.collect {
+        case (name, position @ MdcChip.Icon.Position.Leading) => MdcChip.Icon(name, position)
+      }) ++
       Children.of(body) ++
       Children.from(icon.collect {
-        case (name, position @ Chip.Icon.Position.Trailing) =>
+        case (name, position @ MdcChip.Icon.Position.Trailing) =>
           span(
             attributes = Attributes.of(a.role := "gridcell"),
-            children = Children.of(Chip.Icon(name, position))
+            children = Children.of(MdcChip.Icon(name, position))
           )
       })
   )
 }
 
-object Chip {
+object MdcChip {
+  val Prefix: String = "mdc-chip"
+
   object Icon {
     sealed abstract class Position extends Product with Serializable
 
@@ -57,7 +61,7 @@ object Chip {
       }
 
       i(
-        attributes = Attributes.of(a.cls := s"material-icons mdc-chip__icon mdc-chip__icon--$cls"),
+        attributes = Attributes.of(a.cls := s"material-icons ${Prefix}__icon ${Prefix}__icon--$cls"),
         children = Children.of(text(name))
       )
     }

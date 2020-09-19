@@ -1,6 +1,6 @@
 package io.taig.schelm
 
-import io.taig.schelm.data.{Attribute, Lifecycle, Platform}
+import io.taig.schelm.data.Attribute
 import io.taig.schelm.dsl.keyword.{AttributeKeyword, NodeKeyword}
 
 package object dsl extends ContextDsl with NodeKeyword with ListenerDsl with StylesheetDsl {
@@ -15,6 +15,7 @@ package object dsl extends ContextDsl with NodeKeyword with ListenerDsl with Sty
   }
 
   object a extends AttributeKeyword
+  object e extends NodeKeyword
 
 //  implicit class ListenerNameSyntax(name: Listener.Name) {
 //    def :=[Event](action: Listener.Action[Event]): Listener[Event] = Listener(name, action)

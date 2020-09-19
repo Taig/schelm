@@ -12,7 +12,7 @@ object DslWidget {
   final case class Pure[Event, Context](widget: Widget[Context, CssNode[Node[Event, DslWidget[Event, Context]]]])
       extends DslWidget[Event, Context]
 
-  abstract class Component[Event, Context] extends DslWidget[Event, Context] {
+  abstract class Component[+Event, -Context] extends DslWidget[Event, Context] {
     def render: DslWidget[Event, Context]
   }
 

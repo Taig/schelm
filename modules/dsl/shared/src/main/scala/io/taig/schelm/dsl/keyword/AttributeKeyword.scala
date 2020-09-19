@@ -5,6 +5,7 @@ import io.taig.schelm.data.Attribute
 trait AttributeKeyword {
   def data(name: String): Attribute.Key = Attribute.Key(s"data-$name")
 
+  val ariaLabel: Attribute.Key = Attribute.Key("aria-label")
   val cls: Attribute.Key = Attribute.Key("class")
   val `class`: Attribute.Key = cls
   val role: Attribute.Key = Attribute.Key("role")

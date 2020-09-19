@@ -23,8 +23,10 @@ trait NodeKeyword {
   final val button = element("button")
   final val div = element("div")
   final val hr: ElementVoidBuilder = void("hr")
+  final val header = element("header")
   final val i = element("i")
   final val p = element("p")
+  final val section = element("section")
   final val span = element("span")
 }
 
