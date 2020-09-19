@@ -16,13 +16,6 @@ package object dsl extends ContextDsl with NodeKeyword with ListenerDsl with Sty
 
   object a extends AttributeKeyword
 
-  object lifecycle {
-    def element[Event](
-        mounted: Callback.Element[Event] = Callback.Element.noop,
-        unmount: Callback.Element[Event] = Callback.Element.noop
-    ): Lifecycle[Callback.Element[Event]] = Lifecycle(mounted, unmount)
-  }
-
 //  implicit class ListenerNameSyntax(name: Listener.Name) {
 //    def :=[Event](action: Listener.Action[Event]): Listener[Event] = Listener(name, action)
 //  }

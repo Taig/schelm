@@ -13,7 +13,7 @@ object CssHtmlSchelm {
       main: dom.Element,
       manager: EventManager[F, Event]
   ): F[Schelm[F, CssHtml[Event], Event]] =
-    CssHtmlAttacher.default[F, Event](dom, manager)(main).map { attacher =>
+    CssHtmlAttacher.default[F, Event](dom)(main).map { attacher =>
       val renderer = HtmlRenderer[F, Event](dom)
       val differ = CssHtmlDiffer.default[Event]
       val patcher =

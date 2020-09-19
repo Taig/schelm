@@ -3,15 +3,35 @@ package io.taig.schelm.data
 import cats.effect.{IO, Resource}
 
 object Lifecycle {
-  abstract class Element[+Event] {
-    def apply[A](platform: Platform)(element: platform.Element): Resource[IO, A]
+  private val unit = Resource.pure[IO, Unit](())
+
+  abstract class Element {
+    def apply(platform: Platform)(element: platform.Element): Resource[IO, Unit]
   }
 
-  abstract class Fragment[+Event] {
-    def apply[A](platform: Platform)(nodes: List[platform.Node]): Resource[IO, A]
+  object Element {
+    val noop: Lifecycle.Element = new Lifecycle.Element {
+      override def apply(platform: Platform)(element: platform.Element): Resource[IO, Unit] = unit
+    }
   }
 
-  abstract class Text[+Event] {
-    def apply[A](platform: Platform)(text: platform.Text): Resource[IO, A]
+  abstract class Fragment {
+    def apply(platform: Platform)(nodes: List[platform.Node]): Resource[IO, Unit]
+  }
+
+  object Fragment {
+    val noop: Lifecycle.Fragment = new Lifecycle.Fragment {
+      override def apply(platform: Platform)(nodes: List[platform.Node]): Resource[IO, Unit] = unit
+    }
+  }
+
+  abstract class Text {
+    def apply(platform: Platform)(text: platform.Text): Resource[IO, Unit]
+  }
+
+  object Text {
+    val noop: Lifecycle.Text = new Lifecycle.Text {
+      override def apply(platform: Platform)(text: platform.Text): Resource[IO, Unit] = unit
+    }
   }
 }

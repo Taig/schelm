@@ -1,21 +1,19 @@
 package io.taig.schelm.interpreter
 
+import cats.Monad
 import cats.effect.LiftIO
 import cats.implicits._
-import cats.{Applicative, Monad}
-import io.taig.schelm.algebra.{Attacher, Dom, EventManager}
+import io.taig.schelm.algebra.{Attacher, Dom}
 import io.taig.schelm.data._
 
 object HtmlReferenceAttacher {
   def apply[F[_]: Monad: LiftIO, Event](platform: Platform)(
-      attacher: Attacher[F, List[platform.Node], platform.Element],
-      manager: EventManager[F, Event]
-  ): Attacher[F, HtmlReference[Event, platform.Node, platform.Element, platform.Text], HtmlAttachedReference[
-    Event,
-    platform.Node,
-    platform.Element,
-    platform.Text
-  ]] =
+      attacher: Attacher[F, List[platform.Node], platform.Element]
+  ): Attacher[
+    F,
+    HtmlReference[Event, platform.Node, platform.Element, platform.Text],
+    HtmlAttachedReference[Event, platform.Node, platform.Element, platform.Text]
+  ] =
     new Attacher[
       F,
       HtmlReference[Event, platform.Node, platform.Element, platform.Text],
@@ -50,9 +48,9 @@ object HtmlReferenceAttacher {
       }
     }
 
-  def default[F[_]: Applicative: LiftIO, Event](
-      dom: Dom[F],
-      manager: EventManager[F, Event]
-  )(parent: dom.Element): Attacher[F, HtmlReference[Event, dom.Node, dom.Element, dom.Text], dom.Element] =
-    HtmlReferenceAttacher(dom)(NodeAttacher(dom)(parent), manager)
+  def default[F[_]: Monad: LiftIO, Event](dom: Dom[F])(parent: dom.Element): Attacher[
+    F,
+    HtmlReference[Event, dom.Node, dom.Element, dom.Text],
+    HtmlAttachedReference[Event, dom.Node, dom.Element, dom.Text]
+  ] = HtmlReferenceAttacher(dom)(NodeAttacher(dom)(parent))
 }

@@ -9,7 +9,7 @@ final class ElementNormalBuilder(val name: String) extends AnyVal {
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[Event] = Listeners.Empty,
       style: Style = Style.Empty,
-      lifecycle: Lifecycle.Element[Event] = Lifecycle.Element.Empty,
+      lifecycle: Lifecycle.Element = Lifecycle.Element.noop,
       children: Children[DslWidget[Event, Context]] = Children.Empty
   ): DslWidget[Event, Context] = {
     val element = Node.Element(

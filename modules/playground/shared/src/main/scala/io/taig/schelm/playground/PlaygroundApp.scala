@@ -1,14 +1,11 @@
 package io.taig.schelm.playground
 
 import cats.Applicative
-import cats.effect.{ConcurrentEffect, IO}
 import cats.implicits._
 import io.taig.schelm.algebra.Handler
-import io.taig.schelm.css.data.{CssHtml, CssWidget}
 import io.taig.schelm.data._
-import io.taig.schelm.dsl._
 import io.taig.schelm.dsl.data.DslWidget
-import io.taig.schelm.mdc.{Chip, ChipSet, MdcCommand, MdcEvent}
+import io.taig.schelm.mdc.{Chip, ChipSet}
 
 final case class Theme(background: String)
 
@@ -34,7 +31,7 @@ final class MyHandler[F[_]: Applicative] extends Handler[F, State, Event, Nothin
 object PlaygroundApp {
   val Initial: State = State(label = "Not clicked ):")
 
-  def render(label: String): DslWidget[MdcEvent[Event], Theme] =
+  def render(label: String): DslWidget[Event, Theme] =
     ChipSet(chips =
       Children.of(
         Chip(label, tabindex = 1, icon = ("event", Chip.Icon.Position.Leading).some),

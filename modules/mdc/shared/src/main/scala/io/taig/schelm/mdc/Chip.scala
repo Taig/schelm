@@ -1,21 +1,17 @@
 package io.taig.schelm.mdc
 
 import cats.implicits._
-import io.taig.schelm.data.{Attributes, Children, Platform}
+import io.taig.schelm.data.{Attributes, Children}
 import io.taig.schelm.dsl._
 import io.taig.schelm.dsl.data.DslWidget
+import io.taig.schelm.mdc.internal.MdcLifecycle
 
 final case class Chip(
     label: String,
     icon: Option[(String, Chip.Icon.Position)] = None,
     selected: Boolean = false,
     tabindex: Int = -1
-) extends DslWidget.Component[MdcEvent[Nothing], Any] {
-  object mounted extends Callback.Element[MdcEvent[Nothing]] {
-    override def apply(platform: Platform)(element: platform.Element): Option[MdcEvent[Nothing]] =
-      MdcEvent.ComponentMounted(Component.Chip, element).some
-  }
-
+) extends DslWidget.Component[Nothing, Any] {
   val body: DslWidget[Nothing, Any] = span(
     attributes = Attributes.of(a.role := "gridcell"),
     children = Children.of(
@@ -28,10 +24,10 @@ final case class Chip(
     )
   )
 
-  override val render: DslWidget[MdcEvent[Nothing], Any] = div(
+  override val render: DslWidget[Nothing, Any] = div(
     attributes =
       Attributes.of(a.cls := List("mdc-chip") ++ selected.guard[List].as("mdc-chip--selected"), a.role := "row"),
-    lifecycle = lifecycle.element(mounted = mounted),
+    lifecycle = MdcLifecycle.chip,
     children = Children.of(div(attributes = Attributes.of(a.cls := "mdc-chip__ripple"))) ++
       Children.from(icon.collect { case (name, position @ Chip.Icon.Position.Leading) => Chip.Icon(name, position) }) ++
       Children.of(body) ++

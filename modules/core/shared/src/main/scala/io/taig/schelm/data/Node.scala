@@ -6,11 +6,7 @@ import cats.{Applicative, Eval, Traverse}
 sealed abstract class Node[+Event, +A] extends Product with Serializable
 
 object Node {
-  final case class Element[+Event, +A](
-      tag: Tag[Event],
-      tpe: Element.Type[A],
-      lifecycle: Lifecycle.Element[Event]
-  ) extends Node[Event, A]
+  final case class Element[+Event, +A](tag: Tag[Event], tpe: Element.Type[A], lifecycle: Lifecycle.Element) extends Node[Event, A]
 
   object Element {
 
@@ -51,8 +47,7 @@ object Node {
     }
   }
 
-  final case class Fragment[+Event, +A](children: Children[A], lifecycle: Lifecycle.Fragment[Event])
-      extends Node[Event, A]
+  final case class Fragment[+Event, +A](children: Children[A], lifecycle: Lifecycle.Fragment) extends Node[Event, A]
 
   object Fragment {
     implicit def traverse[Event]: Traverse[Fragment[Event, *]] = new Traverse[Fragment[Event, *]] {
@@ -66,7 +61,7 @@ object Node {
     }
   }
 
-  final case class Text[+Event](value: String, listeners: Listeners[Event], lifecycle: Lifecycle.Text[Event])
+  final case class Text[+Event](value: String, listeners: Listeners[Event], lifecycle: Lifecycle.Text)
       extends Node[Event, Nothing]
 
   implicit def traverse[Event]: Traverse[Node[Event, *]] = new Traverse[Node[Event, *]] {
