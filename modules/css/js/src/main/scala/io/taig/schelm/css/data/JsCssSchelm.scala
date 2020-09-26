@@ -10,6 +10,6 @@ import io.taig.schelm.interpreter.QueueEventManager
 object JsCssSchelm {
   def default[F[_]: ConcurrentEffect: Parallel, Event](
       dom: Dom[F]
-  )(main: dom.Element): F[Schelm[F, CssHtml[Event], Event]] =
+  )(main: Dom.Element): F[Schelm[F, CssHtml[Event], Event]] =
     QueueEventManager.unbounded[F, Event].flatMap(manager => CssHtmlSchelm.default(dom)(main, manager))
 }

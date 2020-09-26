@@ -2,44 +2,56 @@ package io.taig.schelm.algebra
 
 import io.taig.schelm.data.Platform
 
-abstract class Dom[F[_]] extends Platform {
-  def addEventListener(node: Node, name: String, listener: Listener): F[Unit]
+abstract class Dom[F[_]] {
+  def addEventListener(node: Dom.Node, name: String, listener: Dom.Listener): F[Unit]
 
-  def appendChild(parent: Element, child: Node): F[Unit]
+  def appendChild(parent: Dom.Element, child: Dom.Node): F[Unit]
 
-  def createElement(name: String): F[Element]
+  def createElement(name: String): F[Dom.Element]
 
-  def createElementNS(namespace: String, name: String): F[Element]
+  def createElementNS(namespace: String, name: String): F[Dom.Element]
 
-  def createTextNode(value: String): F[Text]
+  def createTextNode(value: String): F[Dom.Text]
 
-  def childAt(element: Element, index: Int): F[Option[Node]]
+  def childAt(element: Dom.Element, index: Int): F[Option[Dom.Node]]
 
-  def children(element: Element): F[List[Node]]
+  def children(element: Dom.Element): F[List[Dom.Node]]
 
-  def data(text: Text, value: String): F[Unit]
+  def data(text: Dom.Text, value: String): F[Unit]
 
-  def document: Document
+  def document: Dom.Document
 
-  def insertBefore(parent: Element, node: Node, reference: Option[Node]): F[Unit]
+  def insertBefore(parent: Dom.Element, node: Dom.Node, reference: Option[Dom.Node]): F[Unit]
 
-  def getAttribute(element: Element, key: String): F[Option[String]]
+  def getAttribute(element: Dom.Element, key: String): F[Option[String]]
 
-  def getElementById(id: String): F[Option[Element]]
+  def getElementById(id: String): F[Option[Dom.Element]]
 
-  def head: F[Option[Element]]
+  def head: F[Option[Dom.Element]]
 
-  def innerHtml(element: Element, value: String): F[Unit]
+  def innerHtml(element: Dom.Element, value: String): F[Unit]
 
-  def parentNode(node: Node): F[Option[Node]]
+  def parentNode(node: Dom.Node): F[Option[Dom.Node]]
 
-  def removeAttribute(element: Element, key: String): F[Unit]
+  def removeAttribute(element: Dom.Element, key: String): F[Unit]
 
-  def removeChild(parent: Element, child: Node): F[Unit]
+  def removeChild(parent: Dom.Element, child: Dom.Node): F[Unit]
 
-  def removeEventListener(node: Node, name: String, listener: Listener): F[Unit]
+  def removeEventListener(node: Dom.Node, name: String, listener: Dom.Listener): F[Unit]
 
-  def replaceChild(parent: Element, current: Node, next: Node): F[Unit]
+  def replaceChild(parent: Dom.Element, current: Dom.Node, next: Dom.Node): F[Unit]
 
-  def setAttribute(element: Element, key: String, value: String): F[Unit]
+  def setAttribute(element: Dom.Element, key: String, value: String): F[Unit]
+}
+
+object Dom extends Platform {
+  type Node
+
+  type Element <: Node
+
+  type Text <: Node
+
+  type Document
+
+  type Listener
 }

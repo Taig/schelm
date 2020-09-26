@@ -7,10 +7,10 @@ import io.taig.schelm.data._
 
 object NodeRenderer {
   def apply[F[_]: Monad, Event, A, B](dom: Dom[F], renderer: Renderer[F, A, B])(
-      extract: B => List[dom.Node]
-  ): Renderer[F, Node[Event, A], NodeReference[Event, dom.Element, dom.Text, B]] =
-    new Renderer[F, Node[Event, A], NodeReference[Event, dom.Element, dom.Text, B]] {
-      override def render(node: Node[Event, A]): F[NodeReference[Event, dom.Element, dom.Text, B]] =
+      extract: B => List[Dom.Node]
+  ): Renderer[F, Node[Event, A], NodeReference[Event, B]] =
+    new Renderer[F, Node[Event, A], NodeReference[Event, B]] {
+      override def render(node: Node[Event, A]): F[NodeReference[Event, B]] =
         node match {
           case node @ Node.Element(tag, Node.Element.Type.Normal(children), _) =>
             for {

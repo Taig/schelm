@@ -2,7 +2,7 @@ package io.taig.schelm.data
 
 import cats.effect.IO
 
-final case class HtmlAttachedReference[+Event, Node, Element <: Node, Text <: Node](
-    reference: NodeReference[Event, Element, Text, HtmlAttachedReference[Event, Node, Element, Text]],
+final case class HtmlAttachedReference[+Event](
+    reference: NodeReference[Event, HtmlAttachedReference[Event]],
     release: IO[Unit]
 )

@@ -66,10 +66,15 @@ object MdcTopAppBar {
     MdcTopAppBar(
       children = Children.of(
         Component.row(children =
-          Children.of(Section.aligned(Section.Alignment.Start, children = Children.of(
-            Title.icon(name = "menu", label = "Menu"),
-            Title(title)
-          )))
+          Children.of(
+            Section.aligned(
+              Section.Alignment.Start,
+              children = Children.of(
+                Title.icon(name = "menu", label = "Menu"),
+                Title(title)
+              )
+            )
+          )
         )
       )
     )

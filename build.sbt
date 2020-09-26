@@ -20,28 +20,17 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
         Nil,
     name := "core"
   )
-
-lazy val domJsoup = project
-  .in(file("modules/dom-jsoup"))
-  .settings(
+  .jvmSettings(
     libraryDependencies ++=
       "org.jsoup" % "jsoup" % JsoupVersion ::
         "org.scala-lang.modules" %% "scala-collection-compat" % ScalaCollectionCompatVersion ::
-        Nil,
-    name := "dom-jsoup"
+        Nil
   )
-  .dependsOn(core.jvm)
-
-lazy val domBrowser = project
-  .enablePlugins(ScalaJSPlugin)
-  .in(file("modules/dom-browser"))
-  .settings(
+  .jsSettings(
     libraryDependencies ++=
       "org.scala-js" %%% "scalajs-dom" % ScalajsDomVersion ::
-        Nil,
-    name := "dom-browser"
+        Nil
   )
-  .dependsOn(core.js)
 
 lazy val css = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
@@ -69,7 +58,6 @@ lazy val mdc = crossProject(JVMPlatform, JSPlatform)
     name := "mdc"
   )
   .dependsOn(dsl)
-  .jsConfigure(_.dependsOn(domBrowser))
 
 lazy val playground = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
@@ -80,5 +68,3 @@ lazy val playground = crossProject(JVMPlatform, JSPlatform)
     scalaJSUseMainModuleInitializer := true
   )
   .dependsOn(mdc)
-  .jsConfigure(_.dependsOn(domBrowser))
-  .jvmConfigure(_.dependsOn(domJsoup))
