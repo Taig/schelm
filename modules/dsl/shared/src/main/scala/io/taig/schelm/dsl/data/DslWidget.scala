@@ -6,7 +6,7 @@ import io.taig.schelm.data.{Node, Widget}
 
 import scala.annotation.tailrec
 
-sealed abstract class DslWidget[+Event, -Context] extends Product with Serializable
+sealed abstract class DslWidget[+Event, -Context]
 
 object DslWidget {
   final case class Pure[Event, Context](widget: Widget[Context, CssNode[Node[Event, DslWidget[Event, Context]]]])

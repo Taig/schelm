@@ -6,9 +6,7 @@ import io.taig.schelm.algebra.Dom
 object Lifecycle {
   private val unit = Resource.pure[IO, Unit](())
 
-  abstract class Element {
-    def apply(element: Dom.Element): Resource[IO, Unit]
-  }
+  type Element = Dom.Element => Resource[IO, Unit]
 
   object Element {
     val noop: Lifecycle.Element = new Lifecycle.Element {
@@ -16,9 +14,7 @@ object Lifecycle {
     }
   }
 
-  abstract class Fragment {
-    def apply(nodes: List[Dom.Node]): Resource[IO, Unit]
-  }
+  type Fragment = List[Dom.Node] => Resource[IO, Unit]
 
   object Fragment {
     val noop: Lifecycle.Fragment = new Lifecycle.Fragment {
@@ -26,9 +22,7 @@ object Lifecycle {
     }
   }
 
-  abstract class Text {
-    def apply(text: Dom.Text): Resource[IO, Unit]
-  }
+  type Text = Dom.Text => Resource[IO, Unit]
 
   object Text {
     val noop: Lifecycle.Text = new Lifecycle.Text {

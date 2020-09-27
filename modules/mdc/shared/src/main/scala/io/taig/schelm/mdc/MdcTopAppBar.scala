@@ -1,13 +1,19 @@
 package io.taig.schelm.mdc
 
+import io.taig.schelm.css.data.Style
 import io.taig.schelm.data.{Attributes, Children}
 import io.taig.schelm.dsl._
 import io.taig.schelm.dsl.data.DslWidget
 
-final case class MdcTopAppBar[+Event, -Context](children: Children[DslWidget[Event, Context]])
-    extends DslWidget.Component[Event, Context] {
-  override def render: DslWidget[Event, Context] =
-    header(attributes = Attributes.of(a.cls := MdcTopAppBar.Prefix), children = children)
+final case class MdcTopAppBar[+Event](style: Style, children: Children[DslWidget[Event, MdcTheme]])
+    extends DslWidget.Component[Event, MdcTheme] {
+  override def render: DslWidget[Event, MdcTheme] = contextual { theme =>
+    header(
+      attributes = Attributes.of(a.cls := MdcTopAppBar.Prefix),
+      style = Style.of(backgroundColor := theme.variant.palette.primary) ++ style,
+      children = children
+    )
+  }
 }
 
 object MdcTopAppBar {
@@ -44,14 +50,26 @@ object MdcTopAppBar {
   }
 
   object Title {
-    def apply(title: String): DslWidget[Nothing, Any] =
-      span(
-        attributes = Attributes.of(a.cls := s"${Prefix}__title"),
-        children = Children.of(text(title))
-      )
+    def apply(title: String): DslWidget[Nothing, MdcTheme] =
+      contextual { theme =>
+        span(
+          attributes = Attributes.of(a.cls := s"${Prefix}__title"),
+          style = Style.of(color := theme.variant.text.primary, fontFamily := theme.fontFamily),
+          children = Children.of(text(title))
+        )
+      }
 
-    def icon(name: String, label: String): DslWidget[Nothing, Any] =
-      MdcIcon(name, label, "button", Attributes.of(a.cls := "mdc-top-app-bar__navigation-icon mdc-icon-button"))
+    def icon(name: String, label: String): DslWidget[Nothing, MdcTheme] = {
+      contextual { theme =>
+        MdcIcon(
+          name,
+          label,
+          "button",
+          Attributes.of(a.cls := "mdc-top-app-bar__navigation-icon mdc-icon-button"),
+          style = Style.of(color := s"${theme.variant.text.primary} !important")
+        )
+      }
+    }
   }
 
   object Component {
@@ -62,8 +80,9 @@ object MdcTopAppBar {
       )
   }
 
-  def regular(title: String): MdcTopAppBar[Nothing, Any] =
+  def regular(title: String, style: Style = Style.Empty): MdcTopAppBar[Nothing] =
     MdcTopAppBar(
+      style,
       children = Children.of(
         Component.row(children =
           Children.of(

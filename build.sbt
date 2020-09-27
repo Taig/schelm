@@ -68,3 +68,21 @@ lazy val playground = crossProject(JVMPlatform, JSPlatform)
     scalaJSUseMainModuleInitializer := true
   )
   .dependsOn(mdc)
+
+lazy val documentation = project
+  .enablePlugins(ScalaJSPlugin)
+  .in(file("modules/documentation"))
+  .settings(noPublishSettings)
+  .settings(
+    name := "documentation",
+    packageSite := {
+      val target = crossTarget.value / "site"
+      val resources = (Compile / resourceDirectory).value
+      val index = resources / "index.html" -> target / "index.html"
+      val javascript = (Compile / fastOptJS).value.data -> target / "asset" / "javascript" / "main.js"
+      IO.copy(List(index, javascript))
+      target
+    },
+    scalaJSUseMainModuleInitializer := true
+  )
+  .dependsOn(mdc.js)

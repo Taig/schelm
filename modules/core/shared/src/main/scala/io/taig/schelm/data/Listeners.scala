@@ -11,7 +11,9 @@ final case class Listeners[+Event](values: Map[Listener.Name, Listener.Action[Ev
 }
 
 object Listeners {
-  val Empty: Listeners[Nothing] = Listeners(Map.empty)
+  def empty[Event]: Listeners[Event] = Listeners(Map.empty)
+
+  val Empty: Listeners[Nothing] = empty[Nothing]
 
   def from[Event](listeners: Iterable[Listener[Event]]): Listeners[Event] = Listeners(listeners.map(_.toTuple).toMap)
 

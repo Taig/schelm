@@ -15,6 +15,8 @@ object CssHtmlRenderer {
     renderer.render(html).tupleRight(stylesheet)
   }
 
-  def default[F[_]: Monad, Event](dom: Dom[F]): Renderer[F, CssHtml[Event], (HtmlReference[Event], Map[Selector, Style])] =
+  def default[F[_]: Monad, Event](
+      dom: Dom[F]
+  ): Renderer[F, CssHtml[Event], (HtmlReference[Event], Map[Selector, Style])] =
     CssHtmlRenderer(HtmlRenderer(dom))
 }

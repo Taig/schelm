@@ -26,7 +26,9 @@ object Children {
 
   final case class Identified[A](values: List[(String, A)]) extends Children[A]
 
-  val Empty: Children[Nothing] = Indexed(List.empty)
+  val Empty: Children[Nothing] = empty[Nothing]
+
+  def empty[A]: Children[A] = Indexed(List.empty[A])
 
   def from[A](children: Iterable[A]): Children[A] = Indexed(children.toList)
 
