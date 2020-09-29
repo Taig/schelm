@@ -1,90 +1,85 @@
 package io.taig.schelm.data
 
 import cats.implicits._
-import cats.{Applicative, Eval, Traverse}
+import cats.{Applicative, Eval, Functor, Traverse}
 
-sealed abstract class Node[+Event, +A] extends Product with Serializable
+sealed abstract class Node[F[_], +A] extends Product with Serializable
 
 object Node {
-  final case class Element[+Event, +A](tag: Tag[Event], tpe: Element.Type[A], lifecycle: Lifecycle.Element)
-      extends Node[Event, A]
+  final case class Element[F[_], +A](tag: Tag[F], variant: Element.Variant[A], lifecycle: Lifecycle.Element[F])
+      extends Node[F, A]
 
   object Element {
 
     /** @see https://dev.w3.org/html5/html-author/#element-type-comparision */
-    sealed abstract class Type[+A] extends Product with Serializable
+    sealed abstract class Variant[+A] extends Product with Serializable
 
-    object Type {
-      final case class Normal[+A](children: Children[A]) extends Type[A]
-      final case object Void extends Type[Nothing]
+    object Variant {
+      final case class Normal[+A](children: Children[A]) extends Variant[A]
+      final case object Void extends Variant[Nothing]
 
-      implicit val traverse: Traverse[Type] = new Traverse[Type] {
-        override def traverse[G[_]: Applicative, A, B](fa: Type[A])(f: A => G[B]): G[Type[B]] =
+      implicit val traverse: Traverse[Variant] = new Traverse[Variant] {
+        override def traverse[G[_]: Applicative, A, B](fa: Variant[A])(f: A => G[B]): G[Variant[B]] =
           fa match {
             case tpe: Normal[A] => tpe.children.traverse(f).map(Normal[B])
             case Void           => Void.pure[G].widen
           }
 
-        override def foldLeft[A, B](fa: Type[A], b: B)(f: (B, A) => B): B = fa match {
+        override def foldLeft[A, B](fa: Variant[A], b: B)(f: (B, A) => B): B = fa match {
           case tpe: Normal[A] => tpe.children.foldl(b)(f)
           case Void           => b
         }
 
-        override def foldRight[A, B](fa: Type[A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] = fa match {
+        override def foldRight[A, B](fa: Variant[A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] = fa match {
           case tpe: Normal[A] => tpe.children.foldr(lb)(f)
           case Void           => lb
         }
       }
     }
 
-    implicit def traverse[Event]: Traverse[Element[Event, *]] = new Traverse[Element[Event, *]] {
-      override def traverse[G[_]: Applicative, A, B](fa: Element[Event, A])(f: A => G[B]): G[Element[Event, B]] =
-        fa.tpe.traverse(f).map(tpe => fa.copy(tpe = tpe))
+    implicit def traverse[F[_]]: Traverse[Element[F, *]] = new Traverse[Element[F, *]] {
+      override def traverse[G[_]: Applicative, A, B](fa: Element[F, A])(f: A => G[B]): G[Element[F, B]] =
+        fa.variant.traverse(f).map(variant => fa.copy(variant = variant))
 
-      override def foldLeft[A, B](fa: Element[Event, A], b: B)(f: (B, A) => B): B = fa.tpe.foldl(b)(f)
+      override def foldLeft[A, B](fa: Element[F, A], b: B)(f: (B, A) => B): B = fa.variant.foldl(b)(f)
 
-      override def foldRight[A, B](fa: Element[Event, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
-        fa.tpe.foldr(lb)(f)
+      override def foldRight[A, B](fa: Element[F, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
+        fa.variant.foldr(lb)(f)
     }
   }
 
-  final case class Fragment[+Event, +A](children: Children[A], lifecycle: Lifecycle.Fragment) extends Node[Event, A]
+  final case class Fragment[F[_], +A](children: Children[A]) extends Node[F, A]
 
   object Fragment {
-    implicit def traverse[Event]: Traverse[Fragment[Event, *]] = new Traverse[Fragment[Event, *]] {
-      override def traverse[G[_]: Applicative, A, B](fa: Fragment[Event, A])(f: A => G[B]): G[Fragment[Event, B]] =
+    implicit def traverse[F[_]]: Traverse[Fragment[F, *]] = new Traverse[Fragment[F, *]] {
+      override def traverse[G[_]: Applicative, A, B](fa: Fragment[F, A])(f: A => G[B]): G[Fragment[F, B]] =
         fa.children.traverse(f).map(children => fa.copy(children = children))
 
-      override def foldLeft[A, B](fa: Fragment[Event, A], b: B)(f: (B, A) => B): B = fa.children.foldl(b)(f)
+      override def foldLeft[A, B](fa: Fragment[F, A], b: B)(f: (B, A) => B): B = fa.children.foldl(b)(f)
 
-      override def foldRight[A, B](fa: Fragment[Event, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
+      override def foldRight[A, B](fa: Fragment[F, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
         fa.children.foldr(lb)(f)
     }
   }
 
-  final case class Text[+Event](value: String, listeners: Listeners[Event], lifecycle: Lifecycle.Text)
-      extends Node[Event, Nothing]
+  final case class Stateful[F[_], A, +B](initial: A, render: (A => F[Unit], A) => B) extends Node[F, B]
 
-  implicit def traverse[Event]: Traverse[Node[Event, *]] = new Traverse[Node[Event, *]] {
-    override def traverse[G[_]: Applicative, A, B](fa: Node[Event, A])(f: A => G[B]): G[Node[Event, B]] =
-      fa match {
-        case component: Element[Event, A]  => component.traverse(f).widen
-        case component: Fragment[Event, A] => component.traverse(f).widen
-        case component: Text[Event]        => component.pure[G].widen
-      }
+  object Stateful {
+    implicit def functor[F[_], A]: Functor[Stateful[F, A, *]] = new Functor[Stateful[F, A, *]] {
+      override def map[B, C](fa: Stateful[F, A, B])(f: B => C): Stateful[F, A, C] =
+        Stateful(fa.initial, (update, state) => f(fa.render(update, state)))
+    }
+  }
 
-    override def foldLeft[A, B](fa: Node[Event, A], b: B)(f: (B, A) => B): B =
-      fa match {
-        case component: Element[Event, A]  => component.foldl(b)(f)
-        case component: Fragment[Event, A] => component.foldl(b)(f)
-        case _: Text[Event]                => b
-      }
+  final case class Text[F[_]](value: String, listeners: Listeners[F], lifecycle: Lifecycle.Text[F])
+      extends Node[F, Nothing]
 
-    override def foldRight[A, B](fa: Node[Event, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
-      fa match {
-        case component: Element[Event, A]  => component.foldr(lb)(f)
-        case component: Fragment[Event, A] => component.foldr(lb)(f)
-        case _: Text[Event]                => lb
-      }
+  implicit def functor[F[_]]: Functor[Node[F, *]] = new Functor[Node[F, *]] {
+    override def map[A, B](fa: Node[F, A])(f: A => B): Node[F, B] = fa match {
+      case component: Element[F, A]     => component.map(f).widen
+      case component: Fragment[F, A]    => component.map(f).widen
+      case component: Stateful[F, _, A] => component.map(f).widen
+      case component: Text[F]           => component
+    }
   }
 }

@@ -1,32 +1,19 @@
 package io.taig.schelm.data
 
-import cats.effect.{IO, Resource}
 import io.taig.schelm.algebra.Dom
 
-object Lifecycle {
-  private val unit = Resource.pure[IO, Unit](())
+final case class Lifecycle[+F[_], A](mounted: Option[A => F[Unit]], unmount: Option[A => F[Unit]])
 
-  type Element = Dom.Element => Resource[IO, Unit]
+object Lifecycle {
+  type Element[F[_]] = Lifecycle[F, Dom.Element]
 
   object Element {
-    val noop: Lifecycle.Element = new Lifecycle.Element {
-      override def apply(element: Dom.Element): Resource[IO, Unit] = unit
-    }
+    val Noop: Lifecycle.Element[Nothing] = Lifecycle(None, None)
   }
 
-  type Fragment = List[Dom.Node] => Resource[IO, Unit]
-
-  object Fragment {
-    val noop: Lifecycle.Fragment = new Lifecycle.Fragment {
-      override def apply(nodes: List[Dom.Node]): Resource[IO, Unit] = unit
-    }
-  }
-
-  type Text = Dom.Text => Resource[IO, Unit]
+  type Text[F[_]] = Lifecycle[F, Dom.Text]
 
   object Text {
-    val noop: Lifecycle.Text = new Lifecycle.Text {
-      override def apply(text: Dom.Text): Resource[IO, Unit] = unit
-    }
+    val Noop: Lifecycle.Text[Nothing] = Lifecycle(None, None)
   }
 }

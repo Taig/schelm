@@ -1,3 +1,3 @@
 package io.taig.schelm.data
 
-final case class Html[+Event](node: Node[Event, Html[Event]]) extends AnyVal
+final case class Html[F[_]](node: Node[F, Html[F]])

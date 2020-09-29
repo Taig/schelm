@@ -1,43 +1,28 @@
 package io.taig.schelm.interpreter
 
-import cats.Monad
-import cats.effect.LiftIO
+import cats.Applicative
 import cats.implicits._
 import io.taig.schelm.algebra.{Attacher, Dom}
 import io.taig.schelm.data._
 
 object HtmlReferenceAttacher {
-  def apply[F[_]: Monad: LiftIO, Event](
+  def apply[F[_]: Applicative](
       attacher: Attacher[F, List[Dom.Node], Dom.Element]
-  ): Attacher[F, HtmlReference[Event], HtmlAttachedReference[Event]] =
-    new Attacher[F, HtmlReference[Event], HtmlAttachedReference[Event]] {
-      override def attach(html: HtmlReference[Event]): F[HtmlAttachedReference[Event]] =
-        attacher.attach(html.toNodes) *> notify(html)
+  ): Attacher[F, HtmlReference[F], Dom.Element] =
+    new Attacher[F, HtmlReference[F], Dom.Element] {
+      override def attach(html: HtmlReference[F]): F[Dom.Element] =
+        attacher.attach(html.toNodes) <* notify(html)
 
-      def notify(html: HtmlReference[Event]): F[HtmlAttachedReference[Event]] = {
-        html.reference match {
-          case NodeReference.Element(Node.Element(_, _, lifecycle), element) =>
-            html.reference.traverse(notify).flatMap { reference =>
-              lifecycle.apply(element).allocated.to[F].map {
-                case (_, release) => HtmlAttachedReference(reference, release)
-              }
-            }
-          case NodeReference.Fragment(Node.Fragment(_, lifecycle)) =>
-            html.reference.traverse(notify).flatMap { reference =>
-              lifecycle.apply(html.toNodes).allocated.to[F].map {
-                case (_, release) => HtmlAttachedReference(reference, release)
-              }
-            }
-          case reference @ NodeReference.Text(Node.Text(_, _, lifecycle), text) =>
-            lifecycle.apply(text).allocated.to[F].map {
-              case (_, release) => HtmlAttachedReference(reference, release)
-            }
-        }
+      def notify(html: HtmlReference[F]): F[Unit] = html.reference match {
+        case NodeReference.Element(Node.Element(_, _, lifecycle), element) =>
+          html.reference.traverse_(notify) <* lifecycle.mounted.traverse_(_ apply element)
+        case NodeReference.Fragment(Node.Fragment(_)) =>
+          html.reference.traverse_(notify)
+        case NodeReference.Text(Node.Text(_, _, lifecycle), text) =>
+          lifecycle.mounted.traverse_(_ apply text)
       }
     }
 
-  def default[F[_]: Monad: LiftIO, Event](
-      dom: Dom[F]
-  )(parent: Dom.Element): Attacher[F, HtmlReference[Event], HtmlAttachedReference[Event]] =
+  def default[F[_]: Applicative](dom: Dom[F])(parent: Dom.Element): Attacher[F, HtmlReference[F], Dom.Element] =
     HtmlReferenceAttacher(NodeAttacher(dom)(parent))
 }

@@ -1,14 +1,28 @@
 package io.taig.schelm.interpreter
 
-import cats.effect.Sync
-import cats.implicits._
-
 import scala.scalajs.js
+
+import cats.effect.implicits._
+import cats.effect.{Effect, IO}
+import cats.implicits._
 import io.taig.schelm.algebra.Dom
 import org.scalajs.dom
 import org.scalajs.dom.Event
 
-final class BrowserDom[F[_]](implicit F: Sync[F]) extends Dom[F] {
+final class BrowserDom[F[_]](implicit F: Effect[F]) extends Dom[F] {
+  override def unsafeRun(f: Any => F[Unit]): js.Function1[Event, _] =
+    event =>
+      f(event)
+        .runAsync {
+          case Right(_) => IO.unit
+          case Left(throwable) =>
+            IO {
+              System.err.println("Failed to run event handler")
+              throwable.printStackTrace(System.err)
+            }
+        }
+        .unsafeRunSync()
+
   override def addEventListener(node: dom.Node, name: String, listener: js.Function1[Event, _]): F[Unit] =
     F.delay(node.addEventListener(name, listener))
 
@@ -70,5 +84,5 @@ final class BrowserDom[F[_]](implicit F: Sync[F]) extends Dom[F] {
 }
 
 object BrowserDom {
-  def apply[F[_]: Sync]: BrowserDom[F] = new BrowserDom[F]
+  def apply[F[_]: Effect]: BrowserDom[F] = new BrowserDom[F]
 }

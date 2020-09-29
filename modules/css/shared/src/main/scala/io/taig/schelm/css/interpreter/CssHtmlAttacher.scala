@@ -5,8 +5,8 @@ import cats.implicits._
 import cats.{Applicative, MonadError}
 import io.taig.schelm.algebra.{Attacher, Dom}
 import io.taig.schelm.css.data.{Selector, Style}
-import io.taig.schelm.data.{HtmlAttachedReference, HtmlReference}
 import io.taig.schelm.interpreter.HtmlReferenceAttacher
+import io.taig.schelm.data.{HtmlAttachedReference, HtmlReference}
 
 object CssHtmlAttacher {
   def apply[F[_]: Applicative, Event, A, B](

@@ -1,7 +1,8 @@
 package io.taig.schelm.css.data
 
 import cats.implicits._
-import io.taig.schelm.data.{Node, Widget}
+import io.taig.schelm.data.Node
+import io.taig.schelm.data.Widget
 
 final case class CssWidget[+Event, -Context](widget: Widget[Context, CssNode[Node[Event, CssWidget[Event, Context]]]])
     extends AnyVal

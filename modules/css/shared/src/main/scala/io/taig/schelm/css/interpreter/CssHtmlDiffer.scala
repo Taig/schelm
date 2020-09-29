@@ -3,8 +3,9 @@ package io.taig.schelm.css.interpreter
 import cats.data.NonEmptyList
 import io.taig.schelm.algebra.Differ
 import io.taig.schelm.css.data._
-import io.taig.schelm.data.{Html, HtmlDiff}
+import io.taig.schelm.data.Html
 import io.taig.schelm.interpreter.HtmlDiffer
+import io.taig.schelm.data.HtmlDiff
 
 object CssHtmlDiffer {
   def apply[Event](

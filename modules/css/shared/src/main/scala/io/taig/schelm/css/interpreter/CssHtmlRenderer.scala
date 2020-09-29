@@ -4,8 +4,9 @@ import cats.implicits._
 import cats.{Applicative, Monad}
 import io.taig.schelm.algebra.{Dom, Renderer}
 import io.taig.schelm.css.data.{CssHtml, Selector, Style}
-import io.taig.schelm.data.{Html, HtmlReference}
+import io.taig.schelm.data.Html
 import io.taig.schelm.interpreter.HtmlRenderer
+import io.taig.schelm.data.HtmlReference
 
 object CssHtmlRenderer {
   def apply[F[_]: Applicative, Event](

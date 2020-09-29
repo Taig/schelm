@@ -14,6 +14,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/core"))
   .settings(sonatypePublishSettings)
   .settings(
+    scalaJSUseMainModuleInitializer := true,
     libraryDependencies ++=
       "org.typelevel" %%% "cats-effect" % CatsEffectVersion ::
         "co.fs2" %%% "fs2-core" % Fs2Version ::

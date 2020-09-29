@@ -2,6 +2,7 @@ package io.taig.schelm.data
 
 import cats.implicits._
 import cats.{Applicative, Eval, Functor, MonoidK, Traverse}
+import io.taig.schelm.data.Children.{Identified, Indexed}
 
 sealed abstract class Children[+A] extends Product with Serializable {
   final def indexed: List[A] = this match {
@@ -19,6 +20,21 @@ sealed abstract class Children[+A] extends Product with Serializable {
     case (Children.Identified(x), Children.Identified(y)) => Children.Identified(x ++ y)
     case (x, y)                                           => Children.Identified(x.identified ++ y.identified)
   }
+
+  def traverse[G[_]: Applicative, B](f: A => G[B]): G[Children[B]] =
+    this match {
+      case Children.Indexed(values) => values.traverse(f).map(Indexed.apply)
+      case Children.Identified(values) =>
+        values.traverse { case (key, child) => f(child).tupleLeft(key) }.map(Identified.apply)
+    }
+
+  def traverseWithKey[G[_]: Applicative, B](f: (Key, A) => G[B]): G[Children[B]] =
+    this match {
+      case Children.Indexed(values) =>
+        values.zipWithIndex.traverse { case (child, index) => f(Key.Index(index), child) }.map(Indexed.apply)
+      case Children.Identified(values) =>
+        values.traverse { case (key, child) => f(Key.Identifier(key), child).tupleLeft(key) }.map(Identified.apply)
+    }
 }
 
 object Children {
@@ -48,12 +64,7 @@ object Children {
   }
 
   implicit val traverse: Traverse[Children] = new Traverse[Children] {
-    override def traverse[G[_]: Applicative, A, B](fa: Children[A])(f: A => G[B]): G[Children[B]] =
-      fa match {
-        case Indexed(values) => values.traverse(f).map(Indexed.apply)
-        case Identified(values) =>
-          values.traverse { case (key, child) => f(child).tupleLeft(key) }.map(Identified.apply)
-      }
+    override def traverse[G[_]: Applicative, A, B](fa: Children[A])(f: A => G[B]): G[Children[B]] = fa.traverse(f)
 
     override def foldLeft[A, B](fa: Children[A], b: B)(f: (B, A) => B): B =
       fa match {

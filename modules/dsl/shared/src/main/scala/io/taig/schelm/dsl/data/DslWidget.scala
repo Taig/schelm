@@ -2,9 +2,10 @@ package io.taig.schelm.dsl.data
 
 import cats.implicits._
 import io.taig.schelm.css.data.{CssHtml, CssNode}
-import io.taig.schelm.data.{Node, Widget}
-
+import io.taig.schelm.data.Node
 import scala.annotation.tailrec
+
+import io.taig.schelm.data.Widget
 
 sealed abstract class DslWidget[+Event, -Context]
 

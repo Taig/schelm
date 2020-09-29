@@ -1,8 +1,8 @@
 package io.taig.schelm.dsl
 
-import io.taig.schelm.data.Widget
 import io.taig.schelm.dsl.data.DslWidget
 import io.taig.schelm.dsl.data.DslWidget.toWidget
+import io.taig.schelm.data.Widget
 
 trait ContextDsl {
   final def contextual[Event, Context](f: Context => DslWidget[Event, Context]): DslWidget[Event, Context] =

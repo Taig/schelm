@@ -3,6 +3,8 @@ package io.taig.schelm.algebra
 import io.taig.schelm.data.Platform
 
 abstract class Dom[F[_]] {
+  def unsafeRun(f: Any => F[Unit]): Dom.Listener
+
   def addEventListener(node: Dom.Node, name: String, listener: Dom.Listener): F[Unit]
 
   def appendChild(parent: Dom.Element, child: Dom.Node): F[Unit]
