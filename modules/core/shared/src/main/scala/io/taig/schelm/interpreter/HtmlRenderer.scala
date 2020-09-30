@@ -1,15 +1,12 @@
 package io.taig.schelm.interpreter
 
-import cats.Monad
+import cats.effect.Sync
+import cats.effect.concurrent.Ref
 import cats.implicits._
 import io.taig.schelm.algebra.{Dom, Patcher, Renderer, StateManager}
 import io.taig.schelm.data._
 
-final class HtmlRenderer[F[_]: Monad](
-    dom: Dom[F],
-    patcher: Patcher[F, List[Dom.Node], HtmlDiff[F]],
-    manager: StateManager[F]
-) extends Renderer[F, Html[F], HtmlReference[F]] { self =>
+final class HtmlRenderer[F[_]: Sync](dom: Dom[F], manager: StateManager[F]) extends Renderer[F, Html[F], HtmlReference[F]] { self =>
   override def render(html: Html[F], path: Path): F[HtmlReference[F]] = render(html.node, path)
 
   def render(node: Node[F, Html[F]], path: Path): F[HtmlReference[F]] =
@@ -43,11 +40,20 @@ final class HtmlRenderer[F[_]: Monad](
         children
           .traverseWithKey((key, child) => render(child, path / key))
           .map(children => HtmlReference(NodeReference.Fragment(node.copy(children = children))))
-      case Node.Stateful(initial, render) =>
+      case node @ Node.Stateful(initial, render) =>
         for {
-          state <- manager.get(path).map(_.getOrElse(initial))
-          node = render(manager.submit(path, _), state)
-          reference <- self.render(node, path)
+          result <- Ref[F].of(none[HtmlReference[F]])
+          html = render(
+            { value =>
+              result.get
+                .flatMap(_.liftTo[F](new IllegalStateException))
+                .map(reference => StateManager.Event(node, reference, value))
+                .flatMap(manager.submit)
+            },
+            initial
+          )
+          reference <- self.render(html, path)
+          _ <- result.set(reference.some)
         } yield reference
       case node: Node.Text[F] =>
         for {
@@ -60,10 +66,5 @@ final class HtmlRenderer[F[_]: Monad](
 }
 
 object HtmlRenderer {
-  def apply[F[_]: Monad](
-      dom: Dom[F],
-      patcher: Patcher[F, List[Dom.Node], HtmlDiff[F]],
-      manager: StateManager[F]
-  ): Renderer[F, Html[F], HtmlReference[F]] =
-    new HtmlRenderer[F](dom, patcher, manager)
+  def apply[F[_]: Sync](dom: Dom[F], manager: StateManager[F]): Renderer[F, Html[F], HtmlReference[F]] = new HtmlRenderer[F](dom, manager)
 }

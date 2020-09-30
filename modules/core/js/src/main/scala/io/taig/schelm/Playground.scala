@@ -2,7 +2,7 @@ package io.taig.schelm
 
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
-import io.taig.schelm.algebra.{Dom, Patcher}
+import io.taig.schelm.algebra.{Dom, Patcher, StateManager}
 import io.taig.schelm.data._
 import io.taig.schelm.interpreter.{BrowserDom, HtmlReferenceAttacher, HtmlRenderer, QueueStateManager}
 
@@ -38,8 +38,15 @@ object Playground extends IOApp {
       .map(HtmlReferenceAttacher.default[IO](dom)(_))
       .flatMap { attacher =>
         QueueStateManager.empty[IO].flatMap { manager =>
-          val renderer = HtmlRenderer(dom, Patcher.noop[IO, List[Dom.Node], HtmlDiff[IO]], manager)
-          manager.subscription.map(println).compile.drain.start *>
+          val renderer = HtmlRenderer(dom, manager)
+          manager.subscription
+            .evalMap {
+              case StateManager.Event(node, reference, state) =>
+                node.render(???, state)
+                IO("")
+            }
+            .evalTap(event => IO(println(event)))
+            .compile.drain.start *>
             renderer.render(html, Path.of(Key.Index(0))).flatTap(attacher.attach)
         }
       } *> IO(ExitCode.Success)
