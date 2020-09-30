@@ -11,7 +11,7 @@ object HtmlReferenceAttacher {
   ): Attacher[F, HtmlReference[F], Dom.Element] =
     new Attacher[F, HtmlReference[F], Dom.Element] {
       override def attach(html: HtmlReference[F]): F[Dom.Element] =
-        attacher.attach(html.toNodes) <* notify(html)
+        attacher.attach(html.dom) <* notify(html)
 
       def notify(html: HtmlReference[F]): F[Unit] = html.reference match {
         case NodeReference.Element(Node.Element(_, _, lifecycle), element) =>

@@ -14,5 +14,10 @@ abstract class StateManager[F[_]] {
 }
 
 object StateManager {
-  final case class Event[F[_], A](node: Node.Stateful[F, A, Html[F]], reference: HtmlReference[F], value: A)
+  final case class Event[F[_], A](
+      node: Node.Stateful[F, A, Html[F]],
+      reference: HtmlReference[F],
+      state: A,
+      update: Any => F[Unit]
+  )
 }

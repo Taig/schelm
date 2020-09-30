@@ -4,7 +4,14 @@ import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
 import io.taig.schelm.algebra.{Dom, Patcher, StateManager}
 import io.taig.schelm.data._
-import io.taig.schelm.interpreter.{BrowserDom, HtmlReferenceAttacher, HtmlRenderer, QueueStateManager}
+import io.taig.schelm.interpreter.{
+  BrowserDom,
+  HtmlDiffer,
+  HtmlPatcher,
+  HtmlReferenceAttacher,
+  HtmlRenderer,
+  QueueStateManager
+}
 
 object Playground extends IOApp {
   val html: Html[IO] = Html(
@@ -32,6 +39,8 @@ object Playground extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
     val dom = BrowserDom[IO]
 
+    val differ = HtmlDiffer[IO]
+
     dom
       .getElementById("main")
       .flatMap(_.liftTo[IO](new IllegalStateException))
@@ -41,13 +50,17 @@ object Playground extends IOApp {
           val renderer = HtmlRenderer(dom, manager)
           manager.subscription
             .evalMap {
-              case StateManager.Event(node, reference, state) =>
-                node.render(???, state)
+              case StateManager.Event(node, reference, state, update) =>
+                val newHtml = node.render(update, state)
+                println(differ.diff(reference.html, newHtml))
+
                 IO("")
             }
             .evalTap(event => IO(println(event)))
-            .compile.drain.start *>
-            renderer.render(html, Path.of(Key.Index(0))).flatTap(attacher.attach)
+            .compile
+            .drain
+            .start *>
+            renderer.render(html).flatTap(attacher.attach)
         }
       } *> IO(ExitCode.Success)
   }

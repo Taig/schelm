@@ -22,7 +22,8 @@ final class QueueStateManager[F[_]](
     state
       .modify[Option[Any]] { state =>
         val previous = state.get(event.reference)
-        if (previous.contains(event.value)) (state, None) else (state + (event.reference -> event.value), Some(event.value))
+        if (previous.contains(event.state)) (state, None)
+        else (state + (event.reference -> event.state), Some(event.state))
       }
       .flatMap {
         case Some(value) => updates.enqueue1(event)

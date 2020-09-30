@@ -9,17 +9,17 @@ object HtmlDiffer {
   def apply[F[_]]: Differ[Html[F], HtmlDiff[F]] = new Differ[Html[F], HtmlDiff[F]] {
     override def diff(current: Html[F], next: Html[F]): Option[HtmlDiff[F]] =
       (current.node, next.node) match {
-        case (current: Node.Element[F, Html[F]], next: Node.Element[F, Html[F]]) =>
+        case (current: Node.Element[F, Listeners[F], Html[F]], next: Node.Element[F, Listeners[F], Html[F]]) =>
           element(current, next)
         case (current: Node.Fragment[F, Html[F]], next: Node.Fragment[F, Html[F]]) =>
           fragment(current, next)
-        case (current: Node.Text[F], next: Node.Text[F]) => text(current, next)
-        case _                                                   => HtmlDiff.Replace(next).some
+        case (current: Node.Text[F, Listeners[F]], next: Node.Text[F, Listeners[F]]) => text(current, next)
+        case _                                                                       => HtmlDiff.Replace(next).some
       }
 
     def element(
-        current: Node.Element[F, Html[F]],
-        next: Node.Element[F, Html[F]]
+        current: Node.Element[F, Listeners[F], Html[F]],
+        next: Node.Element[F, Listeners[F], Html[F]]
     ): Option[HtmlDiff[F]] = {
       if (current.tag.name != next.tag.name) HtmlDiff.Replace(Html(next)).some
       else {
@@ -28,7 +28,7 @@ object HtmlDiffer {
 
         val types = (current.variant, next.variant) match {
           case (Node.Element.Variant.Normal(current), Node.Element.Variant.Normal(next)) => children(current, next)
-          case _                                                                   => None
+          case _                                                                         => None
         }
 
         HtmlDiff.from(diffs ++ types)
@@ -41,7 +41,7 @@ object HtmlDiffer {
     ): Option[HtmlDiff[F]] =
       children(current.children, next.children)
 
-    def text(current: Node.Text[F], next: Node.Text[F]): Option[HtmlDiff[F]] =
+    def text(current: Node.Text[F, Listeners[F]], next: Node.Text[F, Listeners[F]]): Option[HtmlDiff[F]] =
       if (current.value != next.value) HtmlDiff.UpdateText(next.value).some else none
 
     def attributes(current: Attributes, next: Attributes): Option[HtmlDiff[F]] =

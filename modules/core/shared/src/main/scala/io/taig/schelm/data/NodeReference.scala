@@ -7,9 +7,11 @@ import io.taig.schelm.algebra.Dom
 sealed abstract class NodeReference[F[_], +A] extends Product with Serializable
 
 object NodeReference {
-  final case class Element[F[_], A](node: Node.Element[F, A], dom: Dom.Element) extends NodeReference[F, A]
+  final case class Element[F[_], A](node: Node.Element[F, ListenerReferences[F], A], dom: Dom.Element)
+      extends NodeReference[F, A]
   final case class Fragment[F[_], A](node: Node.Fragment[F, A]) extends NodeReference[F, A]
-  final case class Text[F[_]](node: Node.Text[F], dom: Dom.Text) extends NodeReference[F, Nothing]
+  final case class Text[F[_]](node: Node.Text[F, ListenerReferences[F]], dom: Dom.Text)
+      extends NodeReference[F, Nothing]
 
   implicit def traverse[F[_]]: Traverse[NodeReference[F, *]] =
     new Traverse[NodeReference[F, *]] {

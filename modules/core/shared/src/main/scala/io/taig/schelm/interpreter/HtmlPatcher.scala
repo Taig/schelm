@@ -1,16 +1,18 @@
-//package io.taig.schelm.interpreter
-//
-//import cats.MonadError
-//import cats.implicits._
-//import io.taig.schelm.algebra.{Dom, Renderer}
-//import io.taig.schelm.data.{Html, HtmlDiff, Patcher}
-//
-//final class HtmlPatcher[F[_], Event](val dom: Dom[F], renderer: Renderer[F, Html[Event], List[Dom.Node]])(
-//    implicit F: MonadError[F, Throwable]
-//) extends Patcher[F, List[Dom.Node], HtmlDiff[Event]] {
-//  override def patch(nodes: List[Dom.Node], diff: HtmlDiff[Event]): F[Unit] = patch(nodes, diff, cursor = 0)
-//
-//  def patch(nodes: List[Dom.Node], diff: HtmlDiff[Event], cursor: Int): F[Unit] =
+package io.taig.schelm.interpreter
+
+import cats.MonadError
+import cats.implicits._
+import io.taig.schelm.algebra.{Dom, Patcher, Renderer}
+import io.taig.schelm.data.{Html, HtmlDiff, HtmlReference}
+
+final class HtmlPatcher[F[_]](val dom: Dom[F], renderer: Renderer[F, Html[F], HtmlReference[F]])(
+    implicit F: MonadError[F, Throwable]
+) extends Patcher[F, HtmlReference[F], HtmlDiff[F]] {
+//  override def patch(nodes: List[Dom.Node], diff: HtmlDiff[F]): F[Unit] = patch(nodes, diff, cursor = 0)
+
+  override def patch(reference: HtmlReference[F], diff: HtmlDiff[F]): F[Unit] = ???
+
+//  def patch(nodes: List[Dom.Node], diff: HtmlDiff[F], cursor: Int): F[Unit] =
 //    diff match {
 //      case HtmlDiff.AddAttribute(attribute) =>
 //        for {
@@ -78,37 +80,37 @@
 //      case HtmlDiff.UpdateListener(event, action) => ???
 //      case HtmlDiff.UpdateText(value)             => select(nodes, cursor).flatMap(text).flatMap(dom.data(_, value))
 //    }
-//
-//  def select(nodes: List[Dom.Node], index: Int): F[Dom.Node] =
-//    nodes.get(index) match {
-//      case Some(node) => node.pure[F]
-//      case None       => fail(s"No node at index $index")
-//    }
-//
-//  def element(node: Dom.Node): F[Dom.Element] = node match {
-//    case node: Dom.Element => node.pure[F]
-//    case _                 => fail[Dom.Element]("Expected an element node")
-//  }
-//
-//  def text(node: Dom.Node): F[Dom.Text] = node match {
-//    case node: Dom.Text => node.pure[F]
-//    case _              => fail[Dom.Text]("Expected a text node")
-//  }
-//
-//  def parent(node: Dom.Node): F[Dom.Node] =
-//    dom.parentNode(node).flatMap(_.liftTo[F](error("Node does not have a parent")))
-//
-//  def child(parent: Dom.Element, index: Int): F[Dom.Node] =
-//    dom.childAt(parent, index).flatMap(_.liftTo[F](error(s"No child at index $index")))
-//
-//  def error(message: String): IllegalStateException = new IllegalStateException(s"$message. DOM out of sync?")
-//
-//  def fail[A](message: String): F[A] = error(message).raiseError[F, A]
-//}
-//
-//object HtmlPatcher {
-//  def apply[F[_]: MonadError[*[_], Throwable], Event](
-//      dom: Dom[F],
-//      renderer: Renderer[F, Html[Event], List[Dom.Node]]
-//  ): Patcher[F, List[Dom.Node], HtmlDiff[Event]] = new HtmlPatcher[F, Event](dom, renderer)
-//}
+
+  def select(nodes: List[Dom.Node], index: Int): F[Dom.Node] =
+    nodes.get(index) match {
+      case Some(node) => node.pure[F]
+      case None       => fail(s"No node at index $index")
+    }
+
+  def element(node: Dom.Node): F[Dom.Element] = node match {
+    case node: Dom.Element => node.pure[F]
+    case _                 => fail[Dom.Element]("Expected an element node")
+  }
+
+  def text(node: Dom.Node): F[Dom.Text] = node match {
+    case node: Dom.Text => node.pure[F]
+    case _              => fail[Dom.Text]("Expected a text node")
+  }
+
+  def parent(node: Dom.Node): F[Dom.Node] =
+    dom.parentNode(node).flatMap(_.liftTo[F](error("Node does not have a parent")))
+
+  def child(parent: Dom.Element, index: Int): F[Dom.Node] =
+    dom.childAt(parent, index).flatMap(_.liftTo[F](error(s"No child at index $index")))
+
+  def error(message: String): IllegalStateException = new IllegalStateException(s"$message. DOM out of sync?")
+
+  def fail[A](message: String): F[A] = error(message).raiseError[F, A]
+}
+
+object HtmlPatcher {
+  def apply[F[_]: MonadError[*[_], Throwable]](
+      dom: Dom[F],
+      renderer: Renderer[F, Html[F], HtmlReference[F]]
+  ): Patcher[F, HtmlReference[F], HtmlDiff[F]] = new HtmlPatcher[F](dom, renderer)
+}
