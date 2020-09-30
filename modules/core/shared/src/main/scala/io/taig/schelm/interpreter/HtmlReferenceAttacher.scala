@@ -6,9 +6,7 @@ import io.taig.schelm.algebra.{Attacher, Dom}
 import io.taig.schelm.data._
 
 object HtmlReferenceAttacher {
-  def apply[F[_]: Applicative](
-      attacher: Attacher[F, List[Dom.Node], Dom.Element]
-  ): Attacher[F, HtmlReference[F], Dom.Element] =
+  def apply[F[_]: Applicative](attacher: Attacher[F, Vector[Dom.Node], Dom.Element]): Attacher[F, HtmlReference[F], Dom.Element] =
     new Attacher[F, HtmlReference[F], Dom.Element] {
       override def attach(html: HtmlReference[F]): F[Dom.Element] =
         attacher.attach(html.dom) <* notify(html)
@@ -18,6 +16,7 @@ object HtmlReferenceAttacher {
           html.reference.traverse_(notify) <* lifecycle.mounted.traverse_(_ apply element)
         case NodeReference.Fragment(Node.Fragment(_)) =>
           html.reference.traverse_(notify)
+        case NodeReference.Stateful(_, reference) => notify(reference)
         case NodeReference.Text(Node.Text(_, _, lifecycle), text) =>
           lifecycle.mounted.traverse_(_ apply text)
       }

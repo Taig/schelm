@@ -20,9 +20,8 @@ object HtmlDiff {
   final case class UpdateListener[F[_]](name: Listener.Name, action: Listener.Action[F]) extends HtmlDiff[F]
   final case class UpdateText(value: String) extends HtmlDiff[Nothing]
 
-  def from[F[_]](diffs: List[HtmlDiff[F]]): Option[HtmlDiff[F]] = diffs match {
-    case Nil          => None
-    case head :: Nil  => Some(head)
-    case head :: tail => Some(Group(NonEmptyList(head, tail)))
-  }
+  def from[F[_]](diffs: Iterable[HtmlDiff[F]]): Option[HtmlDiff[F]] =
+    if (diffs.isEmpty) None
+    else if (diffs.size == 1) Some(diffs.head)
+    else Some(Group(NonEmptyList(diffs.head, diffs.tail.toList)))
 }

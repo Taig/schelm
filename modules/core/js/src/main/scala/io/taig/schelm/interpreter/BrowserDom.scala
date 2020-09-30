@@ -26,17 +26,14 @@ final class BrowserDom[F[_]](implicit F: Effect[F]) extends Dom[F] {
   override def addEventListener(node: dom.Node, name: String, listener: js.Function1[Event, _]): F[Unit] =
     F.delay(node.addEventListener(name, listener))
 
-  override def appendChild(parent: dom.Element, child: dom.Node): F[Unit] =
-    F.delay(parent.appendChild(child)).void
+  override def appendChild(parent: dom.Element, child: dom.Node): F[Unit] = F.delay(parent.appendChild(child)).void
 
-  override def createElement(name: String): F[dom.Element] =
-    document.createElement(name).pure[F]
+  override def createElement(name: String): F[dom.Element] = document.createElement(name).pure[F]
 
   override def createElementNS(namespace: String, name: String): F[dom.Element] =
     document.createElementNS(namespace, name).pure[F]
 
-  override def createTextNode(value: String): F[dom.Text] =
-    document.createTextNode(value).pure[F]
+  override def createTextNode(value: String): F[dom.Text] = document.createTextNode(value).pure[F]
 
   override def childAt(element: dom.Element, index: Int): F[Option[dom.Node]] =
     F.delay(Option(element.childNodes.apply(index)))
@@ -55,15 +52,16 @@ final class BrowserDom[F[_]](implicit F: Effect[F]) extends Dom[F] {
 
   override def document: dom.Document = dom.document
 
-  override def insertBefore(parent: dom.Element, node: dom.Node, reference: Option[dom.Node]): F[Unit] =
+  override def insertBefore(parent: dom.Element, node: dom.Node, reference: Option[dom.Node]): F[Unit] = {
     F.delay(parent.insertBefore(node, reference.orNull)).void
+  }
 
   override def getAttribute(element: dom.Element, key: String): F[Option[String]] =
     F.delay(Option(element.getAttribute(key)).filter(_.nonEmpty))
 
   override def getElementById(id: String): F[Option[dom.Element]] = F.delay(Option(document.getElementById(id)))
 
-  override def head: F[Option[dom.Element]] = F.delay(Option(dom.document.head))
+  override val head: F[Option[dom.Element]] = F.delay(Option(dom.document.head))
 
   override def innerHtml(element: dom.Element, value: String): F[Unit] = F.delay(element.innerHTML = value)
 

@@ -5,12 +5,17 @@ import cats.{Applicative, Eval, Functor, MonoidK, Traverse}
 import io.taig.schelm.data.Children.{Identified, Indexed}
 
 sealed abstract class Children[+A] extends Product with Serializable {
-  final def indexed: List[A] = this match {
+  final def get(index: Int): Option[A] = this match {
+    case Indexed(values)    => values.get(index)
+    case Identified(values) => values.get(index).map(_._2)
+  }
+
+  final def indexed: Vector[A] = this match {
     case Children.Indexed(values)    => values
     case Children.Identified(values) => values.map { case (_, value) => value }
   }
 
-  final def identified: List[(String, A)] = this match {
+  final def identified: Vector[(String, A)] = this match {
     case Children.Indexed(values)    => values.mapWithIndex((value, index) => (String.valueOf(index), value))
     case Children.Identified(values) => values
   }
@@ -38,15 +43,15 @@ sealed abstract class Children[+A] extends Product with Serializable {
 }
 
 object Children {
-  final case class Indexed[A](values: List[A]) extends Children[A]
+  final case class Indexed[A](values: Vector[A]) extends Children[A]
 
-  final case class Identified[A](values: List[(String, A)]) extends Children[A]
+  final case class Identified[A](values: Vector[(String, A)]) extends Children[A]
 
   val Empty: Children[Nothing] = empty[Nothing]
 
-  def empty[A]: Children[A] = Indexed(List.empty[A])
+  def empty[A]: Children[A] = Indexed(Vector.empty[A])
 
-  def from[A](children: Iterable[A]): Children[A] = Indexed(children.toList)
+  def from[A](children: Iterable[A]): Children[A] = Indexed(children.toVector)
 
   def of[A](children: A*): Children[A] = from(children)
 

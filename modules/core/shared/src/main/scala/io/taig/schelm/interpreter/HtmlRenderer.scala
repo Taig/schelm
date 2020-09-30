@@ -3,10 +3,10 @@ package io.taig.schelm.interpreter
 import cats.effect.Sync
 import cats.effect.concurrent.Ref
 import cats.implicits._
-import io.taig.schelm.algebra.{Dom, Renderer, StateManager}
+import io.taig.schelm.algebra.{Dom, Ids, Renderer, StateManager}
 import io.taig.schelm.data._
 
-final class HtmlRenderer[F[_]: Sync](dom: Dom[F], manager: StateManager[F])
+final class HtmlRenderer[F[_]: Sync](dom: Dom[F], identifiers: Ids[F], manager: StateManager[F])
     extends Renderer[F, Html[F], HtmlReference[F]] { self =>
   override def render(html: Html[F]): F[HtmlReference[F]] = html.node match {
     case node @ Node.Element(tag, Node.Element.Variant.Normal(children), _) =>
@@ -42,8 +42,8 @@ final class HtmlRenderer[F[_]: Sync](dom: Dom[F], manager: StateManager[F])
               .as(listener.name -> ((reference, listener.action)))
           }
           .map(listeners => ListenerReferences(listeners.toMap))
-        reference = NodeReference
-          .Element(node.copy(tag = tag.copy(listeners = listeners), variant = Node.Element.Variant.Void), element)
+        variant = Node.Element.Variant.Void
+        reference = NodeReference.Element(node.copy(tag = tag.copy(listeners = listeners), variant = variant), element)
       } yield HtmlReference(reference)
     case node @ Node.Fragment(children) =>
       children
@@ -51,18 +51,15 @@ final class HtmlRenderer[F[_]: Sync](dom: Dom[F], manager: StateManager[F])
         .map(children => HtmlReference(NodeReference.Fragment(node.copy(children = children))))
     case node @ Node.Stateful(initial, render) =>
       for {
-        result <- Ref[F].of(none[HtmlReference[F]])
-        update = new (Any => F[Unit]) {
-          override def apply(value: Any): F[Unit] =
-            result.get
-              .flatMap(_.liftTo[F](new IllegalStateException))
-              .map(StateManager.Event(node, _, value, this))
-              .flatMap(manager.submit)
-        }
+        result <- Ref[F].of(none[NodeReference.Stateful[F, HtmlReference[F]]])
+        identifier <- identifiers.next
+        update = (value: Any) =>
+          result.get.flatMap(_.liftTo[F](new IllegalStateException)).flatMap(manager.submit(_, value))
         html = render(update, initial)
         reference <- self.render(html)
-        _ <- result.set(reference.some)
-      } yield reference
+        xxx = NodeReference.Stateful[F, HtmlReference[F]](identifier, reference)
+        _ <- result.set(xxx.some)
+      } yield HtmlReference(xxx)
     case node @ Node.Text(value, listeners, _) =>
       for {
         text <- dom.createTextNode(value)
@@ -79,6 +76,9 @@ final class HtmlRenderer[F[_]: Sync](dom: Dom[F], manager: StateManager[F])
 }
 
 object HtmlRenderer {
-  def apply[F[_]: Sync](dom: Dom[F], manager: StateManager[F]): Renderer[F, Html[F], HtmlReference[F]] =
-    new HtmlRenderer[F](dom, manager)
+  def apply[F[_]: Sync](dom: Dom[F], ids: Ids[F], manager: StateManager[F]): Renderer[F, Html[F], HtmlReference[F]] =
+    new HtmlRenderer[F](dom, ids, manager)
+
+  def default[F[_]: Sync](dom: Dom[F], manager: StateManager[F]): F[Renderer[F, Html[F], HtmlReference[F]]] =
+    RefIds.default[F].map(ids => HtmlRenderer[F](dom, ids, manager))
 }

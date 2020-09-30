@@ -3,30 +3,46 @@ package io.taig.schelm.interpreter
 import cats.MonadError
 import cats.implicits._
 import io.taig.schelm.algebra.{Dom, Patcher, Renderer}
-import io.taig.schelm.data.{Html, HtmlDiff, HtmlReference}
+import io.taig.schelm.data.{Html, HtmlDiff, HtmlReference, Node, NodeReference}
 
-final class HtmlPatcher[F[_]](val dom: Dom[F], renderer: Renderer[F, Html[F], HtmlReference[F]])(
+final class HtmlPatcher[F[_]](dom: Dom[F], renderer: Renderer[F, Html[F], HtmlReference[F]])(
     implicit F: MonadError[F, Throwable]
 ) extends Patcher[F, HtmlReference[F], HtmlDiff[F]] {
-//  override def patch(nodes: List[Dom.Node], diff: HtmlDiff[F]): F[Unit] = patch(nodes, diff, cursor = 0)
+  override def patch(html: HtmlReference[F], diff: HtmlDiff[F]): F[HtmlReference[F]] = patch(html, diff, cursor = 0)
 
-  override def patch(reference: HtmlReference[F], diff: HtmlDiff[F]): F[Unit] = ???
+  def patch(html: HtmlReference[F], diff: HtmlDiff[F], cursor: Int): F[HtmlReference[F]] = {
+    (html.reference, diff) match {
+      case (_, HtmlDiff.Group(diffs)) => diffs.foldLeftM(html)(patch(_, _, cursor))
+      case (NodeReference.Element(_, element), HtmlDiff.AddAttribute(attribute)) =>
+        dom.setAttribute(element, attribute.key.value, attribute.value.value).as(html)
+//      case (NodeReference.Element(_, element), HtmlDiff.AppendChild(html)) =>
+//        for {
+//          reference <- renderer.render(html)
+//          _ <- reference.dom.traverse_(dom.appendChild(element, _))
+//        } yield NodeReference.Element(???, element)
+      case (NodeReference.Fragment(_), HtmlDiff.AppendChild(html)) => ???
+      case (NodeReference.Element(node, _), HtmlDiff.UpdateChild(index, diff)) =>
+        node match {
+          case Node.Element(_, Node.Element.Variant.Normal(children), _) =>
+            children.get(index) match {
+              case Some(child) => patch(child, diff, cursor = 0)
+              case None        => fail(s"No child at index $index")
+            }
+          case Node.Element(_, Node.Element.Variant.Void, _) => fail("Can not update child on a void element")
+        }
+      case (reference @ NodeReference.Element(node, element), HtmlDiff.UpdateListener(name, action)) =>
+        node.tag.listeners.get(name) match {
+          case Some((previous, _)) =>
+            val next = dom.unsafeRun(action)
+            val listeners = node.tag.listeners.updated(name, next, action)
+            val update = HtmlReference(reference.copy(node = node.copy(tag = node.tag.copy(listeners = listeners))))
+            dom.removeEventListener(element, name.value, previous) *>
+              dom.addEventListener(element, name.value, next).as(update)
+          case None => fail(s"No event listener for ${name.value} registered")
+        }
+      case (NodeReference.Text(_, text), HtmlDiff.UpdateText(value)) => dom.data(text, value).as(html)
+      case (reference, diff)                                         => fail(s"Can not apply $diff to $reference")
 
-//  def patch(nodes: List[Dom.Node], diff: HtmlDiff[F], cursor: Int): F[Unit] =
-//    diff match {
-//      case HtmlDiff.AddAttribute(attribute) =>
-//        for {
-//          node <- select(nodes, cursor)
-//          element <- element(node)
-//          _ <- dom.setAttribute(element, attribute.key.value, attribute.value.value)
-//        } yield ()
-//      case HtmlDiff.AppendChild(html) =>
-//        for {
-//          parent <- select(nodes, cursor)
-//          parent <- element(parent)
-//          children <- renderer.render(html)
-//          _ <- children.traverse_(dom.appendChild(parent, _))
-//        } yield ()
 //      case HtmlDiff.AddListener(listener) =>
 //        for {
 //          node <- select(nodes, cursor)
@@ -79,7 +95,8 @@ final class HtmlPatcher[F[_]](val dom: Dom[F], renderer: Renderer[F, Html[F], Ht
 //        } yield ()
 //      case HtmlDiff.UpdateListener(event, action) => ???
 //      case HtmlDiff.UpdateText(value)             => select(nodes, cursor).flatMap(text).flatMap(dom.data(_, value))
-//    }
+    }
+  }
 
   def select(nodes: List[Dom.Node], index: Int): F[Dom.Node] =
     nodes.get(index) match {

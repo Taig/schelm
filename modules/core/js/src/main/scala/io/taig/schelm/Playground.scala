@@ -1,17 +1,11 @@
 package io.taig.schelm
 
+import cats.effect.concurrent.Ref
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
-import io.taig.schelm.algebra.{Dom, Patcher, StateManager}
+import io.taig.schelm.algebra.StateManager
 import io.taig.schelm.data._
-import io.taig.schelm.interpreter.{
-  BrowserDom,
-  HtmlDiffer,
-  HtmlPatcher,
-  HtmlReferenceAttacher,
-  HtmlRenderer,
-  QueueStateManager
-}
+import io.taig.schelm.interpreter._
 
 object Playground extends IOApp {
   val html: Html[IO] = Html(
@@ -23,14 +17,14 @@ object Playground extends IOApp {
             Tag(
               "button",
               Attributes.Empty,
-              Listeners.of(Listener(Listener.Name("click"), event => update("yolo")))
+              Listeners.of(Listener(Listener.Name("click"), event => update(state.reverse)))
             ),
             Node.Element.Variant.Normal(
               Children.of(
-                Html(Node.Text(state, listeners = Listeners.Empty, lifecycle = Lifecycle.Text.Noop))
+                Html(Node.Text(state, listeners = Listeners.Empty, lifecycle = Lifecycle.Noop))
               )
             ),
-            Lifecycle.Element.Noop
+            Lifecycle.Noop
           )
         )
     )
@@ -47,20 +41,35 @@ object Playground extends IOApp {
       .map(HtmlReferenceAttacher.default[IO](dom)(_))
       .flatMap { attacher =>
         QueueStateManager.empty[IO].flatMap { manager =>
-          val renderer = HtmlRenderer(dom, manager)
-          manager.subscription
-            .evalMap {
-              case StateManager.Event(node, reference, state, update) =>
-                val newHtml = node.render(update, state)
-                println(differ.diff(reference.html, newHtml))
+          HtmlRenderer.default(dom, manager).flatMap { renderer =>
+            val patcher = HtmlPatcher(dom, renderer)
 
-                IO("")
-            }
-            .evalTap(event => IO(println(event)))
-            .compile
-            .drain
-            .start *>
-            renderer.render(html).flatTap(attacher.attach)
+            manager.subscription
+              .evalMap {
+                case event @ StateManager.Event(reference, previous, next) =>
+                  Ref[IO].of(none[NodeReference.Stateful[IO, HtmlReference[IO]]]).flatMap { result =>
+                    val update = (value: Any) => result.get.flatMap(_.liftTo[IO](new IllegalStateException)).flatMap(manager.submit(_, value))
+                    val prevHtml = reference.reference.html
+                    val nextHtml = ??? // reference.render(update, next)
+
+                    val diff = differ.diff(prevHtml, nextHtml)
+                    println(diff)
+                    diff.traverse_(patcher.patch(reference.reference, _))
+                  }
+              }
+              .handleErrorWith { throwable =>
+                fs2.Stream.eval {
+                  IO {
+                    System.err.println("Failed to patch DOM")
+                    throwable.printStackTrace(System.err)
+                  }
+                }
+              }
+              .compile
+              .drain
+              .start *>
+              renderer.render(html).flatTap(attacher.attach)
+          }
         }
       } *> IO(ExitCode.Success)
   }
