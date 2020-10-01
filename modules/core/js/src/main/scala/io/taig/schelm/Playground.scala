@@ -1,6 +1,6 @@
 package io.taig.schelm
 
-import cats.effect.{ExitCode, IO, IOApp}
+import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.implicits._
 import io.taig.schelm.data._
 import io.taig.schelm.interpreter._
@@ -20,19 +20,17 @@ object Playground extends IOApp {
               Listeners.of(Listener(Listener.Name("click"), event => IO(println("le click"))))
             ),
             Node.Element.Variant.Normal(
-              Children.of(Html(Node.Text(state.toString, listeners = Listeners.Empty, lifecycle = Lifecycle.Noop)))
+              Children.of(Html(Node.Text(state.toString, listeners = Listeners.Empty, lifecycle = Lifecycle.noop[IO])))
             ),
-            Lifecycle(
-              mounted = Some((_) =>
-                fs2.Stream
-                  .awakeEvery[IO](1.second)
-                  .evalMap(_ => IO(System.currentTimeMillis()))
-                  .evalMap(update)
-                  .compile
-                  .drain
-              ),
-              None
-            )
+            _ =>
+              fs2.Stream
+                .awakeEvery[IO](1.second)
+                .evalMap(_ => IO(System.currentTimeMillis()))
+                .evalMap(update)
+                .compile
+                .drain
+                .background
+                .void
           )
         )
       }
