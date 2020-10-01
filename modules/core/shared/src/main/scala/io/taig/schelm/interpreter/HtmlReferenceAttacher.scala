@@ -1,15 +1,18 @@
 package io.taig.schelm.interpreter
 
-import cats.Applicative
+import cats.effect.Concurrent
+import cats.effect.implicits._
 import cats.implicits._
 import io.taig.schelm.algebra.{Attacher, Dom}
 import io.taig.schelm.data._
 
 object HtmlReferenceAttacher {
-  def apply[F[_]: Applicative](attacher: Attacher[F, Vector[Dom.Node], Dom.Element]): Attacher[F, HtmlReference[F], Dom.Element] =
+  def apply[F[_]: Concurrent](
+      attacher: Attacher[F, Vector[Dom.Node], Dom.Element]
+  ): Attacher[F, HtmlReference[F], Dom.Element] =
     new Attacher[F, HtmlReference[F], Dom.Element] {
       override def attach(html: HtmlReference[F]): F[Dom.Element] =
-        attacher.attach(html.dom) <* notify(html)
+        attacher.attach(html.dom) <* notify(html).start
 
       def notify(html: HtmlReference[F]): F[Unit] = html.reference match {
         case NodeReference.Element(Node.Element(_, _, lifecycle), element) =>
@@ -22,6 +25,6 @@ object HtmlReferenceAttacher {
       }
     }
 
-  def default[F[_]: Applicative](dom: Dom[F])(parent: Dom.Element): Attacher[F, HtmlReference[F], Dom.Element] =
+  def default[F[_]: Concurrent](dom: Dom[F])(parent: Dom.Element): Attacher[F, HtmlReference[F], Dom.Element] =
     HtmlReferenceAttacher(NodeAttacher(dom)(parent))
 }

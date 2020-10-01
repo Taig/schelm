@@ -1,32 +1,41 @@
 package io.taig.schelm
 
-import cats.effect.concurrent.Ref
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
-import io.taig.schelm.algebra.StateManager
 import io.taig.schelm.data._
 import io.taig.schelm.interpreter._
 
+import scala.concurrent.duration.DurationInt
+
 object Playground extends IOApp {
   val html: Html[IO] = Html(
-    Node.Stateful[IO, String, Html[IO]](
-      initial = "foobar",
-      render = (update, state) =>
+    Node.Stateful[IO, Long, Html[IO]](
+      0,
+      render = { (update, state) =>
         Html(
           Node.Element(
             Tag(
               "button",
               Attributes.Empty,
-              Listeners.of(Listener(Listener.Name("click"), event => update(state.reverse)))
+              Listeners.of(Listener(Listener.Name("click"), event => IO(println("le click"))))
             ),
             Node.Element.Variant.Normal(
-              Children.of(
-                Html(Node.Text(state, listeners = Listeners.Empty, lifecycle = Lifecycle.Noop))
-              )
+              Children.of(Html(Node.Text(state.toString, listeners = Listeners.Empty, lifecycle = Lifecycle.Noop)))
             ),
-            Lifecycle.Noop
+            Lifecycle(
+              mounted = Some((_) =>
+                fs2.Stream
+                  .awakeEvery[IO](1.second)
+                  .evalMap(_ => IO(System.currentTimeMillis()))
+                  .evalMap(update)
+                  .compile
+                  .drain
+              ),
+              None
+            )
           )
         )
+      }
     )
   )
 
@@ -35,42 +44,30 @@ object Playground extends IOApp {
 
     val differ = HtmlDiffer[IO]
 
-    dom
-      .getElementById("main")
-      .flatMap(_.liftTo[IO](new IllegalStateException))
-      .map(HtmlReferenceAttacher.default[IO](dom)(_))
-      .flatMap { attacher =>
-        QueueStateManager.empty[IO].flatMap { manager =>
-          HtmlRenderer.default(dom, manager).flatMap { renderer =>
-            val patcher = HtmlPatcher(dom, renderer)
-
-            manager.subscription
-              .evalMap {
-                case event @ StateManager.Event(reference, previous, next) =>
-                  Ref[IO].of(none[NodeReference.Stateful[IO, HtmlReference[IO]]]).flatMap { result =>
-                    val update = (value: Any) => result.get.flatMap(_.liftTo[IO](new IllegalStateException)).flatMap(manager.submit(_, value))
-                    val prevHtml = reference.reference.html
-                    val nextHtml = ??? // reference.render(update, next)
-
-                    val diff = differ.diff(prevHtml, nextHtml)
-                    println(diff)
-                    diff.traverse_(patcher.patch(reference.reference, _))
-                  }
-              }
-              .handleErrorWith { throwable =>
-                fs2.Stream.eval {
-                  IO {
-                    System.err.println("Failed to patch DOM")
-                    throwable.printStackTrace(System.err)
-                  }
-                }
-              }
-              .compile
-              .drain
-              .start *>
-              renderer.render(html).flatTap(attacher.attach)
+    for {
+      root <- dom.getElementById("main").flatMap(_.liftTo[IO](new IllegalStateException("root element does not exist")))
+      states <- QueueStateManager.empty[IO]
+      renderer = HtmlRenderer[IO](dom, states)
+      patcher = HtmlPatcher[IO](dom, renderer)
+      attacher = HtmlReferenceAttacher.default(dom)(root)
+      reference <- renderer.render(html, Path.Empty)
+      _ <- states.subscription
+        .evalScan(reference) { (reference, update) =>
+          reference.update(update.path) {
+            case reference @ NodeReference.Stateful(html, value) =>
+              val next = html.render(value => states.submit(update.path, update.initial, value), update.state)
+              val diff = differ.diff(value.html, next)
+              diff
+                .traverse(patcher.patch(HtmlReference(reference), _))
+                .map(_.map(_.reference).getOrElse(reference))
+            case reference => IO(reference)
           }
         }
-      } *> IO(ExitCode.Success)
+        .handleErrorWith { throwable => fs2.Stream.eval(IO(throwable.printStackTrace())) }
+        .compile
+        .drain
+        .start
+      _ <- attacher.attach(reference)
+    } yield ExitCode.Success
   }
 }

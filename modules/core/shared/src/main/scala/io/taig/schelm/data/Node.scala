@@ -1,9 +1,18 @@
 package io.taig.schelm.data
 
 import cats.implicits._
-import cats.{Applicative, Bifunctor, Bitraverse, Eval, Functor, Traverse}
+import cats.{Applicative, Bifunctor, Eval, Functor, Traverse}
 
-sealed abstract class Node[F[_], +Listeners, +A] extends Product with Serializable
+sealed abstract class Node[F[_], +Listeners, +A] extends Product with Serializable {
+  final override def toString: String = this match {
+    case Node.Element(tag, variant, lifecycle) =>
+      s"Node.Element(tag = $tag, variant = $variant, lifecycle = $lifecycle)"
+    case Node.Fragment(children)        => s"Node.Fragment(children = $children)"
+    case Node.Stateful(initial, render) => s"Node.Stateful(initial = $initial, render = $render)"
+    case Node.Text(value, listeners, lifecycle) =>
+      s"Node.Text(value = $value, listeners = $listeners, lifecycle = $lifecycle)"
+  }
+}
 
 object Node {
   final case class Element[F[_], +Listeners, +A](

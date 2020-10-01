@@ -13,23 +13,31 @@ final class HtmlPatcher[F[_]](dom: Dom[F], renderer: Renderer[F, Html[F], HtmlRe
   def patch(html: HtmlReference[F], diff: HtmlDiff[F], cursor: Int): F[HtmlReference[F]] = {
     (html.reference, diff) match {
       case (_, HtmlDiff.Group(diffs)) => diffs.foldLeftM(html)(patch(_, _, cursor))
-      case (NodeReference.Element(_, element), HtmlDiff.AddAttribute(attribute)) =>
-        dom.setAttribute(element, attribute.key.value, attribute.value.value).as(html)
+//      case (NodeReference.Element(_, element), HtmlDiff.AddAttribute(attribute)) =>
+//        dom.setAttribute(element, attribute.key.value, attribute.value.value).as(html)
 //      case (NodeReference.Element(_, element), HtmlDiff.AppendChild(html)) =>
 //        for {
 //          reference <- renderer.render(html)
 //          _ <- reference.dom.traverse_(dom.appendChild(element, _))
 //        } yield NodeReference.Element(???, element)
-      case (NodeReference.Fragment(_), HtmlDiff.AppendChild(html)) => ???
-      case (NodeReference.Element(node, _), HtmlDiff.UpdateChild(index, diff)) =>
+//      case (NodeReference.Fragment(_), HtmlDiff.AppendChild(html)) => ???
+      case (reference @ NodeReference.Element(node, _), HtmlDiff.UpdateChild(index, diff)) =>
         node match {
-          case Node.Element(_, Node.Element.Variant.Normal(children), _) =>
+          case node @ Node.Element(_, Node.Element.Variant.Normal(children), _) =>
             children.get(index) match {
-              case Some(child) => patch(child, diff, cursor = 0)
-              case None        => fail(s"No child at index $index")
+              case Some(child) =>
+                patch(child, diff, cursor = 0).map { update =>
+                  HtmlReference(
+                    reference
+                      .copy(node = node.copy(variant = Node.Element.Variant.Normal(children.updated(index, update))))
+                  )
+                }
+              case None => fail(s"No child at index $index")
             }
           case Node.Element(_, Node.Element.Variant.Void, _) => fail("Can not update child on a void element")
         }
+      case (reference @ NodeReference.Stateful(_, value), diff) =>
+        patch(value, diff, cursor).map { update => HtmlReference(reference.copy(value = update)) }
       case (reference @ NodeReference.Element(node, element), HtmlDiff.UpdateListener(name, action)) =>
         node.tag.listeners.get(name) match {
           case Some((previous, _)) =>

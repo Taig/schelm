@@ -1,7 +1,6 @@
 package io.taig.schelm.data
 
 import cats.data.NonEmptyList
-import io.taig.schelm.data.{Attribute, Html}
 
 sealed abstract class HtmlDiff[+F[_]] extends Product with Serializable
 

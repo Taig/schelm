@@ -3,21 +3,26 @@ package io.taig.schelm.data
 import cats.implicits._
 import cats.{Applicative, Eval, Functor, MonoidK, Traverse}
 import io.taig.schelm.data.Children.{Identified, Indexed}
+import io.taig.schelm.util.Collections
+
+import scala.collection.immutable.VectorMap
 
 sealed abstract class Children[+A] extends Product with Serializable {
-  final def get(index: Int): Option[A] = this match {
-    case Indexed(values)    => values.get(index)
-    case Identified(values) => values.get(index).map(_._2)
-  }
-
   final def indexed: Vector[A] = this match {
     case Children.Indexed(values)    => values
-    case Children.Identified(values) => values.map { case (_, value) => value }
+    case Children.Identified(values) => values.values.toVector
   }
 
-  final def identified: Vector[(String, A)] = this match {
-    case Children.Indexed(values)    => values.mapWithIndex((value, index) => (String.valueOf(index), value))
+  final def identified: VectorMap[String, A] = this match {
+    case Children.Indexed(values)    => values.mapWithIndex((value, index) => (String.valueOf(index), value)).to(VectorMap)
     case Children.Identified(values) => values
+  }
+
+  def updated[B >: A](index: Int, value: B): Children[B] = this match {
+    case Children.Indexed(values) => Children.Indexed(values.updated(index, value))
+    case Children.Identified(values) =>
+      val key = values.keys.apply(index)
+      Children.Identified(values.updated(key, value))
   }
 
   def ++[B >: A](children: Children[B]): Children[B] = (this, children) match {
@@ -28,9 +33,8 @@ sealed abstract class Children[+A] extends Product with Serializable {
 
   def traverse[G[_]: Applicative, B](f: A => G[B]): G[Children[B]] =
     this match {
-      case Children.Indexed(values) => values.traverse(f).map(Indexed.apply)
-      case Children.Identified(values) =>
-        values.traverse { case (key, child) => f(child).tupleLeft(key) }.map(Identified.apply)
+      case Children.Indexed(values)    => values.traverse(f).map(Indexed.apply)
+      case Children.Identified(values) => Collections.traverseVectorMap(values)(f).map(Identified.apply)
     }
 
   def traverseWithKey[G[_]: Applicative, B](f: (Key, A) => G[B]): G[Children[B]] =
@@ -38,14 +42,16 @@ sealed abstract class Children[+A] extends Product with Serializable {
       case Children.Indexed(values) =>
         values.zipWithIndex.traverse { case (child, index) => f(Key.Index(index), child) }.map(Indexed.apply)
       case Children.Identified(values) =>
-        values.traverse { case (key, child) => f(Key.Identifier(key), child).tupleLeft(key) }.map(Identified.apply)
+        Collections
+          .traverseVectorMapWithKey(values)((identifier, value) => f(Key.Identifier(identifier), value))
+          .map(Identified.apply)
     }
 }
 
 object Children {
   final case class Indexed[A](values: Vector[A]) extends Children[A]
 
-  final case class Identified[A](values: Vector[(String, A)]) extends Children[A]
+  final case class Identified[A](values: VectorMap[String, A]) extends Children[A]
 
   val Empty: Children[Nothing] = empty[Nothing]
 
@@ -71,16 +77,9 @@ object Children {
   implicit val traverse: Traverse[Children] = new Traverse[Children] {
     override def traverse[G[_]: Applicative, A, B](fa: Children[A])(f: A => G[B]): G[Children[B]] = fa.traverse(f)
 
-    override def foldLeft[A, B](fa: Children[A], b: B)(f: (B, A) => B): B =
-      fa match {
-        case Indexed(values)    => values.foldl(b)(f)
-        case Identified(values) => values.foldl(b) { case (b, (_, value)) => f(b, value) }
-      }
+    override def foldLeft[A, B](fa: Children[A], b: B)(f: (B, A) => B): B = fa.indexed.foldl(b)(f)
 
     override def foldRight[A, B](fa: Children[A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
-      fa match {
-        case Indexed(values)    => values.foldr(lb)(f)
-        case Identified(values) => values.foldr(lb) { case ((_, value), b) => f(value, b) }
-      }
+      fa.indexed.foldr(lb)(f)
   }
 }

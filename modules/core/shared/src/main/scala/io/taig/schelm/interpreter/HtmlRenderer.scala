@@ -3,82 +3,73 @@ package io.taig.schelm.interpreter
 import cats.effect.Sync
 import cats.effect.concurrent.Ref
 import cats.implicits._
-import io.taig.schelm.algebra.{Dom, Ids, Renderer, StateManager}
+import io.taig.schelm.algebra.{Dom, Renderer, StateManager}
+import io.taig.schelm.data.Node.Element.Variant
 import io.taig.schelm.data._
 
-final class HtmlRenderer[F[_]: Sync](dom: Dom[F], identifiers: Ids[F], manager: StateManager[F])
-    extends Renderer[F, Html[F], HtmlReference[F]] { self =>
-  override def render(html: Html[F]): F[HtmlReference[F]] = html.node match {
-    case node @ Node.Element(tag, Node.Element.Variant.Normal(children), _) =>
+final class HtmlRenderer[F[_]: Sync](dom: Dom[F], manager: StateManager[F])
+    extends Renderer[F, Html[F], HtmlReference[F]] {
+  override def render(html: Html[F], path: Path): F[HtmlReference[F]] = html.node match {
+    case node @ Node.Element(_, _, _) => element(node, path)
+    case node @ Node.Fragment(_)      => fragment(node, path)
+    case node @ Node.Stateful(_, _)   => stateful(node, path)
+    case node @ Node.Text(_, _, _)    => text(node)
+  }
+
+  def element(node: Node.Element[F, Listeners[F], Html[F]], path: Path): F[HtmlReference[F]] =
+    for {
+      element <- dom.createElement(node.tag.name)
+      _ <- node.tag.attributes.toList.traverse_ { attribute =>
+        dom.setAttribute(element, attribute.key.value, attribute.value.value)
+      }
+      listeners <- listeners(element)(node.tag.listeners)
+      variant <- variant(element, path)(node.variant)
+      tag = node.tag.copy(listeners = listeners)
+      reference = NodeReference.Element(node.copy(tag = tag, variant = variant), element)
+    } yield HtmlReference(reference)
+
+  def fragment(node: Node.Fragment[F, Html[F]], path: Path): F[HtmlReference[F]] =
+    node.children
+      .traverseWithKey((key, html) => render(html, path / key))
+      .map(children => HtmlReference(NodeReference.Fragment(node.copy(children = children))))
+
+  def stateful[A](node: Node.Stateful[F, A, Html[F]], path: Path): F[HtmlReference[F]] =
+    for {
+      state <- manager.get[A](path).map(_.getOrElse(node.initial))
+      update = (value: A) => manager.submit(path, node.initial, value)
+      html = node.render(update, state)
+      value <- render(html, path)
+      reference = NodeReference.Stateful(node, value)
+    } yield HtmlReference(reference)
+
+  def text[A](node: Node.Text[F, Listeners[F]]): F[HtmlReference[F]] =
+    for {
+      text <- dom.createTextNode(node.value)
+      listeners <- listeners(text)(node.listeners)
+    } yield HtmlReference(NodeReference.Text(node.copy(listeners = listeners), text))
+
+  def listeners(node: Dom.Node): Listeners[F] => F[ListenerReferences[F]] =
+    _.toList
+      .traverse { listener =>
+        val reference = dom.unsafeRun(listener.action)
+
+        dom
+          .addEventListener(node, listener.name.value, reference)
+          .as(listener.name -> ((reference, listener.action)))
+      }
+      .map(listeners => ListenerReferences(listeners.toMap))
+
+  def variant(element: Dom.Element, path: Path): Node.Element.Variant[Html[F]] => F[Variant[HtmlReference[F]]] = {
+    case Variant.Normal(children) =>
       for {
-        element <- dom.createElement(tag.name)
-        _ <- tag.attributes.toList.traverse_ { attribute =>
-          dom.setAttribute(element, attribute.key.value, attribute.value.value)
-        }
-        listeners <- tag.listeners.toList
-          .traverse { listener =>
-            val reference = dom.unsafeRun(listener.action)
-            dom
-              .addEventListener(element, listener.name.value, reference)
-              .as(listener.name -> ((reference, listener.action)))
-          }
-          .map(listeners => ListenerReferences(listeners.toMap))
-        children <- children.traverse(render)
+        children <- children.traverseWithKey((key, html) => render(html, path / key))
         _ <- children.toList.flatMap(_.dom).traverse_(dom.appendChild(element, _))
-        variant = Node.Element.Variant.Normal(children)
-        reference = NodeReference.Element(node.copy(tag = tag.copy(listeners = listeners), variant = variant), element)
-      } yield HtmlReference(reference)
-    case node @ Node.Element(tag, Node.Element.Variant.Void, _) =>
-      for {
-        element <- dom.createElement(tag.name)
-        _ <- tag.attributes.toList.traverse_ { attribute =>
-          dom.setAttribute(element, attribute.key.value, attribute.value.value)
-        }
-        listeners <- tag.listeners.toList
-          .traverse { listener =>
-            val reference = dom.unsafeRun(listener.action)
-            dom
-              .addEventListener(element, listener.name.value, reference)
-              .as(listener.name -> ((reference, listener.action)))
-          }
-          .map(listeners => ListenerReferences(listeners.toMap))
-        variant = Node.Element.Variant.Void
-        reference = NodeReference.Element(node.copy(tag = tag.copy(listeners = listeners), variant = variant), element)
-      } yield HtmlReference(reference)
-    case node @ Node.Fragment(children) =>
-      children
-        .traverse(render)
-        .map(children => HtmlReference(NodeReference.Fragment(node.copy(children = children))))
-    case node @ Node.Stateful(initial, render) =>
-      for {
-        result <- Ref[F].of(none[NodeReference.Stateful[F, HtmlReference[F]]])
-        identifier <- identifiers.next
-        update = (value: Any) =>
-          result.get.flatMap(_.liftTo[F](new IllegalStateException)).flatMap(manager.submit(_, value))
-        html = render(update, initial)
-        reference <- self.render(html)
-        xxx = NodeReference.Stateful[F, HtmlReference[F]](identifier, reference)
-        _ <- result.set(xxx.some)
-      } yield HtmlReference(xxx)
-    case node @ Node.Text(value, listeners, _) =>
-      for {
-        text <- dom.createTextNode(value)
-        listeners <- listeners.toList
-          .traverse { listener =>
-            val reference = dom.unsafeRun(listener.action)
-            dom
-              .addEventListener(text, listener.name.value, reference)
-              .as(listener.name -> ((reference, listener.action)))
-          }
-          .map(listeners => ListenerReferences(listeners.toMap))
-      } yield HtmlReference(NodeReference.Text(node.copy(listeners = listeners), text))
+      } yield Node.Element.Variant.Normal(children)
+    case Variant.Void => Variant.Void.pure[F].widen
   }
 }
 
 object HtmlRenderer {
-  def apply[F[_]: Sync](dom: Dom[F], ids: Ids[F], manager: StateManager[F]): Renderer[F, Html[F], HtmlReference[F]] =
-    new HtmlRenderer[F](dom, ids, manager)
-
-  def default[F[_]: Sync](dom: Dom[F], manager: StateManager[F]): F[Renderer[F, Html[F], HtmlReference[F]]] =
-    RefIds.default[F].map(ids => HtmlRenderer[F](dom, ids, manager))
+  def apply[F[_]: Sync](dom: Dom[F], manager: StateManager[F]): Renderer[F, Html[F], HtmlReference[F]] =
+    new HtmlRenderer[F](dom, manager)
 }
