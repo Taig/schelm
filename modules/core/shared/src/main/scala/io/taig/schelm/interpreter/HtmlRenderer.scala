@@ -1,7 +1,6 @@
 package io.taig.schelm.interpreter
 
 import cats.effect.Sync
-import cats.effect.concurrent.Ref
 import cats.implicits._
 import io.taig.schelm.algebra.{Dom, Renderer, StateManager}
 import io.taig.schelm.data.Node.Element.Variant
@@ -33,14 +32,21 @@ final class HtmlRenderer[F[_]: Sync](dom: Dom[F], manager: StateManager[F])
       .traverseWithKey((key, html) => render(html, path / key))
       .map(children => HtmlReference(NodeReference.Fragment(node.copy(children = children))))
 
-  def stateful[A](node: Node.Stateful[F, A, Html[F]], path: Path): F[HtmlReference[F]] =
+  def stateful[A](node: Node.Stateful[F, A, Html[F]], path: Path): F[HtmlReference[F]] = {
+    val get = manager.get[A](path).map(_.getOrElse(node.initial))
+
     for {
-      state <- manager.get[A](path).map(_.getOrElse(node.initial))
-      update: ((A => A) => F[Unit]) = ??? // (value: A) => manager.submit(path, node.initial, value)
+      state <- get
+      update = new ((A => A) => F[Unit]) {
+        override def apply(f: A => A): F[Unit] = {
+          get.map(f).flatMap { state => manager.submit(path, node.initial, state, node.render(this, state)) }
+        }
+      }
       html = node.render(update, state)
       value <- render(html, path)
       reference = NodeReference.Stateful(node, value)
     } yield HtmlReference(reference)
+  }
 
   def text[A](node: Node.Text[F, Listeners[F]]): F[HtmlReference[F]] =
     for {

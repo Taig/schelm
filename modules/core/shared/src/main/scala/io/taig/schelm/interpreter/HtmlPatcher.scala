@@ -37,7 +37,7 @@ final class HtmlPatcher[F[_]](dom: Dom[F], renderer: Renderer[F, Html[F], HtmlRe
           case Node.Element(_, Node.Element.Variant.Void, _) => fail("Can not update child on a void element")
         }
       case (reference @ NodeReference.Stateful(_, value), diff) =>
-        patch(value, diff, cursor).map { update => HtmlReference(reference.copy(value = update)) }
+        patch(value, diff, cursor).map(update => HtmlReference(reference.copy(value = update)))
       case (reference @ NodeReference.Element(node, element), HtmlDiff.UpdateListener(name, action)) =>
         node.tag.listeners.get(name) match {
           case Some((previous, _)) =>
@@ -48,8 +48,9 @@ final class HtmlPatcher[F[_]](dom: Dom[F], renderer: Renderer[F, Html[F], HtmlRe
               dom.addEventListener(element, name.value, next).as(update)
           case None => fail(s"No event listener for ${name.value} registered")
         }
-      case (NodeReference.Text(_, text), HtmlDiff.UpdateText(value)) => dom.data(text, value).as(html)
-      case (reference, diff)                                         => fail(s"Can not apply $diff to $reference")
+      case (reference @ NodeReference.Text(node, text), HtmlDiff.UpdateText(value)) =>
+        dom.data(text, value).as(HtmlReference(reference.copy(node = node.copy(value = value))))
+      case (reference, diff) => fail(s"Can not apply $diff to $reference")
 
 //      case HtmlDiff.AddListener(listener) =>
 //        for {

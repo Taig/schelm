@@ -1,6 +1,6 @@
 package io.taig.schelm
 
-import cats.effect.{ExitCode, IO, IOApp, Resource}
+import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
 import io.taig.schelm.data._
 import io.taig.schelm.interpreter._
@@ -17,7 +17,7 @@ object Playground extends IOApp {
             Tag(
               "button",
               Attributes.Empty,
-              Listeners.of(Listener(Listener.Name("click"), event => IO(println("le click"))))
+              Listeners.of(Listener(Listener.Name("click"), _ => update(_ - 1)))
             ),
             Node.Element.Variant.Normal(
               Children.of(Html(Node.Text(state.toString, listeners = Listeners.Empty, lifecycle = Lifecycle.noop[IO])))
@@ -52,8 +52,7 @@ object Playground extends IOApp {
         .evalScan(reference) { (reference, update) =>
           reference.update(update.path) {
             case reference @ NodeReference.Stateful(html, value) =>
-              val next = html.render(value => states.submit(update.path, update.initial, value), update.state)
-              val diff = differ.diff(value.html, next)
+              val diff = differ.diff(value.html, update.html)
               diff
                 .traverse(patcher.patch(HtmlReference(reference), _))
                 .map(_.map(_.reference).getOrElse(reference))

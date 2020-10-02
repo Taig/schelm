@@ -7,40 +7,40 @@ import cats.implicits._
 import fs2.Stream
 import fs2.concurrent.Queue
 import io.taig.schelm.algebra.StateManager
-import io.taig.schelm.data.{Html, HtmlReference, NodeReference, Path}
+import io.taig.schelm.data.{Html, Path}
 
 final class QueueStateManager[F[_]](
-    state: Ref[F, Map[Path, _]],
-    updates: Queue[F, StateManager.Update[F, _]]
+    states: Ref[F, Map[Path, _]],
+    updates: Queue[F, StateManager.Update[F]]
 )(implicit F: Monad[F])
     extends StateManager[F] {
-  override def get[A](path: Path): F[Option[A]] = state.get.map(_.get(path).asInstanceOf[Option[A]])
+  override def get[A](path: Path): F[Option[A]] = states.get.map(_.get(path).asInstanceOf[Option[A]])
 
-  override def submit[A](path: Path, initial: A, update: A): F[Unit] =
-    state
-      .modify[Option[(Any, Any)]] { state =>
-        val previous = state.getOrElse(path, initial)
-        if (previous == update) (state, None)
-        else (state + (path -> update), Some((previous, update)))
+  override def submit[A](path: Path, initial: A, state: A, html: Html[F]): F[Unit] =
+    states
+      .modify[Option[StateManager.Update[F]]] { states =>
+        val previous = states.getOrElse(path, initial)
+        if (previous == state) (states, None)
+        else (states + (path -> state), Some(StateManager.Update(path, html)))
       }
       .flatMap {
-        case Some((previous, next)) => updates.enqueue1(StateManager.Update(path, initial, next.asInstanceOf[A]))
-        case None                   => F.unit
+        case Some(update) => updates.enqueue1(update)
+        case None         => F.unit
       }
 
-  override val subscription: Stream[F, StateManager.Update[F, _]] = updates.dequeue
+  override val subscription: Stream[F, StateManager.Update[F]] = updates.dequeue
 }
 
 object QueueStateManager {
   def apply[F[_]: Monad](
-      state: Ref[F, Map[Path, _]],
-      updates: Queue[F, StateManager.Update[F, _]]
+      states: Ref[F, Map[Path, _]],
+      updates: Queue[F, StateManager.Update[F]]
   ): StateManager[F] =
-    new QueueStateManager[F](state, updates)
+    new QueueStateManager[F](states, updates)
 
   def empty[F[_]: Concurrent]: F[StateManager[F]] =
     for {
-      state <- Ref[F].of(Map.empty[Path, Any])
-      updates <- Queue.unbounded[F, StateManager.Update[F, _]]
-    } yield QueueStateManager[F](state, updates)
+      states <- Ref[F].of(Map.empty[Path, Any])
+      updates <- Queue.unbounded[F, StateManager.Update[F]]
+    } yield QueueStateManager[F](states, updates)
 }

@@ -10,18 +10,18 @@ import org.scalajs.dom
 import org.scalajs.dom.Event
 
 final class BrowserDom[F[_]](implicit F: Effect[F]) extends Dom[F] {
-  override def unsafeRun(f: Any => F[Unit]): js.Function1[Event, _] =
-    event =>
-      f(event)
-        .runAsync {
-          case Right(_) => IO.unit
-          case Left(throwable) =>
-            IO {
-              System.err.println("Failed to run event handler")
-              throwable.printStackTrace(System.err)
-            }
-        }
-        .unsafeRunSync()
+  override def unsafeRun(f: Any => F[Unit]): js.Function1[Event, _] = { event =>
+    f(event)
+      .runAsync {
+        case Right(_) => IO.unit
+        case Left(throwable) =>
+          IO {
+            System.err.println("Failed to run event handler")
+            throwable.printStackTrace(System.err)
+          }
+      }
+      .unsafeRunSync()
+  }
 
   override def addEventListener(node: dom.Node, name: String, listener: js.Function1[Event, _]): F[Unit] =
     F.delay(node.addEventListener(name, listener))
