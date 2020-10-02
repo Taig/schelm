@@ -9,7 +9,7 @@ import scala.concurrent.duration.DurationInt
 
 object Playground extends IOApp {
   val html: Html[IO] = Html(
-    Node.Stateful[IO, Long, Html[IO]](
+    Node.Stateful[IO, Int, Html[IO]](
       0,
       render = { (update, state) =>
         Html(
@@ -25,8 +25,7 @@ object Playground extends IOApp {
             _ =>
               fs2.Stream
                 .awakeEvery[IO](1.second)
-                .evalMap(_ => IO(System.currentTimeMillis()))
-                .evalMap(update)
+                .evalMap(_ => update(state => state + 1))
                 .compile
                 .drain
                 .background

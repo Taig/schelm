@@ -36,7 +36,7 @@ final class HtmlRenderer[F[_]: Sync](dom: Dom[F], manager: StateManager[F])
   def stateful[A](node: Node.Stateful[F, A, Html[F]], path: Path): F[HtmlReference[F]] =
     for {
       state <- manager.get[A](path).map(_.getOrElse(node.initial))
-      update = (value: A) => manager.submit(path, node.initial, value)
+      update: ((A => A) => F[Unit]) = ??? // (value: A) => manager.submit(path, node.initial, value)
       html = node.render(update, state)
       value <- render(html, path)
       reference = NodeReference.Stateful(node, value)

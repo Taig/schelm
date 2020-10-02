@@ -81,7 +81,7 @@ object Node {
     }
   }
 
-  final case class Stateful[F[_], A, +B](initial: A, render: (A => F[Unit], A) => B) extends Node[F, Nothing, B]
+  final case class Stateful[F[_], A, +B](initial: A, render: ((A => A) => F[Unit], A) => B) extends Node[F, Nothing, B]
 
   object Stateful {
     implicit def functor[F[_], A]: Functor[Stateful[F, A, *]] = new Functor[Stateful[F, A, *]] {
