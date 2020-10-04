@@ -1,18 +1,18 @@
 package io.taig.schelm.css.data
 
 import cats.implicits._
-import io.taig.schelm.data.{Attribute, Html, Node}
+import io.taig.schelm.data.{Attribute, Html, Listeners, Node}
 
-final case class CssHtml[Event](node: CssNode[Node[Event, CssHtml[Event]]]) extends AnyVal
+final case class CssHtml[F[_]](node: CssNode[Node[F, Listeners[F], CssHtml[F]]]) extends AnyVal
 
 object CssHtml {
   private val EmptyStyles: Map[Selector, Style] = Map.empty
 
-  def toHtml[Event](css: CssHtml[Event]): (Html[Event], Map[Selector, Style]) = {
-    val nodes = css.node.map(_.map(toHtml[Event]))
+  def toHtml[F[_]](css: CssHtml[F]): (Html[F], Map[Selector, Style]) = {
+    val nodes = css.node.map(_.map(toHtml[F]))
 
     val (CssNode(node, _), rules) = nodes match {
-      case CssNode(node: Node.Element[Event, (Html[Event], Map[Selector, Style])], style) if !style.isEmpty =>
+      case CssNode(node: Node.Element[F, Listeners[F], (Html[F], Map[Selector, Style])], style) if !style.isEmpty =>
         val identifier = Identifier(style.hashCode)
         val selector = identifier.toSelector
         val attribute = Attribute(Attribute.Key.Class, Attribute.Value(identifier.toClass))

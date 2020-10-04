@@ -1,5 +1,6 @@
 package io.taig.schelm.mdc
 
+import cats.effect.Sync
 import cats.implicits._
 import io.taig.schelm.data.{Attributes, Children}
 import io.taig.schelm.dsl._
@@ -7,13 +8,13 @@ import io.taig.schelm.dsl.data.DslWidget
 import io.taig.schelm.mdc.MdcChip.Prefix
 import io.taig.schelm.mdc.internal.MdcLifecycle
 
-final case class MdcChip(
+final case class MdcChip[F[_]: Sync](
     label: String,
     icon: Option[(String, MdcChip.Icon.Position)] = None,
     selected: Boolean = false,
     tabindex: Int = -1
-) extends DslWidget.Component[Nothing, Any] {
-  val body: DslWidget[Nothing, Any] = span(
+) extends DslWidget.Component[F, Any] {
+  val body: DslWidget[F, Any] = span(
     attributes = Attributes.of(a.role := "gridcell"),
     children = Children.of(
       span(
@@ -25,9 +26,9 @@ final case class MdcChip(
     )
   )
 
-  override val render: DslWidget[Nothing, Any] = div(
+  override val render: DslWidget[F, Any] = div(
     attributes = Attributes.of(a.cls := List(Prefix) ++ selected.guard[List].as(s"$Prefix--selected"), a.role := "row"),
-    lifecycle = MdcLifecycle.chip,
+    lifecycle = MdcLifecycle.chip[F],
     children = Children.of(div(attributes = Attributes.of(a.cls := s"${Prefix}__ripple"))) ++
       Children.from(icon.collect {
         case (name, position @ MdcChip.Icon.Position.Leading) => MdcChip.Icon(name, position)

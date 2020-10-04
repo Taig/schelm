@@ -11,13 +11,11 @@ object JsPlaygroundApp extends IOApp {
     val dom = BrowserDom[IO]
 
     JsCssSchelm
-      .default[IO, Event](dom)(document.getElementById("main"))
+      .default[IO](dom)(document.getElementById("main"))
       .flatMap(
         _.start(
-          PlaygroundApp.Initial,
-          (_: State) =>
-            DslWidget.toCssHtml(DslWidget.toWidget(PlaygroundApp.render("hello")), Theme(background = "red")),
-          new MyHandler[IO]
+          ???,
+          ???
         )
       )
       .as(ExitCode.Success)

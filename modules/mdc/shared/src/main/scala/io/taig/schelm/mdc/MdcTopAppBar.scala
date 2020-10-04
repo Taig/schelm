@@ -5,9 +5,9 @@ import io.taig.schelm.data.{Attributes, Children}
 import io.taig.schelm.dsl._
 import io.taig.schelm.dsl.data.DslWidget
 
-final case class MdcTopAppBar[+Event](style: Style, children: Children[DslWidget[Event, MdcTheme]])
-    extends DslWidget.Component[Event, MdcTheme] {
-  override def render: DslWidget[Event, MdcTheme] = contextual { theme =>
+final case class MdcTopAppBar[F[_]](style: Style, children: Children[DslWidget[F, MdcTheme]])
+    extends DslWidget.Component[F, MdcTheme] {
+  override def render: DslWidget[F, MdcTheme] = contextual { theme =>
     header(
       attributes = Attributes.of(a.cls := MdcTopAppBar.Prefix),
       style = Style.of(backgroundColor := theme.variant.palette.primary) ++ style,
@@ -27,19 +27,19 @@ object MdcTopAppBar {
       final case object Start extends Alignment
     }
 
-    def apply[Event, Context](
+    def apply[F[_], Context](
         attributes: Attributes,
-        children: Children[DslWidget[Event, Context]]
-    ): DslWidget[Event, Context] =
+        children: Children[DslWidget[F, Context]]
+    ): DslWidget[F, Context] =
       section(
         attributes = Attributes.of(a.cls := s"${Prefix}__section") ++ attributes,
         children = children
       )
 
-    def aligned[Event, Context](
+    def aligned[F[_], Context](
         alignment: Alignment,
-        children: Children[DslWidget[Event, Context]]
-    ): DslWidget[Event, Context] = {
+        children: Children[DslWidget[F, Context]]
+    ): DslWidget[F, Context] = {
       val identifier = alignment match {
         case Alignment.End   => "end"
         case Alignment.Start => "start"
@@ -73,14 +73,14 @@ object MdcTopAppBar {
   }
 
   object Component {
-    def row[Event, Context](children: Children[DslWidget[Event, Context]]): DslWidget[Event, Context] =
+    def row[F[_], Context](children: Children[DslWidget[F, Context]]): DslWidget[F, Context] =
       div(
         attributes = Attributes.of(a.cls := s"${Prefix}__row"),
         children = children
       )
   }
 
-  def regular(title: String, style: Style = Style.Empty): MdcTopAppBar[Nothing] =
+  def regular[F[_]](title: String, style: Style = Style.Empty): MdcTopAppBar[F] =
     MdcTopAppBar(
       style,
       children = Children.of(

@@ -1,7 +1,7 @@
 package io.taig.schelm.data
 
-import io.taig.schelm.algebra.Dom
 import cats.implicits._
+import io.taig.schelm.algebra.Dom
 
 final case class ListenerReferences[F[_]](values: Map[Listener.Name, (Dom.Listener, Listener.Action[F])])
     extends AnyVal {
@@ -12,10 +12,4 @@ final case class ListenerReferences[F[_]](values: Map[Listener.Name, (Dom.Listen
     ListenerReferences(values + (name -> ((reference, action))))
 
   def toListeners: Listeners[F] = Listeners(values.fmap(_._2))
-
-  override def toString: String = {
-    val body =
-      values.map { case (name, (listener, _)) => s"${name.value}: (${listener.hashCode}, Action[F])" }.mkString(",")
-    s"ListenerReferences($body)"
-  }
 }

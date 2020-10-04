@@ -1,7 +1,6 @@
 package io.taig.schelm.css.data
 
 import cats.Monoid
-import cats.implicits._
 
 final case class Style(declarations: Declarations, pseudos: PseudoDeclarations) {
   def isEmpty: Boolean = declarations.isEmpty && pseudos.isEmpty

@@ -10,30 +10,31 @@ trait NodeKeyword {
 
   final def void(name: String): ElementVoidBuilder = new ElementVoidBuilder(name)
 
-  final def fragment[Event, Context](
-      lifecycle: Lifecycle.Fragment = Lifecycle.Fragment.noop,
-      children: Children[DslWidget[Event, Context]] = Children.Empty
-  ): DslWidget[Event, Context] =
-    DslWidget.Pure(Widget.Pure(CssNode(Node.Fragment(children, lifecycle), Style.Empty)))
+  final def fragment[F[_], Context](
+      children: Children[DslWidget[F, Context]] = Children.Empty
+  ): DslWidget[F, Context] =
+    DslWidget.Pure(Widget.Pure(State.Stateless(CssNode(Node.Fragment(children), Style.Empty))))
 
   final def text(value: String): DslWidget[Nothing, Any] =
-    DslWidget.Pure(Widget.Pure(CssNode(Node.Text(value, Listeners.Empty, Lifecycle.Text.noop), Style.Empty)))
+    DslWidget.Pure(
+      Widget.Pure(State.Stateless(CssNode(Node.Text(value, Listeners.Empty, Lifecycle.Noop), Style.Empty)))
+    )
 
-  final def div[Event, Context](
+  final def div[F[_], Context](
       attributes: Attributes = Attributes.Empty,
-      listeners: Listeners[Event] = Listeners.Empty,
+      listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
-      lifecycle: Lifecycle.Element = Lifecycle.Element.noop,
-      children: Children[DslWidget[Event, Context]] = Children.Empty
-  ): Div[Event, Context] = Div(attributes, listeners, style, lifecycle, children)
+      lifecycle: Lifecycle.Element[F] = Lifecycle.Noop,
+      children: Children[DslWidget[F, Context]] = Children.Empty
+  ): Div[F, Context] = Div(attributes, listeners, style, lifecycle, children)
 
-  final def span[Event, Context](
+  final def span[F[_], Context](
       attributes: Attributes = Attributes.Empty,
-      listeners: Listeners[Event] = Listeners.Empty,
+      listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
-      lifecycle: Lifecycle.Element = Lifecycle.Element.noop,
-      children: Children[DslWidget[Event, Context]] = Children.Empty
-  ): Span[Event, Context] = Span(attributes, listeners, style, lifecycle, children)
+      lifecycle: Lifecycle.Element[F] = Lifecycle.Noop,
+      children: Children[DslWidget[F, Context]] = Children.Empty
+  ): Span[F, Context] = Span(attributes, listeners, style, lifecycle, children)
 
   final val br: ElementVoidBuilder = void("br")
   final val button = element("button")

@@ -5,19 +5,19 @@ import io.taig.schelm.data._
 import io.taig.schelm.dsl.data.DslWidget
 
 final class ElementNormalBuilder(val name: String) extends AnyVal {
-  def apply[Event, Context](
+  def apply[F[_], Context](
       attributes: Attributes = Attributes.Empty,
-      listeners: Listeners[Event] = Listeners.Empty,
+      listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
-      lifecycle: Lifecycle.Element = Lifecycle.Element.noop,
-      children: Children[DslWidget[Event, Context]] = Children.Empty
-  ): DslWidget[Event, Context] = {
+      lifecycle: Lifecycle.Element[F] = Lifecycle.Noop,
+      children: Children[DslWidget[F, Context]] = Children.Empty
+  ): DslWidget[F, Context] = {
     val element = Node.Element(
       Tag(name, attributes, listeners),
-      Node.Element.Type.Normal(children),
+      Node.Element.Variant.Normal(children),
       lifecycle
     )
 
-    DslWidget.Pure(Widget.Pure(CssNode(element, style)))
+    DslWidget.Pure(Widget.Pure(State.Stateless(CssNode(element, style))))
   }
 }

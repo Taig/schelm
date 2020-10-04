@@ -1,39 +1,24 @@
 package io.taig.schelm.dsl.data
 
-import cats.implicits._
-import io.taig.schelm.css.data.{CssHtml, CssNode}
-import io.taig.schelm.data.Node
+import io.taig.schelm.css.data.CssNode
+import io.taig.schelm.data.{Listeners, Node, State, Widget}
+
 import scala.annotation.tailrec
 
-import io.taig.schelm.data.Widget
-
-sealed abstract class DslWidget[+Event, -Context]
+sealed abstract class DslWidget[+F[_], -Context] extends Product with Serializable {
+  @tailrec
+  final def toWidget: Widget[Context, State[F, CssNode[Node[F, Listeners[F], DslWidget[F, Context]]]]] = this match {
+    case DslWidget.Pure(widget)                     => widget
+    case component: DslWidget.Component[F, Context] => component.render.toWidget
+  }
+}
 
 object DslWidget {
-  final case class Pure[Event, Context](widget: Widget[Context, CssNode[Node[Event, DslWidget[Event, Context]]]])
-      extends DslWidget[Event, Context]
+  final case class Pure[F[_], Context](
+      widget: Widget[Context, State[F, CssNode[Node[F, Listeners[F], DslWidget[F, Context]]]]]
+  ) extends DslWidget[F, Context]
 
-  abstract class Component[+Event, -Context] extends DslWidget[Event, Context] {
-    def render: DslWidget[Event, Context]
+  abstract class Component[+F[_], -Context] extends DslWidget[F, Context] {
+    def render: DslWidget[F, Context]
   }
-
-  @tailrec
-  def toWidget[Event, Context](
-      dsl: DslWidget[Event, Context]
-  ): Widget[Context, CssNode[Node[Event, DslWidget[Event, Context]]]] =
-    dsl match {
-      case Pure(widget)                         => widget
-      case component: Component[Event, Context] => toWidget(component.render)
-    }
-
-  def toCssHtml[Event, Context](
-      widget: Widget[Context, CssNode[Node[Event, DslWidget[Event, Context]]]],
-      context: Context
-  ): CssHtml[Event] =
-    widget match {
-      case widget: Widget.Patch[Context, CssNode[Node[Event, DslWidget[Event, Context]]]] =>
-        toCssHtml(widget.widget, widget.f(context))
-      case Widget.Pure(component) => CssHtml(component.map(_.map(dsl => toCssHtml(toWidget(dsl), context))))
-      case Widget.Render(f)       => toCssHtml(f(context), context)
-    }
 }

@@ -2,27 +2,32 @@ package io.taig.schelm
 
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
+import io.taig.schelm.algebra.Dom
 import io.taig.schelm.data._
 import io.taig.schelm.interpreter._
 
 import scala.concurrent.duration.DurationInt
 
 object Playground extends IOApp {
-  val html: Html[IO] = Html(
-    Node.Stateful[IO, Int, Html[IO]](
-      0,
+  val html: ComponentHtml[IO] = ComponentHtml(
+    State.Stateful[IO, Int, Node[IO, Listeners[IO], ComponentHtml[IO]]](
+      initial = 1,
       render = { (update, state) =>
-        Html(
-          Node.Element(
-            Tag(
-              "button",
-              Attributes.Empty,
-              Listeners.of(Listener(Listener.Name("click"), _ => update(_ - 1)))
-            ),
-            Node.Element.Variant.Normal(
-              Children.of(Html(Node.Text(state.toString, listeners = Listeners.Empty, lifecycle = Lifecycle.noop[IO])))
-            ),
-            _ =>
+        Node.Element(
+          Tag(
+            "button",
+            Attributes.Empty,
+            Listeners.of(Listener(Listener.Name("click"), _ => update(_ - 1)))
+          ),
+          Node.Element.Variant.Normal(
+            Children.of(
+              ComponentHtml(
+                State.Stateless(Node.Text(state.toString, listeners = Listeners.Empty, lifecycle = Lifecycle.Noop))
+              )
+            )
+          ),
+          Lifecycle {
+            Some { (_: Dom.Element) =>
               fs2.Stream
                 .awakeEvery[IO](1.second)
                 .evalMap(_ => update(state => state + 1))
@@ -30,7 +35,8 @@ object Playground extends IOApp {
                 .drain
                 .background
                 .void
-          )
+            }
+          }
         )
       }
     )
@@ -44,19 +50,19 @@ object Playground extends IOApp {
     for {
       root <- dom.getElementById("main").flatMap(_.liftTo[IO](new IllegalStateException("root element does not exist")))
       states <- QueueStateManager.empty[IO]
-      renderer = HtmlRenderer[IO](dom, states)
-      patcher = HtmlPatcher[IO](dom, renderer)
+      statesRenderer = ComponentRenderer(states)
+      htmlRenderer = HtmlRenderer[IO](dom)
+      patcher = HtmlPatcher[IO](dom, htmlRenderer)
       attacher = HtmlReferenceAttacher.default(dom)(root)
-      reference <- renderer.render(html, Path.Empty)
+      html <- statesRenderer.render(html).run(Path.Empty)
+      reference <- htmlRenderer.render(html)
       _ <- states.subscription
         .evalScan(reference) { (reference, update) =>
-          reference.update(update.path) {
-            case reference @ NodeReference.Stateful(html, value) =>
-              val diff = differ.diff(value.html, update.html)
-              diff
-                .traverse(patcher.patch(HtmlReference(reference), _))
-                .map(_.map(_.reference).getOrElse(reference))
-            case reference => IO(reference)
+          reference.update(update.path) { reference =>
+            differ
+              .diff(HtmlReference(reference).html, update.html)
+              .traverse(patcher.patch(HtmlReference(reference), _))
+              .map(_.map(_.reference).getOrElse(reference))
           }
         }
         .handleErrorWith { throwable => fs2.Stream.eval(IO(throwable.printStackTrace())) }

@@ -20,12 +20,11 @@ object Main extends IOApp {
     val dom = BrowserDom[IO]
 
     JsCssSchelm
-      .default[IO, Event](dom)(document.getElementById("main"))
+      .default[IO](dom)(document.getElementById("main"))
       .flatMap(
         _.start(
           State.Initial,
-          (_: State) => DslWidget.toCssHtml(DslWidget.toWidget(app), MdcTheme.Default),
-          DocumentationHandler[IO]
+          ???
         )
       )
       .as(ExitCode.Success)

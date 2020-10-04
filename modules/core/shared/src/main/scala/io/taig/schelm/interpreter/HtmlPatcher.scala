@@ -36,8 +36,6 @@ final class HtmlPatcher[F[_]](dom: Dom[F], renderer: Renderer[F, Html[F], HtmlRe
             }
           case Node.Element(_, Node.Element.Variant.Void, _) => fail("Can not update child on a void element")
         }
-      case (reference @ NodeReference.Stateful(_, value), diff) =>
-        patch(value, diff, cursor).map(update => HtmlReference(reference.copy(value = update)))
       case (reference @ NodeReference.Element(node, element), HtmlDiff.UpdateListener(name, action)) =>
         node.tag.listeners.get(name) match {
           case Some((previous, _)) =>
