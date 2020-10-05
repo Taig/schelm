@@ -1,5 +1,7 @@
 package io.taig.schelm.algebra
 
+import cats.effect.Resource
+
 abstract class Schelm[F[_], View] {
-  def start[State, Command](initial: State, render: State => View): F[Unit]
+  def start(app: View): Resource[F, Unit]
 }

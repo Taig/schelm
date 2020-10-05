@@ -1,82 +1,58 @@
-//package io.taig.schelm.interpreter
-//
-//import cats.Parallel
-//import cats.effect.Concurrent
-//import cats.effect.implicits._
-//import cats.implicits._
-//import io.taig.schelm.algebra._
-//import io.taig.schelm.data.Result
-//import fs2.Stream
-//
-//final class DomSchelm[F[_]: Parallel, View, Event, Structure, Target, Diff](
-//    manager: EventManager[F, Event],
-//    renderer: Renderer[F, View, Structure],
-//    attacher: Attacher[F, Structure, Target],
-//    differ: Differ[View, Diff],
-//    patcher: Patcher[F, Structure, Diff]
-//)(implicit F: Concurrent[F])
-//    extends Schelm[F, View, Event] {
-//  override def start[State, Command](
-//      initial: State,
-//      render: State => View,
-//      handler: Handler[F, State, Event, Command]
-//  ): F[Unit] = {
-//    val view = render(initial)
-//
-//    for {
-//      structure <- renderer.render(view)
-//      parent <- attacher.attach(structure)
-//      _ <- manager.subscription
-//        .evalMapAccumulate((initial, view)) {
-//          case ((state, previous), event) =>
-//            val update = handler.event(state, event)
-//
-//            update match {
-//              case Result(None, Nil)                           => ((state, previous), none[Diff]).pure[F]
-//              case Result(Some(state), Nil) if update == state => ((state, previous), none[Diff]).pure[F]
-//              case Result(Some(state), Nil) =>
-//                val next = render(state)
-//                ((state, next), differ.diff(previous, next)).pure[F]
-//              case Result(None, commands) =>
-//                publish(handler.command, commands).start *> ((state, previous), none[Diff]).pure[F]
-//              case Result(Some(state), commands) =>
-//                val next = render(state)
-//                publish(handler.command, commands).start *> ((state, next), differ.diff(previous, next)).pure[F]
-//            }
-//        }
-//        .collect { case (_, Some(diff)) => diff }
-//        .evalMap(patcher.patch(structure, _))
-//        .handleErrorWith { throwable =>
-//          Stream.eval {
-//            F.delay {
-//              System.err.println("Failed to patch DOM")
-//              throwable.printStackTrace(System.err)
-//            }
+package io.taig.schelm.interpreter
+
+import cats.effect.implicits._
+import cats.effect.{Concurrent, Resource}
+import cats.implicits._
+import io.taig.schelm.algebra._
+import io.taig.schelm.util.PathTraversal
+import io.taig.schelm.util.PathTraversal.ops._
+
+final class DomSchelm[F[_], View, Reference, Target: PathTraversal, Diff](
+    states: StateManager[F, View],
+    renderer: Renderer[F, View, Reference],
+    attacher: Attacher[F, Reference, Target],
+    differ: Differ[View, Diff],
+    patcher: Patcher[F, Reference, Diff]
+)(implicit F: Concurrent[F])
+    extends Schelm[F, View] {
+  override def start(app: View): Resource[F, Unit] =
+    for {
+      reference1 <- Resource.liftF(renderer.render(app))
+      reference2 <- Resource.liftF(attacher.attach(reference1))
+      _ <- states.subscription
+        .evalScan(reference2) { (reference, update) =>
+          reference.modify[F](update.path) { reference =>
+//            differ.diff(???, update.view)
+            ???
+          }
+          ???
+//          reference.update(update.path) { reference =>
+//            differ
+//              .diff(HtmlReference(reference).html, update.html)
+//              .traverse(patcher.patch(HtmlReference(reference), _))
+//              .map(_.map(_.reference).getOrElse(reference))
 //          }
-//        }
-//        .compile
-//        .drain
-//        .start
-//    } yield ()
-//  }
-//
-//  def publish[Command](handler: Command => F[Option[Event]], commands: List[Command]): F[Unit] =
-//    commands.parTraverse_ { command =>
-//      handler.apply(command).flatMap(_.traverse_(manager.submit)).handleErrorWith { throwable =>
-//        F.delay {
-//          System.err.println("Failed to handle command")
-//          throwable.printStackTrace(System.err)
-//        }
-//      }
-//    }
-//}
-//
-//object DomSchelm {
-//  def apply[F[_]: Concurrent: Parallel, View, Event, Structure, Target, Diff](
-//      manager: EventManager[F, Event],
-//      renderer: Renderer[F, View, Structure],
-//      attacher: Attacher[F, Structure, Target],
-//      differ: Differ[View, Diff],
-//      patcher: Patcher[F, Structure, Diff]
-//  ): Schelm[F, View, Event] = new DomSchelm(manager, renderer, attacher, differ, patcher)
-//}
+          F.pure(reference)
+        }
+        .compile
+        .drain
+        .onError { throwable =>
+          F.delay {
+            System.err.println("Failed to apply state update")
+            throwable.printStackTrace()
+          }
+        }
+        .background
+    } yield ()
+}
+
+object DomSchelm {
+  def apply[F[_]: Concurrent, View, Reference, Target: PathTraversal, Diff](
+      states: StateManager[F, View],
+      renderer: Renderer[F, View, Reference],
+      attacher: Attacher[F, Reference, Target],
+      differ: Differ[View, Diff],
+      patcher: Patcher[F, Reference, Diff]
+  ): Schelm[F, View] =
+    new DomSchelm(states, renderer, attacher, differ, patcher)
+}

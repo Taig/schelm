@@ -7,6 +7,6 @@ import io.taig.schelm.algebra.{Attacher, Dom}
 object NodeAttacher {
 
   /** Attach a `List` of `Node`s to a parent `Element`  */
-  def apply[F[_]: Applicative](dom: Dom[F])(parent: Dom.Element): Attacher[F, Vector[Dom.Node], Dom.Element] =
-    (nodes: Vector[Dom.Node]) => nodes.traverse_(dom.appendChild(parent, _)).as(parent)
+  def apply[F[_]: Applicative](dom: Dom[F])(root: Dom.Element): Attacher[F, Vector[Dom.Node], Dom.Element] =
+    (nodes: Vector[Dom.Node]) => nodes.traverse_(dom.appendChild(root, _)).as(root)
 }

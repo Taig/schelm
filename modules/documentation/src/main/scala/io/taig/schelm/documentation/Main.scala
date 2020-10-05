@@ -19,14 +19,6 @@ object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
     val dom = BrowserDom[IO]
 
-    JsCssSchelm
-      .default[IO](dom)(document.getElementById("main"))
-      .flatMap(
-        _.start(
-          State.Initial,
-          ???
-        )
-      )
-      .as(ExitCode.Success)
+    JsDslWidgetSchelm[IO, MdcTheme].start(app).as(ExitCode.Success)
   }
 }

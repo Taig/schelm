@@ -9,8 +9,8 @@ import io.taig.schelm.interpreter._
 import scala.concurrent.duration.DurationInt
 
 object Playground extends IOApp {
-  val html: ComponentHtml[IO] = ComponentHtml(
-    State.Stateful[IO, Int, Node[IO, Listeners[IO], ComponentHtml[IO]]](
+  val app: StateHtml[IO] = StateHtml(
+    State.Stateful[IO, Int, Node[IO, Listeners[IO], StateHtml[IO]]](
       initial = 1,
       render = { (update, state) =>
         Node.Element(
@@ -21,7 +21,7 @@ object Playground extends IOApp {
           ),
           Node.Element.Variant.Normal(
             Children.of(
-              ComponentHtml(
+              StateHtml(
                 State.Stateless(Node.Text(state.toString, listeners = Listeners.Empty, lifecycle = Lifecycle.Noop))
               )
             )
@@ -45,31 +45,11 @@ object Playground extends IOApp {
   override def run(args: List[String]): IO[ExitCode] = {
     val dom = BrowserDom[IO]
 
-    val differ = HtmlDiffer[IO]
-
-    for {
-      root <- dom.getElementById("main").flatMap(_.liftTo[IO](new IllegalStateException("root element does not exist")))
-      states <- QueueStateManager.empty[IO]
-      statesRenderer = ComponentRenderer(states)
-      htmlRenderer = HtmlRenderer[IO](dom)
-      patcher = HtmlPatcher[IO](dom, htmlRenderer)
-      attacher = HtmlReferenceAttacher.default(dom)(root)
-      html <- statesRenderer.render(html).run(Path.Empty)
-      reference <- htmlRenderer.render(html)
-      _ <- states.subscription
-        .evalScan(reference) { (reference, update) =>
-          reference.update(update.path) { reference =>
-            differ
-              .diff(HtmlReference(reference).html, update.html)
-              .traverse(patcher.patch(HtmlReference(reference), _))
-              .map(_.map(_.reference).getOrElse(reference))
-          }
-        }
-        .handleErrorWith { throwable => fs2.Stream.eval(IO(throwable.printStackTrace())) }
-        .compile
-        .drain
-        .start
-      _ <- attacher.attach(reference)
-    } yield ExitCode.Success
+    dom
+      .getElementById("main")
+      .flatMap(_.liftTo[IO](new IllegalStateException("root element does not exist")))
+      .flatMap(StateHtmlSchelm.default[IO](dom)(_))
+      .flatMap(_.start(app).use(_ => IO.never))
+      .as(ExitCode.Success)
   }
 }

@@ -1,21 +1,19 @@
-//package io.taig.schelm.interpreter
-//
-//import cats.Parallel
-//import cats.effect.Concurrent
-//import io.taig.schelm.algebra.{Dom, EventManager, Schelm}
-//import io.taig.schelm.data.Html
-//
-//object HtmlSchelm {
-//  def default[F[_]: Concurrent: Parallel, View, Event, Structure, Diff](
-//      root: Dom.Element,
-//      manager: EventManager[F, Event],
-//      dom: Dom[F]
-//  ): Schelm[F, Html[Event], Event] = {
-////    val renderer = HtmlRenderer[F, Event](dom)
-////    val attacher = HtmlAttacher(dom, root)
-////    val differ = HtmlDiffer[Event]
-////    val patcher = ??? // HtmlPatcher(dom, renderer)
-////    DomSchelm(manager, renderer, attacher, differ, patcher)
-//    ???
-//  }
-//}
+package io.taig.schelm.interpreter
+
+import cats.effect.Concurrent
+import cats.implicits._
+import io.taig.schelm.algebra.{Dom, Schelm}
+import io.taig.schelm.data.Html
+
+object HtmlSchelm {
+  def default[F[_]: Concurrent](dom: Dom[F])(root: Dom.Element): F[Schelm[F, Html[F]]] =
+    QueueStateManager.empty[F, Html[F]].map { states =>
+      val renderer = HtmlRenderer[F](dom)
+      val attacher = HtmlReferenceAttacher.default(dom)(root)
+      val differ = HtmlDiffer[F]
+      val patcher = HtmlPatcher(dom, renderer)
+
+//      DomSchelm(states, renderer, attacher, differ, patcher)
+      ???
+    }
+}

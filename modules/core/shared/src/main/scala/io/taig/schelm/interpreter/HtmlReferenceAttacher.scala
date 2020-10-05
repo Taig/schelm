@@ -37,6 +37,6 @@ object HtmlReferenceAttacher {
 
   def default[F[_]: Bracket[*[_], Throwable]](
       dom: Dom[F]
-  )(parent: Dom.Element): Attacher[F, HtmlReference[F], HtmlAttachedReference[F]] =
-    HtmlReferenceAttacher(NodeAttacher(dom)(parent))
+  )(root: Dom.Element): Attacher[F, HtmlReference[F], HtmlAttachedReference[F]] =
+    HtmlReferenceAttacher(NodeAttacher(dom)(root))
 }

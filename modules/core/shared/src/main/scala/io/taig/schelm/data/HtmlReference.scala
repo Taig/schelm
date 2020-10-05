@@ -3,10 +3,9 @@ package io.taig.schelm.data
 import cats.Applicative
 import cats.data.Chain
 import cats.data.Chain.==:
-
-import scala.annotation.tailrec
-import io.taig.schelm.algebra.Dom
 import cats.implicits._
+import io.taig.schelm.algebra.Dom
+import io.taig.schelm.util.PathTraversal
 
 final case class HtmlReference[F[_]](reference: NodeReference[F, HtmlReference[F]]) extends AnyVal {
   def get(path: Path): Option[HtmlReference[F]] = path.values match {
@@ -51,4 +50,9 @@ final case class HtmlReference[F[_]](reference: NodeReference[F, HtmlReference[F
     case NodeReference.Fragment(node)  => node.children.indexed.flatMap(_.dom)
     case NodeReference.Text(_, dom)    => Vector(dom)
   }
+}
+
+object HtmlReference {
+  implicit def traversal[F[_]]: PathTraversal[HtmlReference[F]] =
+    PathTraversal.ofReference[F, HtmlReference[F]](_.reference, (html, reference) => html.copy(reference = reference))
 }
