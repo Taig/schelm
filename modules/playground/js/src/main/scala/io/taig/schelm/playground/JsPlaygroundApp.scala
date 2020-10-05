@@ -14,6 +14,7 @@ object JsPlaygroundApp extends IOApp {
 
     JsDslWidgetSchelm[IO, MdcTheme]
       .start(PlaygroundApp.render[IO]("yolo"))
+      .use(_ => IO.never)
       .as(ExitCode.Success)
   }
 }

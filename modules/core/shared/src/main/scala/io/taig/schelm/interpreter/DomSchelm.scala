@@ -12,7 +12,7 @@ final class DomSchelm[F[_], View, Reference, Target: PathTraversal, Diff](
     renderer: Renderer[F, View, Reference],
     attacher: Attacher[F, Reference, Target],
     differ: Differ[View, Diff],
-    patcher: Patcher[F, Reference, Diff]
+    patcher: Patcher[F, Target, Diff]
 )(implicit F: Concurrent[F])
     extends Schelm[F, View] {
   override def start(app: View): Resource[F, Unit] =
@@ -22,7 +22,7 @@ final class DomSchelm[F[_], View, Reference, Target: PathTraversal, Diff](
       _ <- states.subscription
         .evalScan(reference2) { (reference, update) =>
           reference.modify[F](update.path) { reference =>
-//            differ.diff(???, update.view)
+            differ.diff(???, update.view)
             ???
           }
           ???
@@ -52,7 +52,7 @@ object DomSchelm {
       renderer: Renderer[F, View, Reference],
       attacher: Attacher[F, Reference, Target],
       differ: Differ[View, Diff],
-      patcher: Patcher[F, Reference, Diff]
+      patcher: Patcher[F, Target, Diff]
   ): Schelm[F, View] =
     new DomSchelm(states, renderer, attacher, differ, patcher)
 }
