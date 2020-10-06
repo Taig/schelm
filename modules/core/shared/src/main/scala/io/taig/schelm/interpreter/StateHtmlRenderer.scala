@@ -1,6 +1,7 @@
 package io.taig.schelm.interpreter
 
 import cats.Monad
+import cats.arrow.FunctionK
 import cats.data.Kleisli
 import cats.implicits._
 import io.taig.schelm.algebra.{Renderer, StateManager}
@@ -42,4 +43,7 @@ final class StateHtmlRenderer[F[_]: Monad](states: StateManager[F, Html[F]])
 object StateHtmlRenderer {
   def apply[F[_]: Monad](states: StateManager[F, Html[F]]): Renderer[Kleisli[F, Path, *], StateHtml[F], Html[F]] =
     new StateHtmlRenderer[F](states)
+
+  def root[F[_]: Monad](states: StateManager[F, Html[F]]): Renderer[F, StateHtml[F], Html[F]] =
+    StateHtmlRenderer(states).mapK(λ[FunctionK[Kleisli[F, Path, *], F]](_.run(Path.Root)))
 }

@@ -3,16 +3,16 @@ package io.taig.schelm.algebra
 import fs2.Stream
 import io.taig.schelm.data.{Html, Path}
 
-abstract class StateManager[F[_], View] {
+abstract class StateManager[F[_], Structure] {
   def get[A](path: Path): F[Option[A]]
 
   def snapshot: F[Map[Path, _]]
 
-  def submit[A](path: Path, initial: A, state: A, view: View): F[Unit]
+  def submit[A](path: Path, initial: A, state: A, view: Structure): F[Unit]
 
-  def subscription: Stream[F, StateManager.Update[View]]
+  def subscription: Stream[F, StateManager.Update[Structure]]
 }
 
 object StateManager {
-  final case class Update[View](path: Path, view: View)
+  final case class Update[Structure](path: Path, structure: Structure)
 }

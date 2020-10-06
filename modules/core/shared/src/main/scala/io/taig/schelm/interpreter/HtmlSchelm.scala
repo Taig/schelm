@@ -13,13 +13,14 @@ object HtmlSchelm {
       differ: Differ[Html[F], HtmlDiff[F]],
       patcher: Patcher[F, HtmlAttachedReference[F], HtmlDiff[F]]
   ): Schelm[F, Html[F]] =
-    DomSchelm[F, Html[F], HtmlReference[F], HtmlAttachedReference[F], HtmlDiff[F]](
+    DomSchelm[F, Html[F], Html[F], HtmlReference[F], HtmlAttachedReference[F], HtmlDiff[F]](
       states,
+      Renderer.identity,
       renderer,
       attacher,
       differ,
       patcher
-    )
+    )(_.html)
 
   def default[F[_]: Concurrent](states: StateManager[F, Html[F]], dom: Dom[F])(
       root: Dom.Element

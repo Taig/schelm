@@ -22,33 +22,35 @@ final class HtmlPatcher[F[_]](dom: Dom[F], renderer: Renderer[F, Html[F], HtmlRe
 //          _ <- reference.dom.traverse_(dom.appendChild(element, _))
 //        } yield NodeReference.Element(???, element)
 //      case (NodeReference.Fragment(_), HtmlDiff.AppendChild(html)) => ???
-//      case (reference @ NodeReference.Element(node, _), HtmlDiff.UpdateChild(index, diff)) =>
-//        node match {
-//          case node @ Node.Element(_, Node.Element.Variant.Normal(children), _) =>
-//            children.get(index) match {
-//              case Some(child) =>
-//                patch(child, diff, cursor = 0).map { update =>
-//                  HtmlReference(
-//                    reference
-//                      .copy(node = node.copy(variant = Node.Element.Variant.Normal(children.updated(index, update))))
-//                  )
-//                }
-//              case None => fail(s"No child at index $index")
-//            }
-//          case Node.Element(_, Node.Element.Variant.Void, _) => fail("Can not update child on a void element")
-//        }
-//      case (reference @ NodeReference.Element(node, element), HtmlDiff.UpdateListener(name, action)) =>
-//        node.tag.listeners.get(name) match {
-//          case Some((previous, _)) =>
-//            val next = dom.unsafeRun(action)
-//            val listeners = node.tag.listeners.updated(name, next, action)
-//            val update = HtmlReference(reference.copy(node = node.copy(tag = node.tag.copy(listeners = listeners))))
-//            dom.removeEventListener(element, name.value, previous) *>
-//              dom.addEventListener(element, name.value, next).as(update)
-//          case None => fail(s"No event listener for ${name.value} registered")
-//        }
-//      case (reference @ NodeReference.Text(node, text), HtmlDiff.UpdateText(value)) =>
-//        dom.data(text, value).as(HtmlReference(reference.copy(node = node.copy(value = value))))
+      case (reference @ NodeReference.Element(node, _), HtmlDiff.UpdateChild(index, diff)) =>
+        node match {
+          case node @ Node.Element(_, Node.Element.Variant.Normal(children), _) =>
+            children.get(index) match {
+              case Some(child) =>
+                patch(child, diff, cursor = 0).map { update =>
+                  html.copy(reference =
+                    reference.copy(node =
+                      node.copy(variant = Node.Element.Variant.Normal(children.updated(index, update)))
+                    )
+                  )
+                }
+              case None => fail(s"No child at index $index")
+            }
+          case Node.Element(_, Node.Element.Variant.Void, _) => fail("Can not update child on a void element")
+        }
+      case (reference @ NodeReference.Element(node, element), HtmlDiff.UpdateListener(name, action)) =>
+        node.tag.listeners.get(name) match {
+          case Some((previous, _)) =>
+            val next = dom.unsafeRun(action)
+            val listeners = node.tag.listeners.updated(name, next, action)
+            val update =
+              html.copy(reference = reference.copy(node = node.copy(tag = node.tag.copy(listeners = listeners))))
+            dom.removeEventListener(element, name.value, previous) *>
+              dom.addEventListener(element, name.value, next).as(update)
+          case None => fail(s"No event listener for ${name.value} registered")
+        }
+      case (reference @ NodeReference.Text(node, text), HtmlDiff.UpdateText(value)) =>
+        dom.data(text, value).as(html.copy(reference = reference.copy(node = node.copy(value = value))))
       case (reference, diff) => fail(s"Can not apply $diff to $reference")
 
 //      case HtmlDiff.AddListener(listener) =>

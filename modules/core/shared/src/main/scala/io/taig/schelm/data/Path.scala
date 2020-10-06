@@ -7,5 +7,5 @@ final case class Path(values: Chain[Key]) extends AnyVal {
 }
 
 object Path {
-  val Empty: Path = Path(Chain.empty)
+  val Root: Path = Path(Chain.empty)
 }

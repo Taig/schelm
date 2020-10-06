@@ -1,6 +1,5 @@
 package io.taig.schelm.data
 
-import cats.Applicative
 import cats.data.Chain
 import cats.data.Chain.==:
 import cats.implicits._
@@ -30,20 +29,7 @@ final case class HtmlReference[F[_]](reference: NodeReference[F, HtmlReference[F
       children.flatMap(_.get(identifier)).flatMap(_.get(Path(tail)))
   }
 
-  def update(path: Path)(
-      f: NodeReference[F, HtmlReference[F]] => F[NodeReference[F, HtmlReference[F]]]
-  )(implicit F: Applicative[F]): F[HtmlReference[F]] =
-    path.values match {
-      case Chain() => f(this.reference).map(HtmlReference.apply)
-    }
-
-  def node: Node[F, ListenerReferences[F], HtmlReference[F]] = reference match {
-    case NodeReference.Element(node, _) => node
-    case NodeReference.Fragment(node)   => node
-    case NodeReference.Text(node, _)    => node
-  }
-
-  def html: Html[F] = Html(node.bimap(_.toListeners, _.html))
+  def html: Html[F] = Html(reference.node.bimap(_.toListeners, _.html))
 
   def dom: Vector[Dom.Node] = reference match {
     case NodeReference.Element(_, dom) => Vector(dom)

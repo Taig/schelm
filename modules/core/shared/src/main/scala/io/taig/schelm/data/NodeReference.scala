@@ -5,6 +5,8 @@ import cats.{Applicative, Eval, Traverse}
 import io.taig.schelm.algebra.Dom
 
 sealed abstract class NodeReference[+F[_], +A] extends Product with Serializable {
+  def node: Node[F, ListenerReferences[F], A]
+
   final override def toString: String = this match {
     case NodeReference.Element(node, dom) => s"NodeReference.Element(node = $node, dom = $dom)"
     case NodeReference.Fragment(node)     => s"NodeReference.Fragment(node = $node)"

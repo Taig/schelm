@@ -7,32 +7,26 @@ import io.taig.schelm.algebra._
 import io.taig.schelm.util.PathTraversal
 import io.taig.schelm.util.PathTraversal.ops._
 
-final class DomSchelm[F[_], View, Reference, Target: PathTraversal, Diff](
-    states: StateManager[F, View],
-    renderer: Renderer[F, View, Reference],
+final class DomSchelm[F[_], View, Structure, Reference, Target: PathTraversal, Diff](
+    states: StateManager[F, Structure],
+    structurer: Renderer[F, View, Structure],
+    renderer: Renderer[F, Structure, Reference],
     attacher: Attacher[F, Reference, Target],
-    differ: Differ[View, Diff],
+    differ: Differ[Structure, Diff],
     patcher: Patcher[F, Target, Diff]
-)(implicit F: Concurrent[F])
+)(extract: Target => Structure)(implicit F: Concurrent[F])
     extends Schelm[F, View] {
   override def start(app: View): Resource[F, Unit] =
     for {
-      reference1 <- Resource.liftF(renderer.render(app))
-      reference2 <- Resource.liftF(attacher.attach(reference1))
+      reference <- Resource.liftF(structurer.andThen(renderer).render(app).flatMap(attacher.attach))
       _ <- states.subscription
-        .evalScan(reference2) { (reference, update) =>
+        .evalScan(reference) { (reference, update) =>
           reference.modify[F](update.path) { reference =>
-            differ.diff(???, update.view)
-            ???
+            differ
+              .diff(extract(reference), update.structure)
+              .traverse(patcher.patch(reference, _))
+              .map(_.getOrElse(reference))
           }
-          ???
-//          reference.update(update.path) { reference =>
-//            differ
-//              .diff(HtmlReference(reference).html, update.html)
-//              .traverse(patcher.patch(HtmlReference(reference), _))
-//              .map(_.map(_.reference).getOrElse(reference))
-//          }
-          F.pure(reference)
         }
         .compile
         .drain
@@ -47,12 +41,13 @@ final class DomSchelm[F[_], View, Reference, Target: PathTraversal, Diff](
 }
 
 object DomSchelm {
-  def apply[F[_]: Concurrent, View, Reference, Target: PathTraversal, Diff](
-      states: StateManager[F, View],
-      renderer: Renderer[F, View, Reference],
+  def apply[F[_]: Concurrent, View, Structure, Reference, Target: PathTraversal, Diff](
+      states: StateManager[F, Structure],
+      structurer: Renderer[F, View, Structure],
+      renderer: Renderer[F, Structure, Reference],
       attacher: Attacher[F, Reference, Target],
-      differ: Differ[View, Diff],
+      differ: Differ[Structure, Diff],
       patcher: Patcher[F, Target, Diff]
-  ): Schelm[F, View] =
-    new DomSchelm(states, renderer, attacher, differ, patcher)
+  )(extract: Target => Structure): Schelm[F, View] =
+    new DomSchelm(states, structurer, renderer, attacher, differ, patcher)(extract)
 }

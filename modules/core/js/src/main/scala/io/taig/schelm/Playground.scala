@@ -48,7 +48,7 @@ object Playground extends IOApp {
     dom
       .getElementById("main")
       .flatMap(_.liftTo[IO](new IllegalStateException("root element does not exist")))
-      .flatMap(StateHtmlSchelm.default[IO](dom)(_))
+      .flatMap(StateHtmlSchelm.empty[IO](dom)(_))
       .flatMap(_.start(app).use(_ => IO.never))
       .as(ExitCode.Success)
   }
