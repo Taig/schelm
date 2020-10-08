@@ -13,8 +13,9 @@ object CssHtmlDiffer {
       css: Differ[Map[Selector, Style], NonEmptyList[CssDiff]]
   ): Differ[CssHtml[F], CssHtmlDiff[F]] = new Differ[CssHtml[F], CssHtmlDiff[F]] {
     override def diff(current: CssHtml[F], next: CssHtml[F]): Option[CssHtmlDiff[F]] = {
-      val ((currentHtml, currentCss), (nextHtml, nextCss)) = (CssHtml.toHtml(current), CssHtml.toHtml(next))
-      CssHtmlDiff.fromOptions(html.diff(currentHtml, nextHtml), css.diff(currentCss, nextCss))
+      ???
+//      val ((currentHtml, currentCss), (nextHtml, nextCss)) = (CssHtml.toHtml(current), CssHtml.toHtml(next))
+//      CssHtmlDiff.fromOptions(html.diff(currentHtml, nextHtml), css.diff(currentCss, nextCss))
     }
   }
 

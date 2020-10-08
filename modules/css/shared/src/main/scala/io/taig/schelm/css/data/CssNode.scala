@@ -1,11 +1,14 @@
 package io.taig.schelm.css.data
 
-import cats.{Applicative, Eval, Traverse}
 import cats.implicits._
+import cats.{Applicative, Eval, Traverse}
+import io.taig.schelm.data.Fix
 
 final case class CssNode[+A](node: A, style: Style)
 
 object CssNode {
+  type ⟳[F[_]] = CssNode[Fix[λ[A => F[CssNode[A]]]]]
+
   implicit val traverse: Traverse[CssNode] = new Traverse[CssNode] {
     override def traverse[G[_]: Applicative, A, B](fa: CssNode[A])(f: A => G[B]): G[CssNode[B]] =
       f(fa.node).map(component => fa.copy(node = component))

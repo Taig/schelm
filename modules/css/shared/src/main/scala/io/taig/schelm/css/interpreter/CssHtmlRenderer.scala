@@ -4,31 +4,30 @@ import cats.implicits._
 import cats.{Applicative, Id}
 import io.taig.schelm.algebra.Renderer
 import io.taig.schelm.css.data._
-import io.taig.schelm.data.{Attribute, Html, Node}
+import io.taig.schelm.data.{Attribute, Fix, Html, Node}
+import io.taig.schelm.util.FunctionKs
 
-final class CssHtmlRenderer[F[_]: Applicative] extends Renderer[Id, CssHtml[F], StyledHtml[F]] {
+final class CssHtmlRenderer[F[_]] extends Renderer[Id, CssHtml[F], StyledHtml[F]] {
   override def render(css: CssHtml[F]): StyledHtml[F] = {
-    val nodes = css.node.map(_.map(render))
+    val styles = collection.mutable.HashMap.empty[Selector, Style]
+    val html = render(css, styles)
+    StyledHtml[F](styles.toMap, html)
+  }
 
-    val (rules, CssNode(node, _)) = nodes match {
-      case CssNode(element @ Node.Element(tag, _, _), style) if !style.isEmpty =>
-        val identifier = Identifier(style.hashCode)
+  def render(css: CssHtml[F], styles: collection.mutable.HashMap[Selector, Style]): Html[F] =
+    css.node.unfix match {
+      case element @ Node.Element(tag, _, _) if !css.style.isEmpty =>
+        val identifier = Identifier(css.style.hashCode)
         val selector = identifier.toSelector
         val attribute = Attribute(Attribute.Key.Class, Attribute.Value(identifier.toClass))
-        val node = CssNode(element.copy(tag = tag.copy(attributes = tag.attributes + attribute)), style)
-        Map(selector -> style) -> node
-      case node => CssHtmlRenderer.EmptyStyles -> node
+        val node = element.copy(tag = tag.copy(attributes = tag.attributes + attribute))
+        styles += selector -> css.style
+        node.map(node => Fix(render(node, styles)))
+      case node => node.map(node => Fix(render(node, styles)))
     }
-
-    val html = Html(node.map(_.html))
-    val styles = nodes.node.map(_.styles).foldl(rules)(_ ++ _)
-
-    StyledHtml(styles, html)
-  }
 }
 
 object CssHtmlRenderer {
-  private val EmptyStyles: Map[Selector, Style] = Map.empty
-
-  def apply[F[_]: Applicative]: Renderer[Id, CssHtml[F], StyledHtml[F]] = new CssHtmlRenderer[F]
+  def apply[F[_]: Applicative]: Renderer[F, CssHtml[F], StyledHtml[F]] =
+    new CssHtmlRenderer[F].mapK(FunctionKs.liftId[F])
 }
