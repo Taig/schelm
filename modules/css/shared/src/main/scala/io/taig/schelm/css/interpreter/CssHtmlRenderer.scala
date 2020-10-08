@@ -1,36 +1,34 @@
 package io.taig.schelm.css.interpreter
 
 import cats.implicits._
-import cats.{Applicative, Id, Monad}
-import io.taig.schelm.algebra.{Dom, Renderer}
-import io.taig.schelm.css.data.{CssHtml, CssNode, Identifier, Selector, Style}
-import io.taig.schelm.data.{Attribute, Html, HtmlReference, Listeners, Node}
-import io.taig.schelm.interpreter.HtmlRenderer
+import cats.{Applicative, Id}
+import io.taig.schelm.algebra.Renderer
+import io.taig.schelm.css.data._
+import io.taig.schelm.data.{Attribute, Html, Node}
 
-final class CssHtmlRenderer[F[_]: Applicative] extends Renderer[Id, CssHtml[F], (Html[F], Map[Selector, Style])] {
-  val EmptyStyles: Map[Selector, Style] = Map.empty
-
-  override def render(css: CssHtml[F]): (Html[F], Map[Selector, Style]) = {
+final class CssHtmlRenderer[F[_]: Applicative] extends Renderer[Id, CssHtml[F], StyledHtml[F]] {
+  override def render(css: CssHtml[F]): StyledHtml[F] = {
     val nodes = css.node.map(_.map(render))
 
-    val (CssNode(node, _), rules) = nodes match {
-      case CssNode(node: Node.Element[F, Listeners[F], (Html[F], Map[Selector, Style])], style) if !style.isEmpty =>
+    val (rules, CssNode(node, _)) = nodes match {
+      case CssNode(element @ Node.Element(tag, _, _), style) if !style.isEmpty =>
         val identifier = Identifier(style.hashCode)
         val selector = identifier.toSelector
         val attribute = Attribute(Attribute.Key.Class, Attribute.Value(identifier.toClass))
-        val update = CssNode(node.copy(tag = node.tag.copy(attributes = node.tag.attributes + attribute)), style)
-        (update, Map(selector -> style))
-      case node => (node, EmptyStyles)
+        val node = CssNode(element.copy(tag = tag.copy(attributes = tag.attributes + attribute)), style)
+        Map(selector -> style) -> node
+      case node => CssHtmlRenderer.EmptyStyles -> node
     }
 
-    val html = Html(node.map { case (html, _) => html })
-    val styles = nodes.node.foldl(rules) { case (left, (_, right)) => left ++ right }
+    val html = Html(node.map(_.html))
+    val styles = nodes.node.map(_.styles).foldl(rules)(_ ++ _)
 
-    (html, styles)
+    StyledHtml(styles, html)
   }
 }
 
 object CssHtmlRenderer {
-  def apply[F[_]: Applicative]: Renderer[Id, CssHtml[F], (Html[F], Map[Selector, Style])] =
-    new CssHtmlRenderer[F]
+  private val EmptyStyles: Map[Selector, Style] = Map.empty
+
+  def apply[F[_]: Applicative]: Renderer[Id, CssHtml[F], StyledHtml[F]] = new CssHtmlRenderer[F]
 }

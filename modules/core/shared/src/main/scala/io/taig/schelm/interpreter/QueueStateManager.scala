@@ -7,7 +7,7 @@ import cats.implicits._
 import fs2.Stream
 import fs2.concurrent.Queue
 import io.taig.schelm.algebra.StateManager
-import io.taig.schelm.data.{Html, Path}
+import io.taig.schelm.data.Path
 
 final class QueueStateManager[F[_], View](
     states: Ref[F, Map[Path, _]],

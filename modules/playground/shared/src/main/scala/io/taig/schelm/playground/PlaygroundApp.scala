@@ -20,8 +20,8 @@ object PlaygroundApp {
           children = Children.of(
             MdcChipSet(chips =
               Children.of(
-                MdcChip[F](label, tabindex = 1, icon = ("event", MdcChip.Icon.Position.Leading).some),
-                MdcChip[F]("hello google", tabindex = 2, icon = ("event", MdcChip.Icon.Position.Trailing).some)
+                MdcChip(label, tabindex = 1, icon = ("event", MdcChip.Icon.Position.Leading).some),
+                MdcChip("hello google", tabindex = 2, icon = ("event", MdcChip.Icon.Position.Trailing).some)
               )
             )
           )

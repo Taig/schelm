@@ -8,19 +8,18 @@ import io.taig.schelm.data.HtmlDiff
 object HtmlDiffer {
   def apply[F[_]]: Differ[Html[F], HtmlDiff[F]] = new Differ[Html[F], HtmlDiff[F]] {
     override def diff(current: Html[F], next: Html[F]): Option[HtmlDiff[F]] =
-      (current.node, next.node) match {
-        case (current: Node.Element[F, Listeners[F], Html[F]], next: Node.Element[F, Listeners[F], Html[F]]) =>
-          element(current, next)
-        case (current: Node.Fragment[Html[F]], next: Node.Fragment[Html[F]])         => fragment(current, next)
-        case (current: Node.Text[F, Listeners[F]], next: Node.Text[F, Listeners[F]]) => text(current, next)
-        case _                                                                       => HtmlDiff.Replace(next).some
+      (current, next) match {
+        case (current @ Node.Element(_, _, _), next @ Node.Element(_, _, _)) => element(current, next)
+        case (current @ Node.Fragment(_), next @ Node.Fragment(_))           => fragment(current, next)
+        case (current @ Node.Text(_, _, _), next @ Node.Text(_, _, _))       => text(current, next)
+        case _                                                               => HtmlDiff.Replace(next).some
       }
 
     def element(
-        current: Node.Element[F, Listeners[F], Html[F]],
-        next: Node.Element[F, Listeners[F], Html[F]]
+        current: Node.Element[F, Listeners[F], Fix[Node[F, Listeners[F], *]]],
+        next: Node.Element[F, Listeners[F], Fix[Node[F, Listeners[F], *]]]
     ): Option[HtmlDiff[F]] = {
-      if (current.tag.name != next.tag.name) HtmlDiff.Replace(Html(next)).some
+      if (current.tag.name != next.tag.name) HtmlDiff.Replace(next).some
       else {
         val diffs = attributes(current.tag.attributes, next.tag.attributes).toList ++
           listeners(current.tag.listeners, next.tag.listeners).toList
@@ -34,7 +33,10 @@ object HtmlDiffer {
       }
     }
 
-    def fragment(current: Node.Fragment[Html[F]], next: Node.Fragment[Html[F]]): Option[HtmlDiff[F]] =
+    def fragment(
+        current: Node.Fragment[Fix[Node[F, Listeners[F], *]]],
+        next: Node.Fragment[Fix[Node[F, Listeners[F], *]]]
+    ): Option[HtmlDiff[F]] =
       children(current.children, next.children)
 
     def text(current: Node.Text[F, Listeners[F]], next: Node.Text[F, Listeners[F]]): Option[HtmlDiff[F]] =
@@ -76,26 +78,35 @@ object HtmlDiffer {
         HtmlDiff.from(diffs)
       }
 
-    def children(current: Children[Html[F]], next: Children[Html[F]]): Option[HtmlDiff[F]] =
+    def children(
+        current: Children[Fix[Node[F, Listeners[F], *]]],
+        next: Children[Fix[Node[F, Listeners[F], *]]]
+    ): Option[HtmlDiff[F]] =
       if (current.isEmpty && next.isEmpty) None
-      else if (current.isEmpty) HtmlDiff.from(next.toList.map(HtmlDiff.AppendChild[F]))
+      else if (current.isEmpty) HtmlDiff.from(next.toList.map(fix => HtmlDiff.AppendChild[F](fix.unfix)))
       else if (next.isEmpty) Some(HtmlDiff.Clear)
       else
         (current, next) match {
-          case (previous: Children.Indexed[Html[F]], next: Children.Indexed[Html[F]]) =>
+          case (
+              previous: Children.Indexed[Fix[Node[F, Listeners[F], *]]],
+              next: Children.Indexed[Fix[Node[F, Listeners[F], *]]]
+              ) =>
             indexedChildren(previous, next)
-          case (previous: Children.Identified[Html[F]], next: Children.Identified[Html[F]]) =>
+          case (
+              previous: Children.Identified[Fix[Node[F, Listeners[F], *]]],
+              next: Children.Identified[Fix[Node[F, Listeners[F], *]]]
+              ) =>
             identifiedChildren(previous, next)
-          case (_, next) => HtmlDiff.from(HtmlDiff.Clear +: next.toList.map(HtmlDiff.AppendChild[F]))
+          case (_, next) => HtmlDiff.from(HtmlDiff.Clear +: next.toList.map(fix => HtmlDiff.AppendChild[F](fix.unfix)))
         }
 
     def indexedChildren(
-        previous: Children.Indexed[Html[F]],
-        next: Children.Indexed[Html[F]]
+        previous: Children.Indexed[Fix[Node[F, Listeners[F], *]]],
+        next: Children.Indexed[Fix[Node[F, Listeners[F], *]]]
     ): Option[HtmlDiff[F]] = {
-      val left = previous.values
+      val left = previous.values.map(_.unfix)
       val leftLength = left.length
-      val right = next.values
+      val right = next.values.map(_.unfix)
       val rightLength = right.length
 
       val diffs = (left zip right).zipWithIndex.mapFilter {
@@ -112,8 +123,8 @@ object HtmlDiffer {
     }
 
     def identifiedChildren(
-        previous: Children.Identified[Html[F]],
-        next: Children.Identified[Html[F]]
+        previous: Children.Identified[Fix[Node[F, Listeners[F], *]]],
+        next: Children.Identified[Fix[Node[F, Listeners[F], *]]]
     ): Option[HtmlDiff[F]] =
       throw new UnsupportedOperationException("Diffing identified children is not implemented yet")
   }

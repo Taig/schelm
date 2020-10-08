@@ -1,7 +1,7 @@
 package io.taig.schelm.algebra
 
 import fs2.Stream
-import io.taig.schelm.data.{Html, Path}
+import io.taig.schelm.data.Path
 
 abstract class StateManager[F[_], Structure] {
   def get[A](path: Path): F[Option[A]]

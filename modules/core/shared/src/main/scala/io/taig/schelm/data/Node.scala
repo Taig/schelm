@@ -2,6 +2,7 @@ package io.taig.schelm.data
 
 import cats.implicits._
 import cats.{Applicative, Bifunctor, Eval, Functor, Traverse}
+import io.taig.schelm.util.NodeTraverse
 
 sealed abstract class Node[+F[_], +Listeners, +A] extends Product with Serializable {
   final def traverseWithKey[G[α] >: F[α], H[_]: Applicative, L >: Listeners, B](f: (Key, A) => H[B]): H[Node[G, L, B]] =
@@ -103,7 +104,12 @@ object Node {
     }
   }
 
-  implicit def traverse[F[_], Listener]: Traverse[Node[F, Listener, *]] = new Traverse[Node[F, Listener, *]] {
+  implicit def traverse[F[_], Listener]: NodeTraverse[Node[F, Listener, *]] = new NodeTraverse[Node[F, Listener, *]] {
+    override def traverseWithKey[G[_]: Applicative, A, B](
+        fa: Node[F, Listener, A]
+    )(f: (Key, A) => G[B]): G[Node[F, Listener, B]] =
+      fa.traverseWithKey(f)
+
     override def traverse[G[_]: Applicative, A, B](fa: Node[F, Listener, A])(f: A => G[B]): G[Node[F, Listener, B]] =
       fa match {
         case node: Element[F, Listener, A] => node.traverse(f).widen

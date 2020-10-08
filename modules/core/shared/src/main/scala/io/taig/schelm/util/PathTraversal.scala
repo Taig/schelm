@@ -51,7 +51,7 @@ object PathTraversal {
               case reference: NodeReference.Element[F, A] =>
                 reference.node.variant match {
                   case Variant.Normal(children @ Children.Indexed(values)) =>
-                    values.get(index) match {
+                    values.get(index.toLong) match {
                       case Some(child) =>
                         modify(child)(Path(tail))(f).map { update =>
                           lift(
