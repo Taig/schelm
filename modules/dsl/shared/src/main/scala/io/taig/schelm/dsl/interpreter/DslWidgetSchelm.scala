@@ -1,45 +1,64 @@
 package io.taig.schelm.dsl.interpreter
 
-import cats.arrow.FunctionK
+import cats.Functor
 import cats.effect.Concurrent
 import cats.implicits._
-import cats.{Applicative, Functor, Id}
 import io.taig.schelm.algebra._
-import io.taig.schelm.css.data.{CssHtml, CssHtmlDiff, CssNode, StateCssHtml, WidgetStateCssHtml}
-import io.taig.schelm.data.Widget.⟳
-import io.taig.schelm.data.{Fix, HtmlAttachedReference, HtmlReference, Listeners, Node, State, Widget}
+import io.taig.schelm.css.data.{
+  Css,
+  CssHtml,
+  CssHtmlDiff,
+  StateCssHtml,
+  StyledHtml,
+  StylesheetHtmlAttachedReference,
+  StylesheetHtmlReference,
+  WidgetStateCssHtml
+}
+import io.taig.schelm.css.interpreter.{CssHtmlRenderer, CssRenderer}
+import io.taig.schelm.data._
 import io.taig.schelm.dsl.data.DslWidget
-import io.taig.schelm.interpreter.{DomSchelm, QueueStateManager, WidgetRenderer}
+import io.taig.schelm.interpreter.{DomSchelm, HtmlRenderer, QueueStateManager, StateRenderer, WidgetRenderer}
+import io.taig.schelm.util.NodeTraverse
 
 object DslWidgetSchelm {
   def apply[F[_]: Concurrent, Context](
       states: StateManager[F, CssHtml[F]],
       structurer: Renderer[F, DslWidget[F, Context], CssHtml[F]],
-      renderer: Renderer[F, CssHtml[F], HtmlReference[F]],
-      attacher: Attacher[F, HtmlReference[F], HtmlAttachedReference[F]],
+      renderer: Renderer[F, CssHtml[F], StylesheetHtmlReference[F]],
+      attacher: Attacher[F, StylesheetHtmlReference[F], StylesheetHtmlAttachedReference[F]],
       differ: Differ[CssHtml[F], CssHtmlDiff[F]],
-      patcher: Patcher[F, HtmlAttachedReference[F], CssHtmlDiff[F]]
+      patcher: Patcher[F, StylesheetHtmlAttachedReference[F], CssHtmlDiff[F]]
   ): Schelm[F, DslWidget[F, Context]] =
-    DomSchelm(states, structurer, renderer, attacher, differ, patcher)(???)
+    DomSchelm(states, structurer, renderer, attacher, differ, patcher)(???)(???, ???)
 
-  implicit def yyy[F[_], G[_]]: Functor[λ[A => State[F, CssNode[Node[F, Listeners[F], A]]]]] =
-    Functor[State[F, *]].compose[CssNode].compose[Node[F, Listeners[F], *]]
+  implicit def yyy[F[_], G[_]]: Functor[λ[A => State[F, Css[Node[F, Listeners[F], A]]]]] =
+    Functor[State[F, *]].compose[Css].compose[Node[F, Listeners[F], *]]
 
   def default[F[_], Context](states: StateManager[F, CssHtml[F]], dom: Dom[F])(
-      root: Dom.Element
+      root: Dom.Element,
+      context: Context
   )(implicit F: Concurrent[F]): Schelm[F, DslWidget[F, Context]] = {
-    val context: Context = ???
     val x: Renderer[F, DslWidget[F, Context], WidgetStateCssHtml[F, Context]] = DslWidgetRenderer[F, Context]
-    val y: Renderer[F, Widget.⟳[Context, Lambda[A => State[F, CssNode[Node[F, Listeners[F], A]]]]], Fix[
-      Lambda[A => State[F, CssNode[Node[F, Listeners[F], A]]]]
-    ]] =
-      WidgetRenderer.default[F, λ[A => State[F, CssNode[Node[F, Listeners[F], A]]]], Context](context)
+    val y: Renderer[F, WidgetStateCssHtml[F, Context], StateCssHtml[F]] =
+      WidgetRenderer.default[F, λ[A => State[F, Css[Node[F, Listeners[F], A]]]], Context](context)
+    val z: Renderer[F, StateCssHtml[F], CssHtml[F]] =
+      StateRenderer.root[F, λ[A => Css[Node[F, Listeners[F], A]]]](states)
 
-    val structurer = ??? // CssHtmlRenderer[F].mapK(λ[FunctionK[Id, F]](F.pure(_)))
-    val renderer = ??? // HtmlRenderer(dom)
+    val structurer = x.andThen(y).andThen(z)
+
+    val a = CssHtmlRenderer[F]
+    val b = HtmlRenderer[F](dom)
+    val c = CssRenderer[F]
+
+    val renderer = a.andThen {
+      case StyledHtml(styles, html: Html[F]) =>
+        (c.run(styles), b.run(html)).mapN(StylesheetHtmlReference.apply)
+    }
+
     val attacher = ??? // HtmlReferenceAttacher.default(dom)(root)
     val differ = ??? // HtmlDiffer[F]
     val patcher = ??? // HtmlPatcher(dom, renderer)
+
     DslWidgetSchelm(
       states,
       structurer,
@@ -50,6 +69,8 @@ object DslWidgetSchelm {
     )
   }
 
-  def empty[F[_]: Concurrent, Context](dom: Dom[F])(root: Dom.Element): F[Schelm[F, DslWidget[F, Context]]] =
-    QueueStateManager.empty[F, CssHtml[F]].map(default[F, Context](_, dom)(root))
+  def empty[F[_]: Concurrent, Context](
+      dom: Dom[F]
+  )(root: Dom.Element, context: Context): F[Schelm[F, DslWidget[F, Context]]] =
+    QueueStateManager.empty[F, CssHtml[F]].map(default[F, Context](_, dom)(root, context))
 }

@@ -12,7 +12,7 @@ object JsPlaygroundApp extends IOApp {
 
     (for {
       root <- Resource.liftF(dom.getElementById("main").flatMap(_.liftTo[IO](new IllegalStateException)))
-      schelm <- Resource.liftF(DslWidgetSchelm.empty[IO, MdcTheme](dom)(root))
+      schelm <- Resource.liftF(DslWidgetSchelm.empty[IO, MdcTheme](dom)(root, MdcTheme.Default))
       _ <- schelm.start(PlaygroundApp.render[IO]("yolo"))
     } yield ExitCode.Success).use(_ => IO.never)
   }

@@ -1,6 +1,6 @@
 package io.taig.schelm.dsl.data
 
-import io.taig.schelm.css.data.{CssNode, Style}
+import io.taig.schelm.css.data.{Css, Style}
 import io.taig.schelm.data._
 
 object DslNode {
@@ -41,7 +41,7 @@ object DslNode {
           lifecycle
         )
 
-        DslWidget.Pure(Widget.Pure(State.Stateless(CssNode(element, style))))
+        DslWidget.Pure(Widget.Pure(State.Stateless(Css(element, style))))
       }
     }
   }

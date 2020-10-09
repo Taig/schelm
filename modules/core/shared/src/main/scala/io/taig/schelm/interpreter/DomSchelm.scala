@@ -18,7 +18,7 @@ final class DomSchelm[F[_], View, Structure, Reference, Target: PathTraversal, D
     extends Schelm[F, View] {
   override def start(app: View): Resource[F, Unit] =
     for {
-      reference <- Resource.liftF(structurer.andThen(renderer).render(app).flatMap(attacher.attach))
+      reference <- Resource.liftF(structurer.andThen(renderer).run(app).flatMap(attacher.run))
       _ <- states.subscription
         .evalScan(reference) { (reference, update) =>
           reference.modify[F](update.path) { reference =>

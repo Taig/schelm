@@ -1,6 +1,6 @@
 package io.taig.schelm.dsl.keyword
 
-import io.taig.schelm.css.data.{CssNode, Style}
+import io.taig.schelm.css.data.{Css, Style}
 import io.taig.schelm.data._
 import io.taig.schelm.dsl.builder.{ElementNormalBuilder, ElementVoidBuilder}
 import io.taig.schelm.dsl.data.{AttributesOps, Div, DslWidget, Span}
@@ -13,11 +13,11 @@ trait NodeKeyword {
   final def fragment[F[_], Context](
       children: Children[DslWidget[F, Context]] = Children.Empty
   ): DslWidget[F, Context] =
-    DslWidget.Pure(Widget.Pure(State.Stateless(CssNode(Node.Fragment(children), Style.Empty))))
+    DslWidget.Pure(Widget.Pure(State.Stateless(Css(Node.Fragment(children), Style.Empty))))
 
   final def text(value: String): DslWidget[Nothing, Any] =
     DslWidget.Pure(
-      Widget.Pure(State.Stateless(CssNode(Node.Text(value, Listeners.Empty, Lifecycle.Noop), Style.Empty)))
+      Widget.Pure(State.Stateless(Css(Node.Text(value, Listeners.Empty, Lifecycle.Noop), Style.Empty)))
     )
 
   final def div[F[_], Context](

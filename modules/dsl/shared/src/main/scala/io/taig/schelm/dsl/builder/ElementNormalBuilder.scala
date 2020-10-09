@@ -1,6 +1,6 @@
 package io.taig.schelm.dsl.builder
 
-import io.taig.schelm.css.data.{CssNode, Style}
+import io.taig.schelm.css.data.{Css, Style}
 import io.taig.schelm.data._
 import io.taig.schelm.dsl.data.DslWidget
 
@@ -18,6 +18,6 @@ final class ElementNormalBuilder(val name: String) extends AnyVal {
       lifecycle
     )
 
-    DslWidget.Pure(Widget.Pure(State.Stateless(CssNode(element, style))))
+    DslWidget.Pure(Widget.Pure(State.Stateless(Css(element, style))))
   }
 }

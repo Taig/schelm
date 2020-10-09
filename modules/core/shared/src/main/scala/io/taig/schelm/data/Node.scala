@@ -104,32 +104,33 @@ object Node {
     }
   }
 
-  implicit def traverse[F[_], Listener]: NodeTraverse[Node[F, Listener, *]] = new NodeTraverse[Node[F, Listener, *]] {
-    override def traverseWithKey[G[_]: Applicative, A, B](
-        fa: Node[F, Listener, A]
-    )(f: (Key, A) => G[B]): G[Node[F, Listener, B]] =
-      fa.traverseWithKey(f)
-
-    override def traverse[G[_]: Applicative, A, B](fa: Node[F, Listener, A])(f: A => G[B]): G[Node[F, Listener, B]] =
+  implicit def traverse[F[_], Listeners]: Traverse[Node[F, Listeners, *]] = new Traverse[Node[F, Listeners, *]] {
+    override def traverse[G[_]: Applicative, A, B](fa: Node[F, Listeners, A])(f: A => G[B]): G[Node[F, Listeners, B]] =
       fa match {
-        case node: Element[F, Listener, A] => node.traverse(f).widen
-        case node: Fragment[A]             => node.traverse(f).widen
-        case node: Text[F, Listener]       => node.pure[G].widen
+        case node: Element[F, Listeners, A] => node.traverse(f).widen
+        case node: Fragment[A]              => node.traverse(f).widen
+        case node: Text[F, Listeners]       => node.pure[G].widen
       }
 
-    override def foldLeft[A, B](fa: Node[F, Listener, A], b: B)(f: (B, A) => B): B =
+    override def foldLeft[A, B](fa: Node[F, Listeners, A], b: B)(f: (B, A) => B): B =
       fa match {
-        case node: Element[F, Listener, A] => node.foldl(b)(f)
-        case node: Fragment[A]             => node.foldl(b)(f)
-        case _: Text[F, Listener]          => b
+        case node: Element[F, Listeners, A] => node.foldl(b)(f)
+        case node: Fragment[A]              => node.foldl(b)(f)
+        case _: Text[F, Listeners]          => b
       }
 
-    override def foldRight[A, B](fa: Node[F, Listener, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
+    override def foldRight[A, B](fa: Node[F, Listeners, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
       fa match {
-        case node: Element[F, Listener, A] => node.foldr(lb)(f)
-        case node: Fragment[A]             => node.foldr(lb)(f)
-        case _: Text[F, Listener]          => lb
+        case node: Element[F, Listeners, A] => node.foldr(lb)(f)
+        case node: Fragment[A]              => node.foldr(lb)(f)
+        case _: Text[F, Listeners]          => lb
       }
+  }
+
+  implicit def nodes[F[_], Listeners]: NodeTraverse[Node[F, Listeners, *]] = new NodeTraverse[Node[F, Listeners, *]] {
+    override def traverseWithKey[G[_]: Applicative, A, B](fa: Node[F, Listeners, A])(
+        f: (Key, A) => G[B]
+    ): G[Node[F, Listeners, B]] = fa.traverseWithKey(f)
   }
 
   implicit def bifunctor[F[_]]: Bifunctor[Node[F, *, *]] = new Bifunctor[Node[F, *, *]] {
