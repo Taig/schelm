@@ -7,7 +7,7 @@ import io.taig.schelm.data.Node.Element.Variant
 import io.taig.schelm.data._
 
 final class HtmlRenderer[F[_]: Monad](dom: Dom[F]) extends Renderer[F, Html[F], HtmlReference[F]] {
-  override def render(html: Html[F]): F[HtmlReference[F]] = html match {
+  override def render(html: Html[F]): F[HtmlReference[F]] = html.unfix match {
     case node @ Node.Element(_, _, _) => element(node)
     case node @ Node.Fragment(_)      => fragment(node)
     case node @ Node.Text(_, _, _)    => text(node)
@@ -27,7 +27,7 @@ final class HtmlRenderer[F[_]: Monad](dom: Dom[F]) extends Renderer[F, Html[F], 
 
   def fragment(node: Node.Fragment[Fix[Node[F, Listeners[F], *]]]): F[HtmlReference[F]] =
     node.children
-      .traverse(fix => render(fix.unfix))
+      .traverse(render)
       .map(children => HtmlReference(NodeReference.Fragment(node.copy(children = children))))
 
   def text(node: Node.Text[F, Listeners[F]]): F[HtmlReference[F]] =
@@ -52,7 +52,7 @@ final class HtmlRenderer[F[_]: Monad](dom: Dom[F]) extends Renderer[F, Html[F], 
   ): Node.Element.Variant[Fix[Node[F, Listeners[F], *]]] => F[Variant[HtmlReference[F]]] = {
     case Variant.Normal(children) =>
       for {
-        children <- children.traverse(fix => render(fix.unfix))
+        children <- children.traverse(render)
         _ <- children.toList.flatMap(_.dom).traverse_(dom.appendChild(element, _))
       } yield Node.Element.Variant.Normal(children)
     case Variant.Void => Variant.Void.pure[F].widen

@@ -5,8 +5,6 @@ import cats.Functor
 sealed abstract class State[+F[_], +A] extends Product with Serializable
 
 object State {
-  type ⟳[F[_], G[_]] = State[F, Fix[λ[A => G[State[F, A]]]]]
-
   final case class Stateful[F[_], A, B](initial: A, render: ((A => A) => F[Unit], A) => B) extends State[F, B] {
     def map[C](f: B => C): Stateful[F, A, C] = copy(render = (update, current) => f(render(update, current)))
   }

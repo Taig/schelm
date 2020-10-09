@@ -29,7 +29,7 @@ final case class HtmlReference[F[_]](reference: NodeReference[F, HtmlReference[F
       children.flatMap(_.get(identifier)).flatMap(_.get(Path(tail)))
   }
 
-  def html: Html[F] = reference.node.bimap(_.toListeners, reference => Fix(reference.html))
+  def html: Html[F] = Html(reference.node.bimap(_.toListeners, _.html))
 
   def dom: Vector[Dom.Node] = reference match {
     case NodeReference.Element(_, dom) => Vector(dom)

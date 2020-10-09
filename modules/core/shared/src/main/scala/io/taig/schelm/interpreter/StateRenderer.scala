@@ -10,16 +10,17 @@ import io.taig.schelm.util.NodeTraverse
 import io.taig.schelm.util.NodeTraverse.ops._
 
 final class StateRenderer[F[_]: Monad, G[_]: NodeTraverse](states: StateManager[F, G[Fix[G]]])
-    extends Renderer[Kleisli[F, Path, *], State.⟳[F, G], G[Fix[G]]] {
-  override def render(state: State[F, Fix[λ[A => G[State[F, A]]]]]): Kleisli[F, Path, G[Fix[G]]] = Kleisli { path =>
-    state match {
-      case state: State.Stateful[F, _, Fix[λ[A => G[State[F, A]]]]] => stateful(state, path)
-      case State.Stateless(value) =>
-        NodeTraverse[G].traverseWithKey(value.unfix)((key, node) => render(node).run(path / key).map(Fix.apply))
+    extends Renderer[Kleisli[F, Path, *], Fix[λ[A => State[F, G[A]]]], Fix[G]] {
+  override def render(state: Fix[λ[A => State[F, G[A]]]]): Kleisli[F, Path, Fix[G]] =
+    Kleisli { path =>
+      state.unfix match {
+        case state: State.Stateful[F, _, G[Fix[λ[A => State[F, G[A]]]]]] => stateful(state, path)
+        case State.Stateless(value) =>
+          NodeTraverse[G].traverseWithKey(value)((key, node) => render(node).run(path / key)).map(Fix.apply)
+      }
     }
-  }
 
-  def stateful[A](state: State.Stateful[F, A, Fix[λ[B => G[State[F, B]]]]], path: Path): F[G[Fix[G]]] = {
+  def stateful[A](state: State.Stateful[F, A, G[Fix[λ[B => State[F, G[B]]]]]], path: Path): F[Fix[G]] = {
     val get = states.get[A](path).map(_.getOrElse(state.initial))
 
     val update = new ((A => A) => F[Unit]) {
@@ -27,8 +28,7 @@ final class StateRenderer[F[_]: Monad, G[_]: NodeTraverse](states: StateManager[
         get.map(f).flatMap { update =>
           state
             .render(this, update)
-            .unfix
-            .traverseWithKey((key, html) => render(html).run(path / key).map(Fix.apply))
+            .traverseWithKey((key, html) => render(html).run(path / key))
             .flatMap(states.submit(path, state.initial, update, _))
         }
     }
@@ -36,8 +36,8 @@ final class StateRenderer[F[_]: Monad, G[_]: NodeTraverse](states: StateManager[
     get.flatMap { current =>
       state
         .render(update, current)
-        .unfix
-        .traverseWithKey((key, html) => render(html).run(path / key).map(Fix.apply))
+        .traverseWithKey((key, html) => render(html).run(path / key))
+        .map(Fix.apply)
     }
   }
 }
@@ -45,9 +45,11 @@ final class StateRenderer[F[_]: Monad, G[_]: NodeTraverse](states: StateManager[
 object StateRenderer {
   def apply[F[_]: Monad, G[_]: NodeTraverse](
       states: StateManager[F, G[Fix[G]]]
-  ): Renderer[Kleisli[F, Path, *], State.⟳[F, G], G[Fix[G]]] =
+  ): Renderer[Kleisli[F, Path, *], Fix[λ[A => State[F, G[A]]]], Fix[G]] =
     new StateRenderer[F, G](states)
 
-  def root[F[_]: Monad, G[_]: NodeTraverse](states: StateManager[F, G[Fix[G]]]): Renderer[F, State.⟳[F, G], G[Fix[G]]] =
+  def root[F[_]: Monad, G[_]: NodeTraverse](
+      states: StateManager[F, G[Fix[G]]]
+  ): Renderer[F, Fix[λ[A => State[F, G[A]]]], Fix[G]] =
     StateRenderer(states).mapK(λ[FunctionK[Kleisli[F, Path, *], F]](_.run(Path.Root)))
 }

@@ -3,7 +3,7 @@ package io.taig.schelm.dsl.interpreter
 import cats.arrow.FunctionK
 import cats.effect.Concurrent
 import cats.implicits._
-import cats.{Applicative, Id}
+import cats.{Applicative, Functor, Id}
 import io.taig.schelm.algebra._
 import io.taig.schelm.css.data.{CssHtml, CssHtmlDiff, CssNode, StateCssHtml, WidgetStateCssHtml}
 import io.taig.schelm.data.Widget.⟳
@@ -22,12 +22,18 @@ object DslWidgetSchelm {
   ): Schelm[F, DslWidget[F, Context]] =
     DomSchelm(states, structurer, renderer, attacher, differ, patcher)(???)
 
+  implicit def yyy[F[_], G[_]]: Functor[λ[A => State[F, CssNode[Node[F, Listeners[F], A]]]]] =
+    Functor[State[F, *]].compose[CssNode].compose[Node[F, Listeners[F], *]]
+
   def default[F[_], Context](states: StateManager[F, CssHtml[F]], dom: Dom[F])(
       root: Dom.Element
   )(implicit F: Concurrent[F]): Schelm[F, DslWidget[F, Context]] = {
     val context: Context = ???
     val x: Renderer[F, DslWidget[F, Context], WidgetStateCssHtml[F, Context]] = DslWidgetRenderer[F, Context]
-//    val y: Renderer[F, WidgetStateCssHtml[F, Context], State[F, CssNode[Node[F, Listeners[F], Fix[λ[A => State[F, CssNode[Node[F, Listeners[F], A]]]]]]]]] = WidgetRenderer.default[F, λ[A => State[F, CssNode[Node[F, Listeners[F], A]]]], Context](context)
+    val y: Renderer[F, Widget.⟳[Context, Lambda[A => State[F, CssNode[Node[F, Listeners[F], A]]]]], Fix[
+      Lambda[A => State[F, CssNode[Node[F, Listeners[F], A]]]]
+    ]] =
+      WidgetRenderer.default[F, λ[A => State[F, CssNode[Node[F, Listeners[F], A]]]], Context](context)
 
     val structurer = ??? // CssHtmlRenderer[F].mapK(λ[FunctionK[Id, F]](F.pure(_)))
     val renderer = ??? // HtmlRenderer(dom)

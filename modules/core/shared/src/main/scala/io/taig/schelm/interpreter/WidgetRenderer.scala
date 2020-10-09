@@ -1,31 +1,33 @@
 package io.taig.schelm.interpreter
 
-import cats.arrow.FunctionK
 import cats.data.Kleisli
 import cats.implicits._
-import cats.{Applicative, Traverse}
+import cats.{~>, Applicative, Functor, Id}
 import io.taig.schelm.algebra.Renderer
 import io.taig.schelm.data.{Fix, Widget}
+import io.taig.schelm.util.FunctionKs
 
-final class WidgetRenderer[F[_]: Applicative, G[_]: Traverse, Context]
-    extends Renderer[Kleisli[F, Context, *], Widget.⟳[Context, G], G[Fix[G]]] {
-  override def render(widget: Widget.⟳[Context, G]): Kleisli[F, Context, G[Fix[G]]] = Kleisli { context =>
-    widget match {
-      case widget: Widget.Patch[Context, Fix[λ[A => G[Widget[Context, A]]]]] =>
-        render(widget.widget).run(widget.f(context))
-      case Widget.Pure(value) => value.unfix.traverse(render(_).run(context).map(Fix.apply))
-      case Widget.Render(f)   => render(f(context)).run(context)
+final class WidgetRenderer[F[_]: Functor, Context]
+    extends Renderer[Kleisli[Id, Context, *], Fix[λ[A => Widget[Context, F[A]]]], Fix[F]] {
+  override def render(widget: Fix[λ[A => Widget[Context, F[A]]]]): Kleisli[Id, Context, Fix[F]] = Kleisli { context =>
+    widget.unfix match {
+      case widget: Widget.Patch[Context, F[Fix[λ[A => Widget[Context, F[A]]]]]] =>
+        Fix(widget.widget.map(render(_).run(widget.f(context))))
+      case Widget.Pure(value) => Fix(value.map(render(_).run(context)))
+      case Widget.Render(f)   => Fix(f(context).map(render(_).run(context)))
     }
   }
 }
 
 object WidgetRenderer {
-  def apply[F[_]: Applicative, G[_]: Traverse, Context]
-      : Renderer[Kleisli[F, Context, *], Widget.⟳[Context, G], G[Fix[G]]] =
-    new WidgetRenderer[F, G, Context]
+  def apply[F[_]: Applicative, G[_]: Functor, Context]
+      : Renderer[Kleisli[F, Context, *], Fix[λ[A => Widget[Context, G[A]]]], Fix[G]] =
+    new WidgetRenderer[G, Context].mapK(new (Kleisli[Id, Context, *] ~> Kleisli[F, Context, *]) {
+      override def apply[A](fa: Kleisli[Id, Context, A]): Kleisli[F, Context, A] = fa.mapK(FunctionKs.liftId[F])
+    })
 
-  def default[F[_]: Applicative, G[_]: Traverse, Context](
+  def default[F[_]: Applicative, G[_]: Functor, Context](
       context: Context
-  ): Renderer[F, Widget.⟳[Context, G], G[Fix[G]]] =
-    WidgetRenderer[F, G, Context].mapK(λ[FunctionK[Kleisli[F, Context, *], F]](_.run(context)))
+  ): Renderer[F, Fix[λ[A => Widget[Context, G[A]]]], Fix[G]] =
+    WidgetRenderer[F, G, Context].mapK(Kleisli.applyK(context))
 }

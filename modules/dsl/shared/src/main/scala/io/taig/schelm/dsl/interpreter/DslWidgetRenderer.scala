@@ -11,8 +11,7 @@ import io.taig.schelm.util.FunctionKs
 final class DslWidgetRenderer[F[_], Context]
     extends Renderer[Id, DslWidget[F, Context], WidgetStateCssHtml[F, Context]] {
   override def render(dsl: DslWidget[F, Context]): WidgetStateCssHtml[F, Context] = dsl match {
-    case DslWidget.Pure(widget)                     =>
-      widget.map(state => Fix[λ[A => State[F, CssNode[Node[F, Listeners[F], Widget[Context, A]]]]]](state.map(_.map(_.map(render)))))
+    case DslWidget.Pure(widget)                     => WidgetStateCssHtml(widget.map(_.map(_.map(_.map(render)))))
     case component: DslWidget.Component[F, Context] => render(component.render)
   }
 }

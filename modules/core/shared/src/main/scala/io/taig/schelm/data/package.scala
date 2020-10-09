@@ -1,11 +1,15 @@
 package io.taig.schelm
 
 package object data {
-  type Html[F[_]] = Node[F, Listeners[F], Fix[Node[F, Listeners[F], *]]]
+  type Html[F[_]] = Fix[Node[F, Listeners[F], *]]
 
-  type StateHtml[F[_]] = State.⟳[F, Node[F, Listeners[F], *]]
+  object Html {
+    def apply[F[_]](node: Node[F, Listeners[F], Html[F]]): Html[F] = Fix(node)
+  }
 
-  type WidgetHtml[F[_], Context] = Widget.⟳[Context, Node[F, Listeners[F], *]]
+  type StateHtml[F[_]] = Fix[λ[A => State[F, Node[F, Listeners[F], A]]]]
 
-  type WidgetStateHtml[F[_], Context] = Widget.⟳[Context, λ[A => State[F, Node[F, Listeners[F], A]]]]
+  type WidgetHtml[F[_], Context] = Fix[λ[A => Widget[Context, Node[F, Listeners[F], A]]]]
+
+  type WidgetStateHtml[F[_], Context] = Fix[λ[A => Widget[Context, State[F, Node[F, Listeners[F], A]]]]]
 }
