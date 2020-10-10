@@ -118,4 +118,7 @@ object HtmlPatcher {
 
     Kleisli { case (reference, diff) => patch(reference, diff, cursor = 0) }
   }
+
+  def default[F[_]: MonadError[*[_], Throwable]](dom: Dom[F]): Patcher[F, HtmlAttachedReference[F], HtmlDiff[F]] =
+    HtmlPatcher(dom, HtmlRenderer(dom))
 }

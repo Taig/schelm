@@ -9,7 +9,26 @@ package object data {
 
   type StateHtml[F[_]] = Fix[λ[A => State[F, Node[F, Listeners[F], A]]]]
 
+  object StateHtml {
+    def apply[F[_]](state: State[F, Node[F, Listeners[F], StateHtml[F]]]): StateHtml[F] =
+      Fix[λ[A => State[F, Node[F, Listeners[F], A]]]](state)
+  }
+
   type WidgetHtml[F[_], Context] = Fix[λ[A => Widget[Context, Node[F, Listeners[F], A]]]]
 
+  object WidgetHtml {
+    def apply[F[_], Context](
+        widget: Widget[Context, Node[F, Listeners[F], WidgetHtml[F, Context]]]
+    ): WidgetHtml[F, Context] =
+      Fix[λ[A => Widget[Context, Node[F, Listeners[F], A]]]](widget)
+  }
+
   type WidgetStateHtml[F[_], Context] = Fix[λ[A => Widget[Context, State[F, Node[F, Listeners[F], A]]]]]
+
+  object WidgetStateHtml {
+    def apply[F[_], Context](
+        widget: Widget[Context, State[F, Node[F, Listeners[F], WidgetStateHtml[F, Context]]]]
+    ): WidgetStateHtml[F, Context] =
+      Fix[λ[A => Widget[Context, State[F, Node[F, Listeners[F], A]]]]](widget)
+  }
 }

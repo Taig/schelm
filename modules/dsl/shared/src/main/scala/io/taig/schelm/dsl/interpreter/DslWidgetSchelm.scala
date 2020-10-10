@@ -15,12 +15,12 @@ object DslWidgetSchelm {
   def apply[F[_]: Concurrent, Context](
       states: StateManager[F, StyledHtml[F]],
       structurer: Renderer[F, DslWidget[F, Context], StyledHtml[F]],
-      renderer: Renderer[F, StyledHtml[F], StylesheetHtmlReference[F]],
-      attacher: Attacher[F, StylesheetHtmlReference[F], StylesheetHtmlAttachedReference[F]],
+      renderer: Renderer[F, StyledHtml[F], StyledHtmlReference[F]],
+      attacher: Attacher[F, StyledHtmlReference[F], StyledHtmlAttachedReference[F]],
       differ: Differ[StyledHtml[F], CssHtmlDiff[F]],
-      patcher: Patcher[F, StylesheetHtmlAttachedReference[F], CssHtmlDiff[F]]
+      patcher: Patcher[F, StyledHtmlAttachedReference[F], CssHtmlDiff[F]]
   ): Schelm[F, DslWidget[F, Context]] =
-    DomSchelm(states, structurer, renderer, attacher, differ, patcher)(???)(???, ???)
+    DomSchelm(states, structurer, renderer, attacher, differ, patcher)(a => StyledHtml(a.styles, a.html.html))
 
   implicit def yyy[F[_], G[_]]: Functor[λ[A => State[F, Css[Node[F, Listeners[F], A]]]]] =
     Functor[State[F, *]].compose[Css].compose[Node[F, Listeners[F], *]]
@@ -42,25 +42,29 @@ object DslWidgetSchelm {
     val b = HtmlRenderer[F](dom)
     val c = CssRenderer[F]
 
-    val renderer: Renderer[F, StyledHtml[F], StylesheetHtmlReference[F]] = Kleisli {
+    val renderer: Renderer[F, StyledHtml[F], StyledHtmlReference[F]] = Kleisli {
       case StyledHtml(styles, html) =>
-        (c.run(styles), b.run(html)).mapN(StylesheetHtmlReference.apply)
+        b.run(html).map(StyledHtmlReference(styles, _))
     }
 
-    val attacher: Attacher[F, StylesheetHtmlReference[F], StylesheetHtmlAttachedReference[F]] = {
-      val x = StylesheetAttacher.default(dom)(root)
+    val attacher: Attacher[F, StyledHtmlReference[F], StyledHtmlAttachedReference[F]] = {
+      val x = StylesheetAttacher.auto(dom)
       val y = HtmlReferenceAttacher.default(dom)(root)
+
       Kleisli {
-        case StylesheetHtmlReference(stylesheet, reference) =>
-          (x.run(stylesheet), y.run(reference)).mapN { (style, reference) =>
-            StylesheetHtmlAttachedReference(stylesheet, reference)
+        case StyledHtmlReference(styles, reference) =>
+          (c.run(styles).flatMap(ss => x.flatMap(_.run(ss))), y.run(reference)).mapN { (style, reference) =>
+            StyledHtmlAttachedReference(styles, reference)
           }
       }
     }
 
     val differ = StyledHtmlDiffer.default[F]
 
-    val patcher: Patcher[F, StylesheetHtmlAttachedReference[F], CssHtmlDiff[F]] = ???
+    val patcher: Patcher[F, StyledHtmlAttachedReference[F], CssHtmlDiff[F]] = Kleisli {
+      case (reference, diff) =>
+        CssHtmlPatcher.default(dom).run(reference -> diff)
+    }
 
     DslWidgetSchelm(
       states,
