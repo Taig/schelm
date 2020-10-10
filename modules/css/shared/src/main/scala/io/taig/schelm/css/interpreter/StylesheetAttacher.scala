@@ -17,6 +17,9 @@ object StylesheetAttacher {
     dom.innerHtml(parent, text).as(parent)
   }
 
+  def default[F[_]: Monad](dom: Dom[F])(root: Dom.Element): Attacher[F, Stylesheet, Dom.Element] =
+    StylesheetAttacher(dom, CssRenderer[F])(root)
+
   /** Create a `<style>` tag in the document's `<head>` and attach the styles to it */
   def auto[F[_]: MonadError[*[_], Throwable]](
       dom: Dom[F],

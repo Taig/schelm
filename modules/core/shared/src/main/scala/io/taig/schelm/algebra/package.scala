@@ -6,4 +6,6 @@ package object algebra {
   type Attacher[F[_], Reference, Target] = Kleisli[F, Reference, Target]
 
   type Renderer[F[_], -View, Reference] = Kleisli[F, View, Reference]
+
+  type Patcher[F[_], Reference, Diff] = Kleisli[F, (Reference, Diff), Reference]
 }

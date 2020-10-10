@@ -24,7 +24,7 @@ final class DomSchelm[F[_], View, Structure, Reference, Target: PathTraversal, D
           reference.modify[F](update.path) { reference =>
             differ
               .diff(extract(reference), update.structure)
-              .traverse(patcher.patch(reference, _))
+              .traverse(patcher.run(reference, _))
               .map(_.getOrElse(reference))
           }
         }
