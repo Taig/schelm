@@ -11,7 +11,12 @@ import io.taig.schelm.util.FunctionKs
 
 object ReduxRenderer {
   def pure[F[_], G[_]: Functor, Event](manager: EventManager[F, Event]): Fix[λ[A => Redux[F, Event, G[A]]]] => Fix[G] =
-    redux => Fix(redux.unfix.run(manager).map(pure(manager)))
+    redux =>
+      Fix(redux.unfix match {
+        case Redux.Pure(value) => value.map(pure[F, G, Event](manager))
+        case redux: Redux.Render[F, Event, G[Fix[λ[A => Redux[F, Event, G[A]]]]]] =>
+          redux.f(manager).map(pure[F, G, Event](manager))
+      })
 
   def id[F[_], G[_]: Functor, Event]
       : Renderer[Kleisli[Id, EventManager[F, Event], *], Fix[λ[A => Redux[F, Event, G[A]]]], Fix[G]] =

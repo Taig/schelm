@@ -8,10 +8,17 @@ sealed abstract class DslWidget[+F[_], +Event, -Context] extends Product with Se
 
 object DslWidget {
   final case class Pure[F[_], Event, Context](
-      widget: Redux[F, Event, Widget[Context, State[F, Css[Node[F, Listeners[F], DslWidget[F, Event, Context]]]]]]
+      redux: Redux[F, Event, Widget[Context, State[F, Css[Node[F, Listeners[F], DslWidget[F, Event, Context]]]]]]
   ) extends DslWidget[F, Event, Context]
 
   abstract class Component[+F[_], +Event, -Context] extends DslWidget[F, Event, Context] {
     def render: DslWidget[F, Event, Context]
+  }
+
+  def run[F[_], Event, Context]: DslWidget[F, Event, Context] => Redux[F, Event, Widget[Context, State[F, Css[
+    Node[F, Listeners[F], DslWidget[F, Event, Context]]
+  ]]]] = {
+    case widget: Pure[F, Event, Context]      => widget.redux
+    case widget: Component[F, Event, Context] => run(widget.render)
   }
 }

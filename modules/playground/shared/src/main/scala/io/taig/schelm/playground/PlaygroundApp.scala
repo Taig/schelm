@@ -11,7 +11,7 @@ import io.taig.schelm.mdc.{MdcChip, MdcChipSet, MdcTheme, MdcTopAppBar}
 // same state, but afterwards remove all listeners. Then patch this version to only add the listeners, everything else
 // should be in place already
 object PlaygroundApp {
-  def render[F[_]: Sync](label: String): DslWidget[F, MdcTheme] = {
+  def render[F[_]: Sync](label: String): DslWidget[F, Event, MdcTheme] = {
     fragment(
       children = Children.of(
         MdcTopAppBar.regular(title = "Yolo"),

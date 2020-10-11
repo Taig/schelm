@@ -17,6 +17,12 @@ object Widget {
 
   final case class Render[-Context, +A](f: Context => A) extends Widget[Context, A]
 
+  def run[Context, A](context: Context): Widget[Context, A] => A = {
+    case widget: Patch[Context, A] => widget.widget
+    case Pure(value)               => value
+    case Render(f)                 => f(context)
+  }
+
   implicit def functor[Context]: Functor[Widget[Context, *]] = new Functor[Widget[Context, *]] {
     override def map[A, B](fa: Widget[Context, A])(f: A => B): Widget[Context, B] = fa.map(f)
   }

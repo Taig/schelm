@@ -1,4 +1,4 @@
-addSbtPlugin("io.taig" % "sbt-houserules" % "0.2.4")
+addSbtPlugin("io.taig" % "sbt-houserules" % "0.3.0")
 
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.2.0")
 

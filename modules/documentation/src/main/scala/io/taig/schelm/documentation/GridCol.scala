@@ -2,6 +2,7 @@ package io.taig.schelm.documentation
 
 import io.taig.schelm.dsl.data.{DslNode, DslWidget}
 
-final case class GridCol[F[_], Context](node: DslNode.Element[F, Context]) extends DslWidget.Component[F, Context] {
-  override def render: DslWidget[F, Context] = node
+final case class GridCol[F[_], Event, Context](node: DslNode.Element[F, Event, Context])
+    extends DslWidget.Component[F, Event, Context] {
+  override def render: DslWidget[F, Event, Context] = node
 }

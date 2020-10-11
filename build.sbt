@@ -18,7 +18,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
       "org.typelevel" %%% "cats-effect" % CatsEffectVersion ::
         "co.fs2" %%% "fs2-core" % Fs2Version ::
         Nil,
-    name := "core"
+    name := "schelm-core"
   )
   .jvmSettings(
     libraryDependencies ++=
@@ -37,7 +37,7 @@ lazy val css = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/css"))
   .settings(sonatypePublishSettings)
   .settings(
-    name := "css"
+    name := "schelm-css"
   )
   .dependsOn(core)
 
@@ -46,7 +46,7 @@ lazy val redux = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/redux"))
   .settings(sonatypePublishSettings)
   .settings(
-    name := "redux"
+    name := "schelm-redux"
   )
   .dependsOn(core)
 
@@ -55,7 +55,7 @@ lazy val dsl = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/dsl"))
   .settings(sonatypePublishSettings)
   .settings(
-    name := "dsl"
+    name := "schelm-dsl"
   )
   .dependsOn(css, redux)
 
@@ -64,7 +64,7 @@ lazy val mdc = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/mdc"))
   .settings(sonatypePublishSettings)
   .settings(
-    name := "mdc"
+    name := "schelm-mdc"
   )
   .dependsOn(dsl)
 
@@ -73,7 +73,7 @@ lazy val playground = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/playground"))
   .settings(noPublishSettings)
   .settings(
-    name := "playground",
+    name := "schelm-playground",
     scalaJSUseMainModuleInitializer := true
   )
   .dependsOn(mdc)
@@ -83,7 +83,7 @@ lazy val documentation = project
   .in(file("modules/documentation"))
   .settings(noPublishSettings)
   .settings(
-    name := "documentation",
+    name := "schelm-documentation",
     packageSite := {
       val target = crossTarget.value / "site"
       val resources = (Compile / resourceDirectory).value

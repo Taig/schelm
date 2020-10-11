@@ -13,8 +13,8 @@ final case class MdcChip[F[_]: Sync](
     icon: Option[(String, MdcChip.Icon.Position)] = None,
     selected: Boolean = false,
     tabindex: Int = -1
-) extends DslWidget.Component[F, Any] {
-  val body: DslWidget[F, Any] = span(
+) extends DslWidget.Component[F, Nothing, Any] {
+  val body: DslWidget[F, Nothing, Any] = span(
     attributes = Attributes.of(a.role := "gridcell"),
     children = Children.of(
       span(
@@ -26,7 +26,7 @@ final case class MdcChip[F[_]: Sync](
     )
   )
 
-  override val render: DslWidget[F, Any] = div(
+  override val render: DslWidget[F, Nothing, Any] = div(
     attributes = Attributes.of(a.cls := List(Prefix) ++ selected.guard[List].as(s"$Prefix--selected"), a.role := "row"),
     lifecycle = MdcLifecycle.chip[F],
     children = Children.of(div(attributes = Attributes.of(a.cls := s"${Prefix}__ripple"))) ++
@@ -55,7 +55,7 @@ object MdcChip {
       final case object Trailing extends Position
     }
 
-    def apply(name: String, position: Position): DslWidget[Nothing, Any] = {
+    def apply(name: String, position: Position): DslWidget[Nothing, Nothing, Any] = {
       val cls = position match {
         case Position.Leading  => "leading"
         case Position.Trailing => "trailing"

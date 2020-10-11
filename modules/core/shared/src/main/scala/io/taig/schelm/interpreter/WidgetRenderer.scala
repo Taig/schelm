@@ -21,7 +21,7 @@ object WidgetRenderer {
     Kleisli(widget => Kleisli(context => render(widget).apply(context).pure[F]))
   }
 
-  def default[F[_]: Applicative, G[_]: Functor, Context](
+  def fromContext[F[_]: Applicative, G[_]: Functor, Context](
       context: Context
   ): Renderer[F, Fix[λ[A => Widget[Context, G[A]]]], Fix[G]] =
     WidgetRenderer[F, G, Context].mapK(Kleisli.applyK(context))
