@@ -3,16 +3,16 @@ package io.taig.schelm.css.interpreter
 import cats.data.Kleisli
 import cats.implicits._
 import cats.{Monad, MonadError}
-import io.taig.schelm.algebra.{Attacher, Dom, Renderer}
-import io.taig.schelm.css.data.{Selector, Style, Stylesheet}
+import io.taig.schelm.algebra.{Attacher, Dom}
+import io.taig.schelm.css.data.Stylesheet
 
-/** Attach styles to a given `<style>` tag */
 object StylesheetAttacher {
   val Id = "schelm-css"
 
-  def apply[F[_]: Monad](dom: Dom[F])(parent: Dom.Element): Attacher[F, Stylesheet, Dom.Element] = Kleisli { stylesheet =>
+  /** Attach styles to a given `<style>` tag */
+  def apply[F[_]: Monad](dom: Dom[F])(root: Dom.Element): Attacher[F, Stylesheet, Dom.Element] = Kleisli { stylesheet =>
     val text = CssPrinter(stylesheet, pretty = true)
-    dom.innerHtml(parent, text).as(parent)
+    dom.innerHtml(root, text).as(root)
   }
 
   /** Create a `<style>` tag in the document's `<head>` and attach the styles to it */

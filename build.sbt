@@ -14,7 +14,6 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/core"))
   .settings(sonatypePublishSettings)
   .settings(
-    scalaJSUseMainModuleInitializer := true,
     libraryDependencies ++=
       "org.typelevel" %%% "cats-effect" % CatsEffectVersion ::
         "co.fs2" %%% "fs2-core" % Fs2Version ::
@@ -42,6 +41,15 @@ lazy val css = crossProject(JVMPlatform, JSPlatform)
   )
   .dependsOn(core)
 
+lazy val redux = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Full)
+  .in(file("modules/redux"))
+  .settings(sonatypePublishSettings)
+  .settings(
+    name := "redux"
+  )
+  .dependsOn(core)
+
 lazy val dsl = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
   .in(file("modules/dsl"))
@@ -49,7 +57,7 @@ lazy val dsl = crossProject(JVMPlatform, JSPlatform)
   .settings(
     name := "dsl"
   )
-  .dependsOn(css)
+  .dependsOn(css, redux)
 
 lazy val mdc = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)

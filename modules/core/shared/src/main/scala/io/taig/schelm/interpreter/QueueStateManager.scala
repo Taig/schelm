@@ -11,7 +11,7 @@ import io.taig.schelm.data.Path
 
 final class QueueStateManager[F[_], View](
     states: Ref[F, Map[Path, _]],
-    updates: Queue[F, StateManager.Update[View]]
+    queue: Queue[F, StateManager.Update[View]]
 )(implicit F: Monad[F])
     extends StateManager[F, View] {
   override def get[A](path: Path): F[Option[A]] = snapshot.map(_.get(path).asInstanceOf[Option[A]])
@@ -26,23 +26,23 @@ final class QueueStateManager[F[_], View](
         else (states + (path -> state), Some(StateManager.Update(path, view)))
       }
       .flatMap {
-        case Some(update) => updates.enqueue1(update)
+        case Some(update) => queue.enqueue1(update)
         case None         => F.unit
       }
 
-  override val subscription: Stream[F, StateManager.Update[View]] = updates.dequeue
+  override val subscription: Stream[F, StateManager.Update[View]] = queue.dequeue
 }
 
 object QueueStateManager {
   def apply[F[_]: Monad, View](
       states: Ref[F, Map[Path, _]],
-      updates: Queue[F, StateManager.Update[View]]
+      queue: Queue[F, StateManager.Update[View]]
   ): StateManager[F, View] =
-    new QueueStateManager[F, View](states, updates)
+    new QueueStateManager[F, View](states, queue)
 
   def empty[F[_]: Concurrent, View]: F[StateManager[F, View]] =
     for {
       states <- Ref[F].of(Map.empty[Path, Any])
-      updates <- Queue.unbounded[F, StateManager.Update[View]]
-    } yield QueueStateManager(states, updates)
+      queue <- Queue.unbounded[F, StateManager.Update[View]]
+    } yield QueueStateManager(states, queue)
 }
