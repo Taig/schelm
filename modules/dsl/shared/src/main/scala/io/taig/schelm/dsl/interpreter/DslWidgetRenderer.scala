@@ -4,7 +4,6 @@ import cats.data.Kleisli
 import cats.implicits._
 import cats.{Applicative, Id}
 import io.taig.schelm.algebra.Renderer
-import io.taig.schelm.css.data.WidgetStateCssHtml
 import io.taig.schelm.dsl.data.{DslNode, ReduxWidgetStateCssHtml}
 import io.taig.schelm.util.FunctionKs
 
