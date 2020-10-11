@@ -3,11 +3,11 @@ package io.taig.schelm.mdc
 import io.taig.schelm.css.data.Style
 import io.taig.schelm.data.{Attributes, Children}
 import io.taig.schelm.dsl._
-import io.taig.schelm.dsl.data.DslWidget
+import io.taig.schelm.dsl.data.DslNode
 
-final case class MdcTopAppBar[F[_], +Event](style: Style, children: Children[DslWidget[F, Event, MdcTheme]])
-    extends DslWidget.Component[F, Event, MdcTheme] {
-  override def render: DslWidget[F, Event, MdcTheme] = contextual { theme =>
+final case class MdcTopAppBar[F[_], +Event](style: Style, children: Children[DslNode[F, Event, MdcTheme]])
+    extends DslNode.Component[F, Event, MdcTheme] {
+  override def render: DslNode[F, Event, MdcTheme] = contextual { theme =>
     header(
       attributes = Attributes.of(a.cls := MdcTopAppBar.Prefix),
       style = Style.of(backgroundColor := theme.variant.palette.primary) ++ style,
@@ -29,8 +29,8 @@ object MdcTopAppBar {
 
     def apply[F[_], Event, Context](
         attributes: Attributes,
-        children: Children[DslWidget[F, Event, Context]]
-    ): DslWidget[F, Event, Context] =
+        children: Children[DslNode[F, Event, Context]]
+    ): DslNode[F, Event, Context] =
       section(
         attributes = Attributes.of(a.cls := s"${Prefix}__section") ++ attributes,
         children = children
@@ -38,8 +38,8 @@ object MdcTopAppBar {
 
     def aligned[F[_], Event, Context](
         alignment: Alignment,
-        children: Children[DslWidget[F, Event, Context]]
-    ): DslWidget[F, Event, Context] = {
+        children: Children[DslNode[F, Event, Context]]
+    ): DslNode[F, Event, Context] = {
       val identifier = alignment match {
         case Alignment.End   => "end"
         case Alignment.Start => "start"
@@ -50,7 +50,7 @@ object MdcTopAppBar {
   }
 
   object Title {
-    def apply(title: String): DslWidget[Nothing, Nothing, MdcTheme] =
+    def apply(title: String): DslNode[Nothing, Nothing, MdcTheme] =
       contextual { theme =>
         span(
           attributes = Attributes.of(a.cls := s"${Prefix}__title"),
@@ -59,7 +59,7 @@ object MdcTopAppBar {
         )
       }
 
-    def icon(name: String, label: String): DslWidget[Nothing, Nothing, MdcTheme] =
+    def icon(name: String, label: String): DslNode[Nothing, Nothing, MdcTheme] =
       contextual { theme =>
         MdcIcon(
           name,
@@ -72,7 +72,7 @@ object MdcTopAppBar {
   }
 
   object Component {
-    def row[F[_], Event, Context](children: Children[DslWidget[F, Event, Context]]): DslWidget[F, Event, Context] =
+    def row[F[_], Event, Context](children: Children[DslNode[F, Event, Context]]): DslNode[F, Event, Context] =
       div(
         attributes = Attributes.of(a.cls := s"${Prefix}__row"),
         children = children

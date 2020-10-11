@@ -2,7 +2,7 @@ package io.taig.schelm.dsl.builder
 
 import io.taig.schelm.css.data.{Css, Style}
 import io.taig.schelm.data._
-import io.taig.schelm.dsl.data.DslWidget
+import io.taig.schelm.dsl.data.DslNode
 import io.taig.schelm.redux.data.Redux
 
 final class ElementNormalBuilder(val name: String) extends AnyVal {
@@ -11,14 +11,14 @@ final class ElementNormalBuilder(val name: String) extends AnyVal {
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop,
-      children: Children[DslWidget[F, Event, Context]] = Children.Empty
-  ): DslWidget[F, Event, Context] = {
+      children: Children[DslNode[F, Event, Context]] = Children.Empty
+  ): DslNode[F, Event, Context] = {
     val element = Node.Element(
       Tag(name, attributes, listeners),
       Node.Element.Variant.Normal(children),
       lifecycle
     )
 
-    DslWidget.Pure(Redux.Pure(Widget.Pure(State.Stateless(Css(element, style)))))
+    DslNode.Pure(Redux.Pure(Widget.Pure(State.Stateless(Css(element, style)))))
   }
 }

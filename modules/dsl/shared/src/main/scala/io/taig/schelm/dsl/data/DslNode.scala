@@ -1,11 +1,21 @@
 package io.taig.schelm.dsl.data
 
 import io.taig.schelm.css.data.{Css, Style}
-import io.taig.schelm.data._
+import io.taig.schelm.data.{Attributes, Children, Lifecycle, Listeners, Node, State, Tag, Widget}
 import io.taig.schelm.redux.data.Redux
 
+sealed abstract class DslNode[+F[_], +Event, -Context] extends Product with Serializable
+
 object DslNode {
-  abstract class Element[F[_], +Event, -Context](val name: String) extends DslWidget.Component[F, Event, Context] {
+  final case class Pure[F[_], Event, Context](
+      redux: Redux[F, Event, Widget[Context, State[F, Css[Node[F, Listeners[F], DslNode[F, Event, Context]]]]]]
+  ) extends DslNode[F, Event, Context]
+
+  abstract class Component[+F[_], +Event, -Context] extends DslNode[F, Event, Context] {
+    def render: DslNode[F, Event, Context]
+  }
+
+  abstract class Element[F[_], +Event, -Context](val name: String) extends DslNode.Component[F, Event, Context] {
     def attributes: Attributes
 
     def listeners: Listeners[F]
@@ -19,31 +29,38 @@ object DslNode {
         listeners: Listeners[F] = this.listeners,
         style: Style = Style.Empty,
         lifecycle: Lifecycle.Element[F] = this.lifecycle,
-        children: Children[DslWidget[F, A, B]] = Children.empty[DslWidget[F, A, Context]]
-    ): DslNode.Element[F, A, B]
+        children: Children[DslNode[F, A, B]] = Children.empty[DslNode[F, A, Context]]
+    ): Element[F, A, B]
   }
 
   object Element {
-    abstract class Normal[F[_], +Event, -Context](name: String) extends DslNode.Element[F, Event, Context](name) {
-      def children: Children[DslWidget[F, Event, Context]]
+    abstract class Normal[F[_], +Event, -Context](name: String) extends Element[F, Event, Context](name) {
+      def children: Children[DslNode[F, Event, Context]]
 
       override def copy[A >: Event, B <: Context](
           attributes: Attributes = this.attributes,
           listeners: Listeners[F] = this.listeners,
           style: Style = Style.Empty,
           lifecycle: Lifecycle.Element[F] = this.lifecycle,
-          children: Children[DslWidget[F, A, B]] = this.children
+          children: Children[DslNode[F, A, B]] = this.children
       ): Element[F, A, B]
 
-      final override def render: DslWidget[F, Event, Context] = {
+      final override def render: DslNode[F, Event, Context] = {
         val element = Node.Element(
           Tag(name, attributes, listeners),
           Node.Element.Variant.Normal(children),
           lifecycle
         )
 
-        DslWidget.Pure(Redux.Pure(Widget.Pure(State.Stateless(Css(element, style)))))
+        DslNode.Pure(Redux.Pure(Widget.Pure(State.Stateless(Css(element, style)))))
       }
     }
+  }
+
+  def run[F[_], Event, Context]: DslNode[F, Event, Context] => Redux[F, Event, Widget[Context, State[F, Css[
+    Node[F, Listeners[F], DslNode[F, Event, Context]]
+  ]]]] = {
+    case widget: Pure[F, Event, Context]      => widget.redux
+    case widget: Component[F, Event, Context] => run(widget.render)
   }
 }

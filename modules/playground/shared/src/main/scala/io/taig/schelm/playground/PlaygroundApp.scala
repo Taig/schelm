@@ -4,14 +4,14 @@ import cats.effect.Sync
 import cats.implicits._
 import io.taig.schelm.data._
 import io.taig.schelm.dsl._
-import io.taig.schelm.dsl.data.DslWidget
+import io.taig.schelm.dsl.data.DslNode
 import io.taig.schelm.mdc.{MdcChip, MdcChipSet, MdcTheme, MdcTopAppBar}
 
 // TODO: think about hydration: render the html on the server, and send to client. Then render again on the client with
 // same state, but afterwards remove all listeners. Then patch this version to only add the listeners, everything else
 // should be in place already
 object PlaygroundApp {
-  def render[F[_]: Sync](label: String): DslWidget[F, Event, MdcTheme] = {
+  def render[F[_]: Sync](label: String): DslNode[F, Event, MdcTheme] = {
     fragment(
       children = Children.of(
         MdcTopAppBar.regular(title = "Yolo"),

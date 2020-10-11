@@ -2,13 +2,13 @@ package io.taig.schelm.documentation
 
 import io.taig.schelm.data.Children
 import io.taig.schelm.dsl._
-import io.taig.schelm.dsl.data.{DslNode, DslWidget}
+import io.taig.schelm.dsl.data.{DslNode, DslNode}
 
 final case class GridRow[F[_], Event, Context](
     node: DslNode.Element.Normal[F, Event, Context],
     children: Children[GridCol[F, Event, Context]]
-) extends DslWidget.Component[F, Event, Context] {
-  override def render: DslWidget[F, Event, Context] =
+) extends DslNode.Component[F, Event, Context] {
+  override def render: DslNode[F, Event, Context] =
     node.copy(attributes = node.attributes + (a.cls := "row"), children = children)
 }
 

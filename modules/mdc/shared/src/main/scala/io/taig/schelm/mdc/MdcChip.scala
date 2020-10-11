@@ -4,7 +4,7 @@ import cats.effect.Sync
 import cats.implicits._
 import io.taig.schelm.data.{Attributes, Children}
 import io.taig.schelm.dsl._
-import io.taig.schelm.dsl.data.DslWidget
+import io.taig.schelm.dsl.data.DslNode
 import io.taig.schelm.mdc.MdcChip.Prefix
 import io.taig.schelm.mdc.internal.MdcLifecycle
 
@@ -13,8 +13,8 @@ final case class MdcChip[F[_]: Sync](
     icon: Option[(String, MdcChip.Icon.Position)] = None,
     selected: Boolean = false,
     tabindex: Int = -1
-) extends DslWidget.Component[F, Nothing, Any] {
-  val body: DslWidget[F, Nothing, Any] = span(
+) extends DslNode.Component[F, Nothing, Any] {
+  val body: DslNode[F, Nothing, Any] = span(
     attributes = Attributes.of(a.role := "gridcell"),
     children = Children.of(
       span(
@@ -26,7 +26,7 @@ final case class MdcChip[F[_]: Sync](
     )
   )
 
-  override val render: DslWidget[F, Nothing, Any] = div(
+  override val render: DslNode[F, Nothing, Any] = div(
     attributes = Attributes.of(a.cls := List(Prefix) ++ selected.guard[List].as(s"$Prefix--selected"), a.role := "row"),
     lifecycle = MdcLifecycle.chip[F],
     children = Children.of(div(attributes = Attributes.of(a.cls := s"${Prefix}__ripple"))) ++
@@ -55,7 +55,7 @@ object MdcChip {
       final case object Trailing extends Position
     }
 
-    def apply(name: String, position: Position): DslWidget[Nothing, Nothing, Any] = {
+    def apply(name: String, position: Position): DslNode[Nothing, Nothing, Any] = {
       val cls = position match {
         case Position.Leading  => "leading"
         case Position.Trailing => "trailing"
