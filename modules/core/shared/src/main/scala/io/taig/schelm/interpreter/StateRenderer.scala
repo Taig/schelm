@@ -1,7 +1,6 @@
 package io.taig.schelm.interpreter
 
 import cats.Monad
-import cats.arrow.FunctionK
 import cats.data.Kleisli
 import cats.implicits._
 import io.taig.schelm.algebra.{Renderer, StateManager}
