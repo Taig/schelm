@@ -25,8 +25,7 @@ final class Schelm[F[_], Event, Context](
     differ: Differ[StyledHtml[F], CssHtmlDiff[F]],
     patcher: Patcher[F, StyledHtmlAttachedReference[F], CssHtmlDiff[F]]
 )(implicit F: Concurrent[F]) {
-  def start[A](
-      initial: A,
+  def start[A](initial: A)(
       context: A => Context,
       render: A => DslNode[F, Event, Context]
   ): Resource[F, Unit] =

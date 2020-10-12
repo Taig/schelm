@@ -1,10 +1,10 @@
-package io.taig.schelm.documentation
+package io.taig.schelm.flexboxgrid
 
 import io.taig.schelm.data.Children
 import io.taig.schelm.dsl._
 import io.taig.schelm.dsl.data.DslNode
 
-final case class GridRow[F[_], Event, Context](
+final case class GridRow[F[_], +Event, -Context](
     node: DslNode.Element.Normal[F, Event, Context],
     children: Children[GridCol[F, Event, Context]]
 ) extends DslNode.Component[F, Event, Context] {

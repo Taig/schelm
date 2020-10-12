@@ -68,15 +68,15 @@ lazy val mdc = crossProject(JVMPlatform, JSPlatform)
   )
   .dependsOn(dsl)
 
-lazy val playground = crossProject(JVMPlatform, JSPlatform)
+/* @see https://github.com/kristoferjoseph/flexboxgrid */
+lazy val flexboxgrid = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
-  .in(file("modules/playground"))
-  .settings(noPublishSettings)
+  .in(file("modules/flexboxgrid"))
+  .settings(sonatypePublishSettings)
   .settings(
-    name := "schelm-playground",
-    scalaJSUseMainModuleInitializer := true
+    name := "schelm-flexboxgrid"
   )
-  .dependsOn(mdc)
+  .dependsOn(dsl)
 
 lazy val documentation = project
   .enablePlugins(ScalaJSPlugin)
@@ -94,4 +94,4 @@ lazy val documentation = project
     },
     scalaJSUseMainModuleInitializer := true
   )
-  .dependsOn(mdc.js)
+  .dependsOn(mdc.js, flexboxgrid.js)
