@@ -15,9 +15,11 @@ object CssHtmlPatcher {
   ): Patcher[F, StyledHtmlAttachedReference[F], CssHtmlDiff[F]] = Kleisli {
     case (x @ StyledHtmlAttachedReference(styles, reference), diff) =>
       diff.value match {
-        case Ior.Left(diff)              => html.run(reference, diff).map(StyledHtmlAttachedReference(styles, _))
-        case Ior.Right(diff)             => css.run((styles, diff.toList)).as(x)
-        case Ior.Both(htmlDiff, cssDiff) => ??? // html.patch(nodes, htmlDiff) *> css.patch(styles, cssDiff.toList)
+        case Ior.Left(diff)  => html.run((reference, diff)).map(StyledHtmlAttachedReference(styles, _))
+        case Ior.Right(diff) => css.run((styles, diff.toList)).as(x)
+        case Ior.Both(htmlDiff, cssDiff) =>
+          css
+            .run((styles, cssDiff.toList)) *> html.run((reference, htmlDiff)).map(reference => x.copy(html = reference))
       }
   }
 

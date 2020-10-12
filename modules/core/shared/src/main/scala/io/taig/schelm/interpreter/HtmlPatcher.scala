@@ -25,7 +25,7 @@ object HtmlPatcher {
         case (reference: NodeReference.Element[F, HtmlAttachedReference[F]], diff: HtmlDiff.UpdateChild[F]) =>
           reference.node match {
             case node @ Node.Element(_, Node.Element.Variant.Normal(children), _) =>
-              children.get(diff.index) match {
+              children.get(diff.index.toLong) match {
                 case Some(child) =>
                   patch(child, diff.diff, cursor = 0).map { update =>
                     html.copy(reference =
@@ -37,6 +37,16 @@ object HtmlPatcher {
                 case None => fail(s"No child at index ${diff.index}")
               }
             case Node.Element(_, Node.Element.Variant.Void, _) => fail("Can not update child on a void element")
+          }
+        case (reference: NodeReference.Fragment[HtmlAttachedReference[F]], diff: HtmlDiff.UpdateChild[F]) =>
+          val node = reference.node
+          val children = node.children
+
+          children.get(diff.index.toLong).fold(fail[HtmlAttachedReference[F]](s"No child at index ${diff.index}")) {
+            child =>
+              patch(child, diff.diff, cursor = 0).map { update =>
+                html.copy(reference = reference.copy(node = node.copy(children = children.updated(diff.index, update))))
+              }
           }
         case (reference: NodeReference.Element[F, HtmlAttachedReference[F]], diff: HtmlDiff.UpdateListener[F]) =>
           reference.node.tag.listeners.get(diff.name) match {

@@ -4,7 +4,6 @@ import cats.data.Kleisli
 import cats.effect.implicits._
 import cats.effect.{Concurrent, Resource}
 import cats.implicits._
-import fs2.Stream
 import io.taig.schelm.algebra._
 import io.taig.schelm.css.data._
 import io.taig.schelm.css.interpreter._
@@ -13,10 +12,11 @@ import io.taig.schelm.dsl.data.DslNode
 import io.taig.schelm.dsl.interpreter.DslWidgetRenderer
 import io.taig.schelm.dsl.util.Functors._
 import io.taig.schelm.interpreter._
+import io.taig.schelm.util.PathTraversal.ops._
 import io.taig.schelm.redux.algebra.EventManager
 import io.taig.schelm.redux.interpreter.{QueueEventManager, ReduxRenderer}
 
-final class Schelm[F[_]: Concurrent, Event, Context](
+final class Schelm[F[_], Event, Context](
     states: StateManager[F, StyledHtml[F]],
     events: EventManager[F, Event],
     structurer: Renderer[Kleisli[F, Context, *], DslNode[F, Event, Context], StyledHtml[F]],
@@ -24,11 +24,11 @@ final class Schelm[F[_]: Concurrent, Event, Context](
     attacher: Attacher[F, StyledHtmlReference[F], StyledHtmlAttachedReference[F]],
     differ: Differ[StyledHtml[F], CssHtmlDiff[F]],
     patcher: Patcher[F, StyledHtmlAttachedReference[F], CssHtmlDiff[F]]
-) {
-  def start[State](
-      initial: State,
-      context: State => Context,
-      render: State => DslNode[F, Event, Context]
+)(implicit F: Concurrent[F]) {
+  def start[A](
+      initial: A,
+      context: A => Context,
+      render: A => DslNode[F, Event, Context]
   ): Resource[F, Unit] =
     for {
       reference <- Resource.liftF {
@@ -38,14 +38,33 @@ final class Schelm[F[_]: Concurrent, Event, Context](
           .run(render(initial))
           .flatMap(attacher.run)
       }
-      _ <- process().compile.drain.background
+      _ <- process(reference).background
     } yield ()
 
-  private def process(): Stream[F, Unit] =
-    states.subscription.map(_.asLeft).merge(events.subscription.map(_.asRight)).map {
-      case Left(state)  => println(state)
-      case Right(event) => println(event)
-    }
+  private def process(reference: StyledHtmlAttachedReference[F]): F[Unit] =
+    states.subscription
+      .map(_.asLeft)
+      .merge(events.subscription.map(_.asRight))
+      .evalScan(reference) {
+        case (reference, Left(state)) =>
+          reference.modify[F](state.path) { reference =>
+            differ
+              .diff(StyledHtml(reference.styles, reference.html.html), state.structure)
+              .traverse(diff => patcher.run((reference, diff)))
+              .map(_.getOrElse(reference))
+          }
+        case (reference, Right(event)) =>
+          println("It's event time!")
+          ???
+      }
+      .compile
+      .drain
+      .onError { throwable =>
+        F.delay {
+          System.err.println("Failed to apply state update")
+          throwable.printStackTrace()
+        }
+      }
 }
 
 object Schelm {

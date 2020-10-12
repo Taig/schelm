@@ -20,10 +20,12 @@ trait ContextDsl {
   final def stateful[F[_]]: StatefulApply[F] = new StatefulApply[F]
 
   final class StatefulApply[F[_]] {
-    def apply[A, Event, Context](initial: A)(f: ((A => A) => F[Unit], A) => DslNode[F, Event, Context]): DslNode[F, Event, Context] =
+    def apply[A, Event, Context](
+        initial: A
+    )(f: ((A => A) => F[Unit], A) => DslNode[F, Event, Context]): DslNode[F, Event, Context] =
       DslNode.Pure(
-        Redux.Pure(Widget.Pure(State.Stateful(initial, {
-          (update: (A => A) => F[Unit], current: A) => Css(Node.Fragment(Children.of(f(update, current))), Style.Empty)
+        Redux.Pure(Widget.Pure(State.Stateful(initial, { (update: (A => A) => F[Unit], current: A) =>
+          Css(Node.Fragment(Children.of(f(update, current))), Style.Empty)
         })))
       )
   }

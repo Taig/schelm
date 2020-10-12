@@ -66,8 +66,18 @@ object PathTraversal {
                     }
                   case Variant.Normal(Children.Identified(_)) | Variant.Void => value.pure[G]
                 }
-              case NodeReference.Fragment(Node.Fragment(Children.Indexed(values))) => ???
-              case _                                                               => value.pure[G]
+              case reference @ NodeReference.Fragment(Node.Fragment(children @ Children.Indexed(values))) =>
+                values.get(index.toLong) match {
+                  case Some(child) =>
+                    modify(child)(Path(tail))(f).map { update =>
+                      lift(
+                        value,
+                        reference.copy(node = reference.node.copy(children = children.updated(index, update)))
+                      )
+                    }
+                  case None => value.pure[G]
+                }
+              case _ => value.pure[G]
             }
         }
     }
