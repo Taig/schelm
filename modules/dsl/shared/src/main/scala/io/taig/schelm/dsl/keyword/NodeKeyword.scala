@@ -3,7 +3,7 @@ package io.taig.schelm.dsl.keyword
 import io.taig.schelm.css.data.{Css, Style}
 import io.taig.schelm.data._
 import io.taig.schelm.dsl.builder.{ElementNormalBuilder, ElementVoidBuilder}
-import io.taig.schelm.dsl.data.{Div, DslNode, Span}
+import io.taig.schelm.dsl.data.{Button, Div, DslNode, Span}
 import io.taig.schelm.redux.data.Redux
 
 trait NodeKeyword {
@@ -20,6 +20,14 @@ trait NodeKeyword {
     DslNode.Pure(
       Redux.Pure(Widget.Pure(State.Stateless(Css(Node.Text(value, Listeners.Empty, Lifecycle.Noop), Style.Empty))))
     )
+
+  final def button[F[_], Event, Context](
+      attributes: Attributes = Attributes.Empty,
+      listeners: Listeners[F] = Listeners.Empty,
+      style: Style = Style.Empty,
+      lifecycle: Lifecycle.Element[F] = Lifecycle.Noop,
+      children: Children[DslNode[F, Event, Context]] = Children.Empty
+  ): Button[F, Event, Context] = Button(attributes, listeners, style, lifecycle, children)
 
   final def div[F[_], Event, Context](
       attributes: Attributes = Attributes.Empty,
@@ -38,7 +46,6 @@ trait NodeKeyword {
   ): Span[F, Event, Context] = Span(attributes, listeners, style, lifecycle, children)
 
   final val br: ElementVoidBuilder = void("br")
-  final val button = element("button")
   final val hr: ElementVoidBuilder = void("hr")
   final val header = element("header")
   final val i = element("i")

@@ -1,8 +1,10 @@
 package io.taig.schelm.dsl
 
 import cats.data.Kleisli
+import cats.effect.implicits._
 import cats.effect.{Concurrent, Resource}
 import cats.implicits._
+import fs2.Stream
 import io.taig.schelm.algebra._
 import io.taig.schelm.css.data._
 import io.taig.schelm.css.interpreter._
@@ -36,12 +38,13 @@ final class Schelm[F[_]: Concurrent, Event, Context](
           .run(render(initial))
           .flatMap(attacher.run)
       }
+      _ <- process().compile.drain.background
     } yield ()
 
-  private def process() =
+  private def process(): Stream[F, Unit] =
     states.subscription.map(_.asLeft).merge(events.subscription.map(_.asRight)).map {
-      case Left(state)  => ???
-      case Right(event) => ???
+      case Left(state)  => println(state)
+      case Right(event) => println(event)
     }
 }
 

@@ -3,6 +3,22 @@ package io.taig.schelm.dsl.data
 import io.taig.schelm.css.data.Style
 import io.taig.schelm.data.{Attributes, Children, Lifecycle, Listeners}
 
+final case class Button[F[_], +Event, -Context](
+    attributes: Attributes,
+    listeners: Listeners[F],
+    style: Style,
+    lifecycle: Lifecycle.Element[F],
+    children: Children[DslNode[F, Event, Context]]
+) extends DslNode.Element.Normal[F, Event, Context]("button") {
+  override def copy[A >: Event, B <: Context](
+      attributes: Attributes,
+      listeners: Listeners[F],
+      style: Style,
+      lifecycle: Lifecycle.Element[F],
+      children: Children[DslNode[F, A, B]]
+  ): Button[F, A, B] = Button(attributes, listeners, style, lifecycle, children)
+}
+
 final case class Div[F[_], +Event, -Context](
     attributes: Attributes,
     listeners: Listeners[F],

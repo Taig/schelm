@@ -1,7 +1,7 @@
 package io.taig.schelm
 
 import io.taig.schelm.css.data.Declaration
-import io.taig.schelm.data.Attribute
+import io.taig.schelm.data.{Attribute, Listener}
 import io.taig.schelm.dsl.keyword.{AttributeKeyword, NodeKeyword}
 
 package object dsl extends ContextDsl with NodeKeyword with ListenerDsl with StylesheetDsl {
@@ -18,9 +18,9 @@ package object dsl extends ContextDsl with NodeKeyword with ListenerDsl with Sty
   object a extends AttributeKeyword
   object e extends NodeKeyword
 
-//  implicit class ListenerNameSyntax(name: Listener.Name) {
-//    def :=[Event](action: Listener.Action[Event]): Listener[Event] = Listener(name, action)
-//  }
+  implicit class ListenerNameSyntax(name: Listener.Name) {
+    def :=[F[_]](action: Any => F[Unit]): Listener[F] = Listener(name, action)
+  }
 
   implicit class StylesheetRuleNameSyntax(name: Declaration.Name) {
     def :=(value: String): Declaration = Declaration(name, Declaration.Value(value))

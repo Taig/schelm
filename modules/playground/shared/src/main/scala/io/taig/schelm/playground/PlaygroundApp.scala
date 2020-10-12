@@ -11,7 +11,7 @@ import io.taig.schelm.mdc.{MdcChip, MdcChipSet, MdcTheme, MdcTopAppBar}
 // same state, but afterwards remove all listeners. Then patch this version to only add the listeners, everything else
 // should be in place already
 object PlaygroundApp {
-  def render[F[_]: Sync](label: String): DslNode[F, Event, MdcTheme] = {
+  def render[F[_]: Sync](label: String): DslNode[F, Event, MdcTheme] =
     fragment(
       children = Children.of(
         MdcTopAppBar.regular(title = "Yolo"),
@@ -23,10 +23,24 @@ object PlaygroundApp {
                 MdcChip(label, tabindex = 1, icon = ("event", MdcChip.Icon.Position.Leading).some),
                 MdcChip("hello google", tabindex = 2, icon = ("event", MdcChip.Icon.Position.Trailing).some)
               )
-            )
+            ),
+            stateful[F](0) { (update, current) =>
+              fragment(
+                children = Children.of(
+                  button(
+                    children = Children.of(
+                      text("click me")
+                    ),
+                    listeners = Listeners.of(
+                      click := { _ => update(_ + 1) }
+                    )
+                  ),
+                  text(s"Clicks: $current")
+                )
+              )
+            }
           )
         )
       )
     )
-  }
 }
