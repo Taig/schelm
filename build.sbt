@@ -55,7 +55,14 @@ lazy val dsl = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/dsl"))
   .settings(sonatypePublishSettings)
   .settings(
-    name := "schelm-dsl"
+    name := "schelm-dsl",
+    Compile / sourceGenerators += Def.task {
+      val definitions = (Compile / sourceManaged).value / "definitions.scala"
+      IO.write(definitions, ElementGenerator.definitions())
+      val keywords = (Compile / sourceManaged).value / "ElementKeyword.scala"
+      IO.write(keywords, ElementGenerator.keywords())
+      List(definitions, keywords)
+    }
   )
   .dependsOn(css, redux)
 
