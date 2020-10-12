@@ -40,13 +40,13 @@ object ElementGenerator {
        |    lifecycle: Lifecycle.Element[F],
        |    children: Children[DslNode[F, Event, Context]]
        |) extends DslNode.Element.Normal[F, Event, Context]("$tag") {
-       |  override def copy[A >: Event, B <: Context](
+       |  override def copy[G[α] >: F[α], A >: Event, B <: Context](
        |      attributes: Attributes,
-       |      listeners: Listeners[F],
+       |      listeners: Listeners[G],
        |      style: Style,
-       |      lifecycle: Lifecycle.Element[F],
-       |      children: Children[DslNode[F, A, B]]
-       |  ): $className[F, A, B] = $className(attributes, listeners, style, lifecycle, children)
+       |      lifecycle: Lifecycle.Element[G],
+       |      children: Children[DslNode[G, A, B]]
+       |  ): $className[G, A, B] = $className(attributes, listeners, style, lifecycle, children)
        |}""".stripMargin
 
   def keywordNormal(className: String, tag: String): String =

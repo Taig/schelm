@@ -10,4 +10,10 @@ trait StylesheetDsl {
   val color: Declaration.Name = Declaration.Name("color")
 
   val fontFamily: Declaration.Name = Declaration.Name("font-family")
+
+  val margin: Declaration.Name = Declaration.Name("margin")
+
+  val maxWidth: Declaration.Name = Declaration.Name("max-width")
+
+  val padding: Declaration.Name = Declaration.Name("padding")
 }

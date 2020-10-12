@@ -15,7 +15,7 @@ object DslNode {
     def render: DslNode[F, Event, Context]
   }
 
-  abstract class Element[F[_], +Event, -Context](val name: String) extends DslNode.Component[F, Event, Context] {
+  abstract class Element[+F[_], +Event, -Context](val name: String) extends DslNode.Component[F, Event, Context] {
     def attributes: Attributes
 
     def listeners: Listeners[F]
@@ -24,26 +24,26 @@ object DslNode {
 
     def lifecycle: Lifecycle.Element[F]
 
-    def copy[A >: Event, B <: Context](
+    def copy[G[α] >: F[α], A >: Event, B <: Context](
         attributes: Attributes = this.attributes,
-        listeners: Listeners[F] = this.listeners,
+        listeners: Listeners[G] = this.listeners,
         style: Style = Style.Empty,
-        lifecycle: Lifecycle.Element[F] = this.lifecycle,
-        children: Children[DslNode[F, A, B]] = Children.empty[DslNode[F, A, Context]]
-    ): Element[F, A, B]
+        lifecycle: Lifecycle.Element[G] = this.lifecycle,
+        children: Children[DslNode[G, A, B]] = Children.empty[DslNode[G, A, Context]]
+    ): Element[G, A, B]
   }
 
   object Element {
-    abstract class Normal[F[_], +Event, -Context](name: String) extends Element[F, Event, Context](name) {
+    abstract class Normal[+F[_], +Event, -Context](name: String) extends Element[F, Event, Context](name) {
       def children: Children[DslNode[F, Event, Context]]
 
-      override def copy[A >: Event, B <: Context](
+      override def copy[G[α] >: F[α], A >: Event, B <: Context](
           attributes: Attributes = this.attributes,
-          listeners: Listeners[F] = this.listeners,
+          listeners: Listeners[G] = this.listeners,
           style: Style = Style.Empty,
-          lifecycle: Lifecycle.Element[F] = this.lifecycle,
-          children: Children[DslNode[F, A, B]] = this.children
-      ): Element[F, A, B]
+          lifecycle: Lifecycle.Element[G] = this.lifecycle,
+          children: Children[DslNode[G, A, B]] = this.children
+      ): Element[G, A, B]
 
       final override def render: DslNode[F, Event, Context] = {
         val element = Node.Element(
