@@ -11,6 +11,11 @@ trait ContextDsl {
     DslNode.Pure(Redux.Render { (events: EventManager[F, Event]) =>
       Widget.Render((context: Context) => Widget.run(context)(Redux.run(events)(DslNode.run(f(context)))))
     })
+//
+//  final def ccc[F[_], Event, A, B](f: A => DslNode[F, Event, B]): DslNode[F, Event, A] =
+//    DslNode.Pure(Redux.Render { (events: EventManager[F, Event]) =>
+//      Widget.Render((context: A) => Widget.run(context)(Redux.run(events)(DslNode.run(f(context)))))
+//    })
 
   final def redux[F[_], Event, Context](
       f: EventManager[F, Event] => DslNode[F, Event, Context]

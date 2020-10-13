@@ -13,7 +13,7 @@ object Main extends IOApp {
     (for {
       root <- Resource.liftF(dom.getElementById("main").flatMap(_.liftTo[IO](new IllegalStateException)))
       schelm <- Resource.liftF(Schelm.default[IO, Event, MdcTheme](dom)(root))
-      _ <- schelm.start(State.Initial)(_ => MdcTheme.Default, App[IO])
+      _ <- schelm.start(State.Initial)(_ => MdcTheme.Light, App[IO])
     } yield ExitCode.Success).use(_ => IO.never)
   }
 }

@@ -5,7 +5,7 @@ import io.taig.schelm.data.{Attributes, Children}
 import io.taig.schelm.dsl._
 import io.taig.schelm.dsl.data.DslNode
 import io.taig.schelm.flexboxgrid.{GridCol, GridRow}
-import io.taig.schelm.mdc.{MdcTheme, MdcTopAppBar}
+import io.taig.schelm.mdc.{MdcTheme, MdcTopAppBar, MdcTypography}
 
 object App {
   def apply[F[_]](state: State): DslNode[F, Event, MdcTheme] =
@@ -29,7 +29,9 @@ object App {
                 GridCol(
                   div(
                     children = Children.of(
-                      text("Hallo")
+                      MdcTypography.p("Hallo (:"),
+                      MdcTypography.h1("Hallo (:"),
+                      MdcTypography.p("Hallo (:")
                     )
                   )
                 )

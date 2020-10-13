@@ -5,6 +5,10 @@ import cats.Monoid
 final case class Declarations(values: List[Declaration]) extends AnyVal {
   def isEmpty: Boolean = values.isEmpty
 
+  def :+(declaration: Declaration): Declarations = Declarations(values :+ declaration)
+
+  def +:(declaration: Declaration): Declarations = Declarations(declaration +: values)
+
   def ++(declarations: Declarations): Declarations = Declarations(values ++ declarations.values)
 }
 

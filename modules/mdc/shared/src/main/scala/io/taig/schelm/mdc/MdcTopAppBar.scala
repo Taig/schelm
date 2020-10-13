@@ -10,7 +10,7 @@ final case class MdcTopAppBar[F[_], +Event](style: Style, children: Children[Dsl
   override def render: DslNode[F, Event, MdcTheme] = contextual { theme =>
     header(
       attributes = Attributes.of(a.cls := MdcTopAppBar.Prefix),
-      style = Style.of(backgroundColor := theme.variant.palette.primary) ++ style,
+      style = Style.of(backgroundColor := theme.palette.primary) ++ style,
       children = children
     )
   }
@@ -52,11 +52,7 @@ object MdcTopAppBar {
   object Title {
     def apply(title: String): DslNode[Nothing, Nothing, MdcTheme] =
       contextual { theme =>
-        span(
-          attributes = Attributes.of(a.cls := s"${Prefix}__title"),
-          style = Style.of(color := theme.variant.text.primary, fontFamily := theme.fontFamily),
-          children = Children.of(text(title))
-        )
+        MdcTypography.h6(value = title, element = span(attributes = Attributes.of(a.cls := s"${Prefix}__title")))
       }
 
     def icon(name: String, label: String): DslNode[Nothing, Nothing, MdcTheme] =
@@ -65,8 +61,8 @@ object MdcTopAppBar {
           name,
           label,
           "button",
-          Attributes.of(a.cls := "mdc-top-app-bar__navigation-icon mdc-icon-button"),
-          style = Style.of(color := s"${theme.variant.text.primary} !important")
+          Attributes.of(a.cls := "mdc-icon-button"),
+          style = Style.of(color := theme.text(MdcTheme.Text.Variant.Headline6).palette.primary)
         )
       }
   }

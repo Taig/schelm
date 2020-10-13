@@ -2,9 +2,9 @@ package io.taig.schelm
 
 import io.taig.schelm.css.data.Declaration
 import io.taig.schelm.data.{Attribute, Listener}
-import io.taig.schelm.dsl.keyword.{AttributeKeyword, NodeKeyword}
+import io.taig.schelm.dsl.keyword.{AttributeKeyword, NodeKeyword, StyleKeyword}
 
-package object dsl extends ContextDsl with NodeKeyword with ListenerDsl with StylesheetDsl {
+package object dsl extends ContextDsl with NodeKeyword with ListenerDsl with StyleKeyword {
   implicit class AttributeKeySyntax(key: Attribute.Key) {
     def :=(value: String): Attribute = Attribute(key, Attribute.Value(value))
 

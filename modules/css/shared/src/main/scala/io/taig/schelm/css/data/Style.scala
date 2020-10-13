@@ -7,6 +7,10 @@ final case class Style(declarations: Declarations, pseudos: PseudoDeclarations) 
 
   def ++(style: Style): Style = Style(declarations ++ style.declarations, pseudos ++ style.pseudos)
 
+  def +:(declaration: Declaration): Style = copy(declarations = declaration +: declarations)
+
+  def :+(declaration: Declaration): Style = copy(declarations = declarations :+ declaration)
+
   def toRules(selectors: Selectors): List[Rule.Block] =
     Rule.Block(selectors, declarations) +: pseudos.toRules(selectors)
 }
