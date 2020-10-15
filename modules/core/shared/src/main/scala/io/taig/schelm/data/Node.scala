@@ -23,7 +23,7 @@ sealed abstract class Node[+F[_], +Listeners, +A] extends Product with Serializa
 }
 
 object Node {
-  final case class Element[F[_], +Listeners, +A](
+  final case class Element[+F[_], +Listeners, +A](
       tag: Tag[Listeners],
       variant: Element.Variant[A],
       lifecycle: Lifecycle.Element[F]
@@ -95,7 +95,7 @@ object Node {
     }
   }
 
-  final case class Text[F[_], +Listeners](value: String, listeners: Listeners, lifecycle: Lifecycle.Text[F])
+  final case class Text[+F[_], +Listeners](value: String, listeners: Listeners, lifecycle: Lifecycle.Text[F])
       extends Node[F, Listeners, Nothing]
 
   object Text {

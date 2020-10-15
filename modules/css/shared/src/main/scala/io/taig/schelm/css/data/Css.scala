@@ -6,6 +6,8 @@ import cats.{Applicative, Eval, Traverse}
 final case class Css[+A](value: A, style: Style)
 
 object Css {
+  def unstyled[A](value: A): Css[A] = Css(value, Style.Empty)
+
   implicit val traverse: Traverse[Css] = new Traverse[Css] {
     override def traverse[G[_]: Applicative, A, B](fa: Css[A])(f: A => G[B]): G[Css[B]] =
       f(fa.value).map(component => fa.copy(value = component))

@@ -13,5 +13,7 @@ trait Platform {
 
   final type Document = dom.Document
 
-  final type Listener = js.Function1[dom.Event, _]
+  final type Event = dom.Event
+
+  final type Listener = js.Function1[Event, _]
 }

@@ -1,6 +1,7 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
 val CatsEffectVersion = "2.2.0"
+val ColorVersion = "0.2.2"
 val Fs2Version = "2.4.4"
 val JsoupVersion = "1.13.1"
 val ScalaCollectionCompatVersion = "2.2.0"
@@ -55,13 +56,14 @@ lazy val dsl = crossProject(JVMPlatform, JSPlatform)
   .in(file("modules/dsl"))
   .settings(sonatypePublishSettings)
   .settings(
+    libraryDependencies ++=
+      "io.taig" %%% "color-core" % ColorVersion ::
+        Nil,
     name := "schelm-dsl",
     Compile / sourceGenerators += Def.task {
-      val definitions = (Compile / sourceManaged).value / "definitions.scala"
-      IO.write(definitions, ElementGenerator.definitions())
-      val keywords = (Compile / sourceManaged).value / "ElementKeyword.scala"
-      IO.write(keywords, ElementGenerator.keywords())
-      List(definitions, keywords)
+      val html = (Compile / sourceManaged).value / "html.scala"
+      IO.write(html, HtmlGenerator())
+      List(html)
     }
   )
   .dependsOn(css, redux)

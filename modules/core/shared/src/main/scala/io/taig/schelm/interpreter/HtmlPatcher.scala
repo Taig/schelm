@@ -4,6 +4,7 @@ import cats.MonadError
 import cats.data.Kleisli
 import cats.implicits._
 import io.taig.schelm.algebra.{Dom, Patcher, Renderer}
+import io.taig.schelm.data.Node.Element.Variant
 import io.taig.schelm.data.{Html, HtmlAttachedReference, HtmlDiff, HtmlReference, Node, NodeReference}
 
 object HtmlPatcher {
@@ -23,8 +24,10 @@ object HtmlPatcher {
         //        } yield NodeReference.Element(???, element)
         //      case (NodeReference.Fragment(_), HtmlDiff.AppendChild(html)) => ???
         case (reference: NodeReference.Element[F, HtmlAttachedReference[F]], diff: HtmlDiff.UpdateChild[F]) =>
-          reference.node match {
-            case node @ Node.Element(_, Node.Element.Variant.Normal(children), _) =>
+          val node = reference.node
+
+          node.variant match {
+            case Variant.Normal(children) =>
               children.get(diff.index.toLong) match {
                 case Some(child) =>
                   patch(child, diff.diff, cursor = 0).map { update =>
@@ -36,7 +39,7 @@ object HtmlPatcher {
                   }
                 case None => fail(s"No child at index ${diff.index}")
               }
-            case Node.Element(_, Node.Element.Variant.Void, _) => fail("Can not update child on a void element")
+            case Variant.Void => fail("Can not update child on a void element")
           }
         case (reference: NodeReference.Fragment[HtmlAttachedReference[F]], diff: HtmlDiff.UpdateChild[F]) =>
           val node = reference.node

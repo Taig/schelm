@@ -11,8 +11,8 @@ object WidgetRenderer {
       : Renderer[Kleisli[F, Context, *], Fix[λ[A => Widget[Context, G[A]]]], Fix[G]] = {
     def render(widget: Fix[λ[A => Widget[Context, G[A]]]]): Context => Fix[G] = { context =>
       widget.unfix match {
-        case widget: Widget.Patch[Context, F[Fix[λ[A => Widget[Context, G[A]]]]]] =>
-          Fix(widget.widget.map(render(_).apply(widget.f(context))))
+        case widget: Widget.Patch[Context, _, F[Fix[λ[A => Widget[Context, G[A]]]]]] =>
+          ??? // Fix(widget.widget.map(render(_).apply(widget.f(context))))
         case Widget.Pure(value) => Fix(value.map(render(_).apply(context)))
         case Widget.Render(f)   => Fix(f(context).map(render(_).apply(context)))
       }

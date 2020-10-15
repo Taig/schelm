@@ -6,10 +6,8 @@ import io.taig.schelm.algebra.Dom
 import org.jsoup.nodes.{Document => JDocument, Element => JElement, Node => JNode, TextNode => JText}
 import scala.jdk.CollectionConverters._
 
-import io.taig.schelm.algebra.Dom.Listener
-
 final class JsoupDom[F[_]](val document: JDocument)(implicit F: Sync[F]) extends Dom[F] {
-  override def unsafeRun(f: Any => F[Unit]): Unit = ()
+  override def unsafeRun(f: Unit => F[Unit]): Unit = ()
 
   override def addEventListener(node: JNode, name: String, listener: Unit): F[Unit] = F.unit
 

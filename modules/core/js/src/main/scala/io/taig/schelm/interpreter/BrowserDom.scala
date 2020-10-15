@@ -10,7 +10,7 @@ import org.scalajs.dom
 import org.scalajs.dom.Event
 
 final class BrowserDom[F[_]](implicit F: Effect[F]) extends Dom[F] {
-  override def unsafeRun(f: Any => F[Unit]): js.Function1[Event, _] = { event =>
+  override def unsafeRun(f: dom.Event => F[Unit]): js.Function1[Event, _] = { event =>
     f(event)
       .runAsync {
         case Right(_) => IO.unit

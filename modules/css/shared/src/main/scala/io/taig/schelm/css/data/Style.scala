@@ -18,7 +18,10 @@ final case class Style(declarations: Declarations, pseudos: PseudoDeclarations) 
 object Style {
   val Empty: Style = Style(Declarations.Empty, PseudoDeclarations.Empty)
 
-  def of(declarations: Declaration*): Style = Style(Declarations.from(declarations), PseudoDeclarations.Empty)
+  def from(declarations: Iterable[Declaration]): Style =
+    Style(Declarations.from(declarations), PseudoDeclarations.Empty)
+
+  def of(declarations: Declaration*): Style = from(declarations)
 
   implicit val monoid: Monoid[Style] = new Monoid[Style] {
     override def empty: Style = Empty

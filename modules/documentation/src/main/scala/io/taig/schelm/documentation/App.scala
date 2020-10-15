@@ -13,13 +13,13 @@ object App {
       children = Children.of(
         MdcTopAppBar.regular(
           "Schelm",
-          style = Style.of(
+          styles = Style.of(
             boxShadow := "0px 2px 4px -1px rgba(0,0,0,0.2), 0px 4px 5px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12)"
           )
         ),
         main(
           attributes = Attributes.of(a.cls := "mdc-top-app-bar--fixed-adjust"),
-          style = Style.of(
+          styles = Style.of(
             maxWidth := "960px",
             margin := "0 auto"
           ),

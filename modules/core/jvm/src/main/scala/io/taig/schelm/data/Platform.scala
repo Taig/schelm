@@ -11,5 +11,7 @@ trait Platform {
 
   type Document = JDocument
 
+  type Event = Unit
+
   type Listener = Unit
 }
