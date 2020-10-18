@@ -1,21 +1,25 @@
 package io.taig.schelm.dsl
 
 import io.taig.schelm.css.data.Css
-import io.taig.schelm.data.{Listeners, Node, State, Widget}
+import io.taig.schelm.data.{Contextual, Listeners, Node, State}
 import io.taig.schelm.redux.data.Redux
 
-sealed abstract class Component[+F[_], +Event, -Context] {
-  def render: Redux[F, Event, Widget[Context, State[F, Css[Node[F, Listeners[F], Component[F, Event, Context]]]]]]
+sealed abstract class Widget[+F[_], +Event, -Context]
+
+object Widget {
+  final case class Pure[F[_], Event, Context](
+      redux: Redux[F, Event, Contextual[Context, State[F, Css[Node[F, Listeners[F], Widget[F, Event, Context]]]]]]
+  ) extends Widget[F, Event, Context]
+
+  final def run[F[_], Event, Context](
+      widget: Widget[F, Event, Context]
+  ): Redux[F, Event, Contextual[Context, State[F, Css[Node[F, Listeners[F], Widget[F, Event, Context]]]]]] =
+    widget match {
+      case widget: Pure[F, Event, Context]      => widget.redux
+      case widget: Component[F, Event, Context] => run(widget.render)
+    }
 }
 
-final case class Fragment[+F[_], +Event, -Context](
-    render: Redux[F, Event, Widget[Context, State[F, Css[Node.Fragment[Component[F, Event, Context]]]]]]
-) extends Component[F, Event, Context]
-
-final case class Text[+F[_], +Event, -Context](
-    render: Redux[F, Event, Widget[Context, State[F, Css[Node.Text[F, Listeners[F]]]]]]
-) extends Component[F, Event, Context]
-
-final case class Element[+F[_], +Event, -Context](
-    render: Redux[F, Event, Widget[Context, State[F, Css[Node.Element[F, Listeners[F], Component[F, Event, Context]]]]]]
-) extends Component[F, Event, Context]
+abstract class Component[+F[_], +Event, -Context] extends Widget[F, Event, Context] {
+  def render: Widget[F, Event, Context]
+}

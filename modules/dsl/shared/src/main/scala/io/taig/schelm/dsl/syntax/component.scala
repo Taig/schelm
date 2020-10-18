@@ -1,9 +1,8 @@
 package io.taig.schelm.dsl.syntax
 
 import io.taig.schelm.css.data.{Css, Style}
-import io.taig.schelm.data.{Attributes, Children, Lifecycle, Listeners, Node, State, Tag, Widget}
-import io.taig.schelm.dsl.util.{ModifyContext, ModifyRedux}
-import io.taig.schelm.dsl.{Component, Element, Fragment, Text}
+import io.taig.schelm.data._
+import io.taig.schelm.dsl.Widget
 import io.taig.schelm.redux.algebra.EventManager
 import io.taig.schelm.redux.data.Redux
 
@@ -14,12 +13,12 @@ trait component {
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop,
-      children: Children[Component[F, Event, Context]] = Children.Empty
-  ): Element[F, Event, Context] = {
+      children: Children[Widget[F, Event, Context]] = Children.Empty
+  ): Widget[F, Event, Context] = {
     val tag = Tag(name, attributes, listeners)
     val variant = Node.Element.Variant.Normal(children)
     val node = Node.Element(tag, variant, lifecycle)
-    Element(Redux.Pure(Widget.Pure(State.Stateless(Css(node, style)))))
+    Widget.Pure(Redux.Pure(Contextual.Pure(State.Stateless(Css(node, style)))))
   }
 
   final def void[F[_], Event, Context](
@@ -28,31 +27,34 @@ trait component {
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
-  ): Element[F, Event, Context] = {
+  ): Widget[F, Event, Context] = {
     val tag = Tag(name, attributes, listeners)
     val node = Node.Element(tag, Node.Element.Variant.Void, lifecycle)
-    Element(Redux.Pure(Widget.Pure(State.Stateless(Css(node, style)))))
+    Widget.Pure(Redux.Pure(Contextual.Pure(State.Stateless(Css(node, style)))))
   }
 
   final def fragment[F[_], Event, Context](
-      children: Children[Component[F, Event, Context]] = Children.Empty
-  ): Component[F, Event, Context] =
-    Fragment(Redux.Pure(Widget.Pure(State.Stateless(Css.unstyled(Node.Fragment(children))))))
+      children: Children[Widget[F, Event, Context]] = Children.Empty
+  ): Widget[F, Event, Context] =
+    Widget.Pure(Redux.Pure(Contextual.Pure(State.Stateless(Css.unstyled(Node.Fragment(children))))))
 
   final def text[F[_]](
       value: String,
       listeners: Listeners[F] = Listeners.Empty,
       lifecycle: Lifecycle.Text[F] = Lifecycle.Noop
-  ): Component[F, Nothing, Any] =
-    Text(Redux.Pure(Widget.Pure(State.Stateless(Css.unstyled(Node.Text(value, listeners, lifecycle))))))
+  ): Widget[F, Nothing, Any] =
+    Widget.Pure(Redux.Pure(Contextual.Pure(State.Stateless(Css.unstyled(Node.Text(value, listeners, lifecycle))))))
 
-  final def contextual[F[_], Context](f: Context => F[Any])(implicit context: ModifyContext[F]): F[Context] =
-    context.contextual(f)
+  final def contextual[F[_], Event, Context](f: Context => Widget[F, Event, Any]): Widget[F, Event, Context] =
+    Widget.Pure(
+      Redux.Render { (events: EventManager[F, Event]) =>
+        Contextual.Render(context => Contextual.run(context)(Redux.run(events)(Widget.run(f(context)))))
+      }
+    )
 
-  final def eventful[F[_[_], _, _], G[_], Event, Context](
-      f: EventManager[G, Event] => F[Nothing, Nothing, Context]
-  )(implicit redux: ModifyRedux[F[*[_], *, Context]]): F[G, Event, Context] =
-    redux.eventful(f)
+  final def eventful[F[_], Event, Context](
+      f: EventManager[F, Event] => Widget[F, Nothing, Context]
+  ): Widget[F, Event, Context] = ???
 }
 
 object component extends component

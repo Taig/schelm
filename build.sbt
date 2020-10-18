@@ -1,7 +1,7 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
 val CatsEffectVersion = "2.2.0"
-val ColorVersion = "0.2.2"
+val ColorVersion = "0.2.3-SNAPSHOT"
 val Fs2Version = "2.4.4"
 val JsoupVersion = "1.13.1"
 val ScalaCollectionCompatVersion = "2.2.0"
@@ -68,22 +68,12 @@ lazy val dsl = crossProject(JVMPlatform, JSPlatform)
   )
   .dependsOn(css, redux)
 
-lazy val mdc = crossProject(JVMPlatform, JSPlatform)
+lazy val material = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
-  .in(file("modules/mdc"))
+  .in(file("modules/material"))
   .settings(sonatypePublishSettings)
   .settings(
-    name := "schelm-mdc"
-  )
-  .dependsOn(dsl)
-
-/* @see https://github.com/kristoferjoseph/flexboxgrid */
-lazy val flexboxgrid = crossProject(JVMPlatform, JSPlatform)
-  .crossType(CrossType.Full)
-  .in(file("modules/flexboxgrid"))
-  .settings(sonatypePublishSettings)
-  .settings(
-    name := "schelm-flexboxgrid"
+    name := "schelm-material"
   )
   .dependsOn(dsl)
 
@@ -103,4 +93,4 @@ lazy val documentation = project
     },
     scalaJSUseMainModuleInitializer := true
   )
-  .dependsOn(mdc.js, flexboxgrid.js)
+  .dependsOn(material.js)

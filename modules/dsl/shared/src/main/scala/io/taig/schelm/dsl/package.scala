@@ -1,7 +1,8 @@
 package io.taig.schelm
 
-package object dsl extends syntax.component with syntax.html {
-  val component: syntax.component.type = syntax.component
-
-  val html: syntax.html.type = syntax.html
-}
+package object dsl
+    extends syntax.attribute
+    with syntax.component
+    with syntax.html
+    with syntax.listener
+    with syntax.style

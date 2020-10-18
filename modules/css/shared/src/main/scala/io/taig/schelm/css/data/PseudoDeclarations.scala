@@ -7,6 +7,8 @@ final case class PseudoDeclarations(values: List[PseudoDeclaration]) {
 
   def ++(declarations: PseudoDeclarations): PseudoDeclarations = PseudoDeclarations(values ++ declarations.values)
 
+  def :+(declaration: PseudoDeclaration): PseudoDeclarations = PseudoDeclarations(values :+ declaration)
+
   def toRules(selectors: Selectors): List[Rule.Block] = values.map(_.toRule(selectors))
 }
 

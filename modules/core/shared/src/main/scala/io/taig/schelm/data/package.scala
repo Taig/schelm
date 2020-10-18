@@ -14,21 +14,21 @@ package object data {
       Fix[λ[A => State[F, Node[F, Listeners[F], A]]]](state)
   }
 
-  type WidgetHtml[F[_], Context] = Fix[λ[A => Widget[Context, Node[F, Listeners[F], A]]]]
+  type WidgetHtml[F[_], Context] = Fix[λ[A => Contextual[Context, Node[F, Listeners[F], A]]]]
 
   object WidgetHtml {
     def apply[F[_], Context](
-        widget: Widget[Context, Node[F, Listeners[F], WidgetHtml[F, Context]]]
+        widget: Contextual[Context, Node[F, Listeners[F], WidgetHtml[F, Context]]]
     ): WidgetHtml[F, Context] =
-      Fix[λ[A => Widget[Context, Node[F, Listeners[F], A]]]](widget)
+      Fix[λ[A => Contextual[Context, Node[F, Listeners[F], A]]]](widget)
   }
 
-  type WidgetStateHtml[F[_], Context] = Fix[λ[A => Widget[Context, State[F, Node[F, Listeners[F], A]]]]]
+  type WidgetStateHtml[F[_], Context] = Fix[λ[A => Contextual[Context, State[F, Node[F, Listeners[F], A]]]]]
 
   object WidgetStateHtml {
     def apply[F[_], Context](
-        widget: Widget[Context, State[F, Node[F, Listeners[F], WidgetStateHtml[F, Context]]]]
+        widget: Contextual[Context, State[F, Node[F, Listeners[F], WidgetStateHtml[F, Context]]]]
     ): WidgetStateHtml[F, Context] =
-      Fix[λ[A => Widget[Context, State[F, Node[F, Listeners[F], A]]]]](widget)
+      Fix[λ[A => Contextual[Context, State[F, Node[F, Listeners[F], A]]]]](widget)
   }
 }

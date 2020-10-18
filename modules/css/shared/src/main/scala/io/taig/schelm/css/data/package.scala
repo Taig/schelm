@@ -17,21 +17,21 @@ package object data {
       Fix[λ[A => State[F, Css[Node[F, Listeners[F], A]]]]](state)
   }
 
-  type WidgetCssHtml[F[_], Context] = Fix[λ[A => Widget[Context, Css[Node[F, Listeners[F], A]]]]]
+  type WidgetCssHtml[F[_], Context] = Fix[λ[A => Contextual[Context, Css[Node[F, Listeners[F], A]]]]]
 
   object WidgetCssHtml {
     def apply[F[_], Context](
-        widget: Widget[Context, Css[Node[F, Listeners[F], WidgetCssHtml[F, Context]]]]
+        widget: Contextual[Context, Css[Node[F, Listeners[F], WidgetCssHtml[F, Context]]]]
     ): WidgetCssHtml[F, Context] =
-      Fix[λ[A => Widget[Context, Css[Node[F, Listeners[F], A]]]]](widget)
+      Fix[λ[A => Contextual[Context, Css[Node[F, Listeners[F], A]]]]](widget)
   }
 
-  type WidgetStateCssHtml[F[_], Context] = Fix[λ[A => Widget[Context, State[F, Css[Node[F, Listeners[F], A]]]]]]
+  type WidgetStateCssHtml[F[_], Context] = Fix[λ[A => Contextual[Context, State[F, Css[Node[F, Listeners[F], A]]]]]]
 
   object WidgetStateCssHtml {
     def apply[F[_], Context](
-        widget: Widget[Context, State[F, Css[Node[F, Listeners[F], WidgetStateCssHtml[F, Context]]]]]
+        widget: Contextual[Context, State[F, Css[Node[F, Listeners[F], WidgetStateCssHtml[F, Context]]]]]
     ): WidgetStateCssHtml[F, Context] =
-      Fix[λ[A => Widget[Context, State[F, Css[Node[F, Listeners[F], A]]]]]](widget)
+      Fix[λ[A => Contextual[Context, State[F, Css[Node[F, Listeners[F], A]]]]]](widget)
   }
 }

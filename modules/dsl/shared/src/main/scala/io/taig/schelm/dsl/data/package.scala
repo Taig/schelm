@@ -6,16 +6,16 @@ import io.taig.schelm.redux.data.Redux
 
 package object data {
   type ReduxWidgetStateCssHtml[F[_], Event, Context] =
-    Fix[λ[A => Redux[F, Event, Widget[Context, State[F, Css[Node[F, Listeners[F], A]]]]]]]
+    Fix[λ[A => Redux[F, Event, Contextual[Context, State[F, Css[Node[F, Listeners[F], A]]]]]]]
 
   object ReduxWidgetStateCssHtml {
     def apply[F[_], Event, Context](
         redux: Redux[
           F,
           Event,
-          Widget[Context, State[F, Css[Node[F, Listeners[F], ReduxWidgetStateCssHtml[F, Event, Context]]]]]
+          Contextual[Context, State[F, Css[Node[F, Listeners[F], ReduxWidgetStateCssHtml[F, Event, Context]]]]]
         ]
     ): ReduxWidgetStateCssHtml[F, Event, Context] =
-      Fix[λ[A => Redux[F, Event, Widget[Context, State[F, Css[Node[F, Listeners[F], A]]]]]]](redux)
+      Fix[λ[A => Redux[F, Event, Contextual[Context, State[F, Css[Node[F, Listeners[F], A]]]]]]](redux)
   }
 }
