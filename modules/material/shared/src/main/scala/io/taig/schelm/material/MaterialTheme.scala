@@ -2,17 +2,25 @@ package io.taig.schelm.material
 
 import io.taig.color.Color
 import io.taig.color.implicits._
-import io.taig.schelm.material.MaterialTheme.Mode
+import io.taig.schelm.material.MaterialTheme.{Context, Mode}
 
 final case class MaterialTheme(
     mode: MaterialTheme.Mode,
     context: MaterialTheme.Context,
-    light: MaterialTheme.Variant,
-    dark: MaterialTheme.Variant
+    spacing: Int,
+    light: MaterialTheme.Flavor,
+    dark: MaterialTheme.Flavor
 ) {
-  def variant: MaterialTheme.Variant = mode match {
+  def flavor: MaterialTheme.Flavor = mode match {
     case Mode.Light => light
     case Mode.Dark  => dark
+  }
+
+  def variant: MaterialTheme.Variant = context match {
+    case Context.Surface   => flavor.surface
+    case Context.Paper     => flavor.paper
+    case Context.Primary   => flavor.primary
+    case Context.Secondary => flavor.secondary
   }
 }
 
@@ -33,7 +41,9 @@ object MaterialTheme {
     final case object Secondary extends Context
   }
 
-  final case class Variant(spacing: Int, buttons: Buttons)
+  final case class Flavor(surface: Variant, paper: Variant, primary: Variant, secondary: Variant)
+
+  final case class Variant(buttons: Buttons)
 
   final case class Buttons(normal: Button, primary: Button, secondary: Button, danger: Button)
 
@@ -64,12 +74,11 @@ object MaterialTheme {
       ),
       hover = Effect(
         background = background.darken(0.75f),
-        shadow = "0px 2px 4px -1px rgba(0,0,0,0.2), 0px 4px 5px 0px rgba(0,0,0,0.14), 0px 1px 10px 0px rgba(0,0,0,0.12)"
+        shadow = "0px 2px 4px -1px rgba(0,0,0,0.2),0px 4px 5px 0px rgba(0,0,0,0.14),0px 1px 10px 0px rgba(0,0,0,0.12)"
       ),
       active = Effect(
         background = background.darken(0.5f),
-        shadow =
-          "0px 5px 5px -3px rgba(0,0,0,0.2), 0px 8px 10px 1px rgba(0,0,0,0.14), 0px 3px 14px 2px rgba(0,0,0,0.12)"
+        shadow = "0px 5px 5px -3px rgba(0,0,0,0.2),0px 8px 10px 1px rgba(0,0,0,0.14),0px 3px 14px 2px rgba(0,0,0,0.12)"
       )
     )
   }
@@ -91,22 +100,73 @@ object MaterialTheme {
   val Default: MaterialTheme = MaterialTheme(
     mode = Mode.Light,
     context = Context.Surface,
-    light = Variant(
-      spacing = 8,
-      buttons = Buttons(
-        normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
-        primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-        secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-        danger = Button.default(rgb"#ffffff", rgb"#1976d2")
+    spacing = 8,
+    light = Flavor(
+      surface = Variant(
+        buttons = Buttons(
+          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
+          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
+        )
+      ),
+      paper = Variant(
+        buttons = Buttons(
+          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
+          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
+        )
+      ),
+      primary = Variant(
+        buttons = Buttons(
+          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
+          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
+        )
+      ),
+      secondary = Variant(
+        buttons = Buttons(
+          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
+          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
+        )
       )
     ),
-    dark = Variant(
-      spacing = 8,
-      buttons = Buttons(
-        normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
-        primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-        secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-        danger = Button.default(rgb"#ffffff", rgb"#1976d2")
+    dark = Flavor(
+      surface = Variant(
+        buttons = Buttons(
+          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
+          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
+        )
+      ),
+      paper = Variant(
+        buttons = Buttons(
+          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
+          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
+        )
+      ),
+      primary = Variant(
+        buttons = Buttons(
+          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
+          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
+        )
+      ),
+      secondary = Variant(
+        buttons = Buttons(
+          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
+          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
+          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
+        )
       )
     )
   )

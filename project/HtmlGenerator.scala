@@ -25,7 +25,7 @@ object HtmlGenerator {
     s"""package io.taig.schelm.dsl.syntax
        |
        |import io.taig.schelm.css.data.Style
-       |import io.taig.schelm.data.{Attributes, Children, Lifecycle, Listeners}
+       |import io.taig.schelm.data.{Attributes, Children, Lifecycle, Listeners, Tag}
        |import io.taig.schelm.dsl.Widget
        |
        |trait html {
@@ -38,7 +38,7 @@ object HtmlGenerator {
 
   def normal(tag: String): String =
     s"""  /** `<$tag></$tag>` tag */
-       |  val ${tag.capitalize}: String = "$tag"
+       |  val ${tag.capitalize}: Tag.Name = Tag.Name("$tag")
        |
        |  def $tag[F[_], Event, Context](
        |    attributes: Attributes = Attributes.Empty,
@@ -51,7 +51,7 @@ object HtmlGenerator {
 
   def void(tag: String): String =
     s"""  /** `<$tag></$tag>` tag */
-       |  val ${tag.capitalize}: String = "$tag"
+       |  val ${tag.capitalize}: Tag.Name = Tag.Name("$tag")
        |
        |  def $tag[F[_], Event, Context](
        |    attributes: Attributes = Attributes.Empty,

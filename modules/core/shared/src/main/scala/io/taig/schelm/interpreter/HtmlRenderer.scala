@@ -11,7 +11,7 @@ object HtmlRenderer {
   def apply[F[_]: Monad](dom: Dom[F]): Renderer[F, Html[F], HtmlReference[F]] = {
     def element(node: Node.Element[F, Listeners[F], Fix[Node[F, Listeners[F], *]]]): F[HtmlReference[F]] =
       for {
-        element <- dom.createElement(node.tag.name)
+        element <- dom.createElement(node.tag.name.value)
         _ <- node.tag.attributes.toList.traverse_ { attribute =>
           dom.setAttribute(element, attribute.key.value, attribute.value.value)
         }

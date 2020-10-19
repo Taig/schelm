@@ -10,8 +10,8 @@ object App {
     div(
       children = Children.of(
         MaterialButton.default("hello world", tag = MaterialButton.Tag.A, flavor = Some(MaterialButton.Flavor.Primary)),
-        MaterialButton.default("hello world", tag = MaterialButton.Tag.Button, listeners = Listeners.of(click := {
-          (_) => F.delay(println("hi"))
+        MaterialButton.default("hello world", tag = MaterialButton.Tag.Button, listeners = Listeners.of(click := { _ =>
+          F.delay(println("hi"))
         })),
         MaterialButton.default("hello world", tag = MaterialButton.Tag.Input(tpe = "submit"))
       )

@@ -8,7 +8,7 @@ import io.taig.schelm.redux.data.Redux
 
 trait component {
   final def element[F[_], Event, Context](
-      name: String,
+      name: Tag.Name,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
@@ -22,7 +22,7 @@ trait component {
   }
 
   final def void[F[_], Event, Context](
-      name: String,
+      name: Tag.Name,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
