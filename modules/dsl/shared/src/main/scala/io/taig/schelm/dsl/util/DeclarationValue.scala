@@ -13,6 +13,8 @@ trait DeclarationValue[A] {
 object DeclarationValue {
   implicit val color: DeclarationValue[Color] = color => Declaration.Value(color.toHex).some
 
+  implicit val declarationValue: DeclarationValue[Declaration.Value] = _.some
+
   implicit def option[A: DeclarationValue]: DeclarationValue[Option[A]] = _.flatMap(DeclarationValue[A].lift)
 
   implicit val string: DeclarationValue[String] = value => Declaration.Value(value).some

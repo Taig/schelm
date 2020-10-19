@@ -11,14 +11,24 @@ trait style {
   }
 
   implicit class StyleOps(style: Style) {
-    def &(modifier: String)(values: DslDeclaration*): Style =
-      style.copy(pseudos = style.pseudos :+ PseudoDeclaration(Modifier(modifier), Declarations.from(values.collect {
+    def &(modifier: Modifier)(values: DslDeclaration*): Style =
+      style.copy(pseudos = style.pseudos :+ PseudoDeclaration(modifier, Declarations.from(values.collect {
         case DslDeclaration(key, Some(value)) => Declaration(key, value)
       })))
   }
 
   def css(values: DslDeclaration*): Style =
     Style.from(values.collect { case DslDeclaration(key, Some(value)) => Declaration(key, value) })
+
+  val fontSmoothing: Style = css(
+    Declaration.Name("-webkit-font-smoothing") := "antialiased",
+    Declaration.Name("-moz-osx-font-smoothing") := "grayscale"
+  )
+
+  val zero: Declaration.Value = Declaration.Value("0")
+
+  val hover: Modifier = Modifier(":hover")
+  val active: Modifier = Modifier(":active")
 
   val background: Declaration.Name = Declaration.Name("background")
   val backgroundColor: Declaration.Name = Declaration.Name("background-color")
@@ -30,6 +40,7 @@ trait style {
   val fontFamily: Declaration.Name = Declaration.Name("font-family")
   val fontSize: Declaration.Name = Declaration.Name("font-size")
   val fontWeight: Declaration.Name = Declaration.Name("font-weight")
+  val lineHeight: Declaration.Name = Declaration.Name("line-height")
   val letterSpacing: Declaration.Name = Declaration.Name("letter-spacing")
   val margin: Declaration.Name = Declaration.Name("margin")
   val outline: Declaration.Name = Declaration.Name("outline")

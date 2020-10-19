@@ -43,30 +43,166 @@ object MaterialTheme {
 
   final case class Flavor(palette: Palette, surface: Variant, paper: Variant, primary: Variant, secondary: Variant)
 
-  final case class Palette(primary: Shade, secondary: Shade)
+  final case class Palette(primary: Shade, secondary: Shade, surface: Color, paper: Color)
 
   final case class Shade(light: Color, normal: Color, dark: Color)
 
-  final case class Variant(buttons: Buttons)
+  final case class Variant(typography: Typography, buttons: Buttons)
+
+  final case class Typography(
+      h1: Font,
+      h2: Font,
+      h3: Font,
+      h4: Font,
+      h5: Font,
+      h6: Font,
+      subtitle1: Font,
+      subtitle2: Font,
+      body1: Font,
+      body2: Font,
+      button: Font,
+      caption: Font,
+      overline: Font
+  )
+
+  object Typography {
+    def default(color: Color): Typography = Typography(
+      h1 = Font(
+        family = Font.DefaultFont,
+        color,
+        size = "6rem",
+        weight = "300",
+        lineHeight = "6rem",
+        letterSpacing = "-0.015625em",
+        transform = None
+      ),
+      h2 = Font(
+        family = Font.DefaultFont,
+        color,
+        size = "3.75rem",
+        weight = "300",
+        lineHeight = "3.75rem",
+        letterSpacing = "-0.0083333333em",
+        transform = None
+      ),
+      h3 = Font(
+        family = Font.DefaultFont,
+        color,
+        size = "3rem",
+        weight = "400",
+        lineHeight = "3.125rem",
+        letterSpacing = "normal",
+        transform = None
+      ),
+      h4 = Font(
+        family = Font.DefaultFont,
+        color,
+        size = "2.125rem",
+        weight = "400",
+        lineHeight = "2.5rem",
+        letterSpacing = "0.0073529412em",
+        transform = None
+      ),
+      h5 = Font(
+        family = Font.DefaultFont,
+        color,
+        size = "2rem",
+        weight = "400",
+        lineHeight = "2rem",
+        letterSpacing = "normal",
+        transform = None
+      ),
+      h6 = Font(
+        family = Font.DefaultFont,
+        color,
+        size = "1.25rem",
+        weight = "500",
+        lineHeight = "2rem",
+        letterSpacing = "0.0125rem",
+        transform = None
+      ),
+      subtitle1 = Font(
+        family = Font.DefaultFont,
+        color,
+        size = "1rem",
+        weight = "400",
+        lineHeight = "1.75rem",
+        letterSpacing = "0.009375em",
+        transform = None
+      ),
+      subtitle2 = Font(
+        family = Font.DefaultFont,
+        color,
+        size = "0.875rem",
+        weight = "500",
+        lineHeight = "1.375rem",
+        letterSpacing = "0.0071428571em",
+        transform = None
+      ),
+      body1 = Font(
+        family = Font.DefaultFont,
+        color,
+        size = "1rem",
+        weight = "400",
+        lineHeight = "1.5rem",
+        letterSpacing = "0.03125rem",
+        transform = None
+      ),
+      body2 = Font(
+        family = Font.DefaultFont,
+        color,
+        size = "0.75rem",
+        weight = "400",
+        lineHeight = "1.25rem",
+        letterSpacing = "0.0178571429em",
+        transform = None
+      ),
+      button = Font(
+        family = Font.DefaultFont,
+        color,
+        size = "0.875rem",
+        weight = "500",
+        lineHeight = "2.25rem",
+        letterSpacing = "0.0892857143em",
+        transform = Some("uppercase")
+      ),
+      caption = Font(
+        family = Font.DefaultFont,
+        color,
+        size = "0.75rem",
+        weight = "400",
+        lineHeight = "1.25rem",
+        letterSpacing = "0.0333333333em",
+        transform = None
+      ),
+      overline = Font(
+        family = Font.DefaultFont,
+        color,
+        size = "0.75rem",
+        weight = "500",
+        lineHeight = "2em",
+        letterSpacing = "0.1666666667em",
+        transform = Some("uppercase")
+      )
+    )
+  }
 
   final case class Buttons(normal: Button, primary: Button, secondary: Button, danger: Button)
 
   final case class Button(
       background: Color,
       radius: String,
-      shadow: String,
       font: Font,
       hover: Button.Effect,
       active: Button.Effect
   )
 
   object Button {
-    final case class Effect(background: Color, shadow: String)
+    final case class Effect(background: Color)
 
     def default(text: Color, background: Color): Button = Button(
       background = background,
       radius = "4px",
-      shadow = "0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12)",
       font = Font(
         family = Font.DefaultFont,
         color = text,
@@ -76,14 +212,8 @@ object MaterialTheme {
         letterSpacing = "0.02857em",
         transform = Some("uppercase")
       ),
-      hover = Effect(
-        background = background.darker(0.75f),
-        shadow = "0px 2px 4px -1px rgba(0,0,0,0.2),0px 4px 5px 0px rgba(0,0,0,0.14),0px 1px 10px 0px rgba(0,0,0,0.12)"
-      ),
-      active = Effect(
-        background = background.darker(0.5f),
-        shadow = "0px 5px 5px -3px rgba(0,0,0,0.2),0px 8px 10px 1px rgba(0,0,0,0.14),0px 3px 14px 2px rgba(0,0,0,0.12)"
-      )
+      hover = Effect(background = background.darker(0.75f)),
+      active = Effect(background = background.darker(0.5f))
     )
   }
 
@@ -113,9 +243,16 @@ object MaterialTheme {
             normal = primary,
             dark = primary.darker()
           ),
-          secondary = ???
+          secondary = Shade(
+            light = primary.brighter(),
+            normal = primary,
+            dark = primary.darker()
+          ),
+          surface = rgb"#f7f7f7",
+          paper = rgb"#ffffff"
         ),
         surface = Variant(
+          typography = Typography.default(rgb"#000000de"),
           buttons = Buttons(
             normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
             primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
@@ -124,6 +261,7 @@ object MaterialTheme {
           )
         ),
         paper = Variant(
+          typography = Typography.default(rgb"#000000de"),
           buttons = Buttons(
             normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
             primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
@@ -132,6 +270,7 @@ object MaterialTheme {
           )
         ),
         primary = Variant(
+          typography = Typography.default(rgb"#ffffff"),
           buttons = Buttons(
             normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
             primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
@@ -140,6 +279,7 @@ object MaterialTheme {
           )
         ),
         secondary = Variant(
+          typography = Typography.default(rgb"#ffffff"),
           buttons = Buttons(
             normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
             primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
@@ -149,8 +289,22 @@ object MaterialTheme {
         )
       ),
       dark = Flavor(
-        palette = ???,
+        palette = Palette(
+          primary = Shade(
+            light = primary.brighter(),
+            normal = primary,
+            dark = primary.darker()
+          ),
+          secondary = Shade(
+            light = primary.brighter(),
+            normal = primary,
+            dark = primary.darker()
+          ),
+          surface = rgb"#121212",
+          paper = rgb"#333333"
+        ),
         surface = Variant(
+          typography = Typography.default(rgb"#ffffff"),
           buttons = Buttons(
             normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
             primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
@@ -159,6 +313,7 @@ object MaterialTheme {
           )
         ),
         paper = Variant(
+          typography = Typography.default(rgb"#ffffff"),
           buttons = Buttons(
             normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
             primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
@@ -167,6 +322,7 @@ object MaterialTheme {
           )
         ),
         primary = Variant(
+          typography = Typography.default(rgb"#ffffff"),
           buttons = Buttons(
             normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
             primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
@@ -175,6 +331,7 @@ object MaterialTheme {
           )
         ),
         secondary = Variant(
+          typography = Typography.default(rgb"#ffffff"),
           buttons = Buttons(
             normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
             primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
@@ -186,79 +343,5 @@ object MaterialTheme {
     )
   }
 
-  val Default: MaterialTheme = MaterialTheme(
-    mode = Mode.Light,
-    context = Context.Surface,
-    spacing = 8,
-    light = Flavor(
-      palette = ???,
-      surface = Variant(
-        buttons = Buttons(
-          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
-          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
-        )
-      ),
-      paper = Variant(
-        buttons = Buttons(
-          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
-          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
-        )
-      ),
-      primary = Variant(
-        buttons = Buttons(
-          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
-          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
-        )
-      ),
-      secondary = Variant(
-        buttons = Buttons(
-          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
-          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
-        )
-      )
-    ),
-    dark = Flavor(
-      palette = ???,
-      surface = Variant(
-        buttons = Buttons(
-          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
-          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
-        )
-      ),
-      paper = Variant(
-        buttons = Buttons(
-          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
-          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
-        )
-      ),
-      primary = Variant(
-        buttons = Buttons(
-          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
-          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
-        )
-      ),
-      secondary = Variant(
-        buttons = Buttons(
-          normal = Button.default(rgb"#000000de", rgb"#e0e0e0"),
-          primary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          secondary = Button.default(rgb"#ffffff", rgb"#1976d2"),
-          danger = Button.default(rgb"#ffffff", rgb"#1976d2")
-        )
-      )
-    )
-  )
+  val Default: MaterialTheme = derive(primary = rgb"#1976d2", secondary = rgb"#1976d2")
 }

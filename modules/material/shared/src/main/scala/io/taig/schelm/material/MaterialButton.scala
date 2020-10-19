@@ -18,7 +18,6 @@ final case class MaterialButton[+F[_]](
     backgroundColor := theme.background,
     border := "none",
     borderRadius := theme.radius,
-    boxShadow := theme.shadow,
     color := theme.font.color,
     cursor := "pointer",
     fontFamily := theme.font.family,
@@ -31,31 +30,24 @@ final case class MaterialButton[+F[_]](
     textTransform := theme.font.transform,
     transition := "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms," +
       "box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms," +
-      "border 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-    Declaration.Name("-webkit-font-smoothing") := "antialiased",
-    Declaration.Name("-moz-osx-font-smoothing") := "grayscale"
-  ).&(":hover")(
-      backgroundColor := theme.hover.background,
-      boxShadow := theme.hover.shadow
-    )
-    .&(":active")(
-      backgroundColor := theme.active.background,
-      boxShadow := theme.active.shadow
-    ) ++ style
+      "border 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms"
+  ).&(hover)(backgroundColor := theme.hover.background)
+    .&(active)(backgroundColor := theme.active.background) ++
+    fontSmoothing ++
+    style
 
-  override def render: Widget[F, Nothing, Any] =
-    tag match {
-      case Tag.A =>
-        a(attributes = attributes, style = styles, listeners = listeners, children = Children.of(text(label)))
-      case Tag.Button =>
-        button(attributes = attributes, style = styles, listeners = listeners, children = Children.of(text(label)))
-      case variant: Tag.Input =>
-        input(
-          attributes = attributes ++ attrs(value := label, tpe := variant.tpe),
-          style = styles,
-          listeners = listeners
-        )
-    }
+  override def render: Widget[F, Nothing, Any] = tag match {
+    case Tag.A =>
+      a(attributes = attributes, style = styles, listeners = listeners, children = Children.of(text(label)))
+    case Tag.Button =>
+      button(attributes = attributes, style = styles, listeners = listeners, children = Children.of(text(label)))
+    case variant: Tag.Input =>
+      input(
+        attributes = attributes ++ attrs(value := label, tpe := variant.tpe),
+        style = styles,
+        listeners = listeners
+      )
+  }
 }
 
 object MaterialButton {

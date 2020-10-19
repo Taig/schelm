@@ -45,7 +45,7 @@ trait component {
   ): Widget[F, Nothing, Any] =
     Widget.Pure(Redux.Pure(Contextual.Pure(State.Stateless(Css.unstyled(Node.Text(value, listeners, lifecycle))))))
 
-  final def contextual[F[_], Event, Context](f: Context => Widget[F, Event, Any]): Widget[F, Event, Context] =
+  final def contextual[F[_], Event, Context](f: Context => Widget[F, Event, Context]): Widget[F, Event, Context] =
     Widget.Pure(
       Redux.Render { (events: EventManager[F, Event]) =>
         Contextual.Render(context => Contextual.run(context)(Redux.run(events)(Widget.run(f(context)))))

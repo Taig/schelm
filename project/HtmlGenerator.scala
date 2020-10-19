@@ -2,6 +2,7 @@ object HtmlGenerator {
   val Elements: List[String] =
     List(
       "a",
+      "body",
       "button",
       "div",
       "h1",
