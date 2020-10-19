@@ -8,7 +8,7 @@ final case class ListenerReferences[+F[_]](values: Map[Listener.Name, (Dom.Liste
   @inline
   def get(name: Listener.Name): Option[(Dom.Listener, Listener.Action[F])] = values.get(name)
 
-  def updated[G[α] >: F[α]](
+  def updated[G[A] >: F[A]](
       name: Listener.Name,
       reference: Dom.Listener,
       action: Listener.Action[G]

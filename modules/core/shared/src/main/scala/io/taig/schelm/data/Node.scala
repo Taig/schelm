@@ -1,17 +1,40 @@
 package io.taig.schelm.data
 
+import scala.annotation.nowarn
+
 import cats.implicits._
 import cats.{Applicative, Bifunctor, Eval, Functor, Traverse}
 import io.taig.schelm.util.NodeTraverse
 
+@nowarn("msg=shadows")
 sealed abstract class Node[+F[_], +Listeners, +A] extends Product with Serializable {
-  final def traverseWithKey[G[α] >: F[α], H[_]: Applicative, L >: Listeners, B](f: (Key, A) => H[B]): H[Node[G, L, B]] =
+  final def traverseWithKey[G[B] >: F[B], H[_]: Applicative, M >: Listeners, B](f: (Key, A) => H[B]): H[Node[G, M, B]] =
     this match {
       case node: Node.Element[F, Listeners, A] =>
         node.variant.traverseWithKey(f).map(variant => node.copy(variant = variant))
       case node: Node.Fragment[A]        => node.children.traverseWithKey(f).map(children => node.copy(children = children))
       case node: Node.Text[F, Listeners] => node.pure[H].widen
     }
+
+  final def modifyAttributes(f: Attributes => Attributes): Node[F, Listeners, A] = this match {
+    case node: Node.Element[F, Listeners, A] => node.copy(tag = node.tag.copy(attributes = f(node.tag.attributes)))
+    case node                                => node
+  }
+
+  final def modifyListeners[L >: Listeners](f: L => L): Node[F, L, A] = this match {
+    case node: Node.Element[F, Listeners, A] => node.copy(tag = node.tag.copy(listeners = f(node.tag.listeners)))
+    case node: Node.Fragment[A]              => node
+    case node: Node.Text[F, Listeners]       => node.copy(listeners = f(node.listeners))
+  }
+
+  final def modifyChildren[B >: A](f: Children[B] => Children[B]): Node[F, Listeners, B] = this match {
+    case node: Node.Element[F, Listeners, A] =>
+      node.variant match {
+        case Node.Element.Variant.Normal(children) => node.copy(variant = Node.Element.Variant.Normal(f(children)))
+        case Node.Element.Variant.Void             => node
+      }
+    case node => node
+  }
 
   final override def toString: String = this match {
     case Node.Element(tag, variant, lifecycle) =>
@@ -23,6 +46,7 @@ sealed abstract class Node[+F[_], +Listeners, +A] extends Product with Serializa
 }
 
 object Node {
+  @nowarn("msg=shadows")
   final case class Element[+F[_], +Listeners, +A](
       tag: Tag[Listeners],
       variant: Element.Variant[A],
@@ -63,17 +87,19 @@ object Node {
       }
     }
 
-    implicit def traverse[F[_], Listener]: Traverse[Element[F, Listener, *]] = new Traverse[Element[F, Listener, *]] {
-      override def traverse[G[_]: Applicative, A, B](
-          fa: Element[F, Listener, A]
-      )(f: A => G[B]): G[Element[F, Listener, B]] =
-        fa.variant.traverse(f).map(variant => fa.copy(variant = variant))
+    @nowarn("msg=shadows")
+    implicit def traverse[F[_], Listeners]: Traverse[Element[F, Listeners, *]] =
+      new Traverse[Element[F, Listeners, *]] {
+        override def traverse[G[_]: Applicative, A, B](
+            fa: Element[F, Listeners, A]
+        )(f: A => G[B]): G[Element[F, Listeners, B]] =
+          fa.variant.traverse(f).map(variant => fa.copy(variant = variant))
 
-      override def foldLeft[A, B](fa: Element[F, Listener, A], b: B)(f: (B, A) => B): B = fa.variant.foldl(b)(f)
+        override def foldLeft[A, B](fa: Element[F, Listeners, A], b: B)(f: (B, A) => B): B = fa.variant.foldl(b)(f)
 
-      override def foldRight[A, B](fa: Element[F, Listener, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
-        fa.variant.foldr(lb)(f)
-    }
+        override def foldRight[A, B](fa: Element[F, Listeners, A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =
+          fa.variant.foldr(lb)(f)
+      }
 
     implicit def bifunctor[F[_]]: Bifunctor[Element[F, *, *]] = new Bifunctor[Element[F, *, *]] {
       override def bimap[A, B, C, D](fab: Element[F, A, B])(f: A => C, g: B => D): Element[F, C, D] =
@@ -95,6 +121,7 @@ object Node {
     }
   }
 
+  @nowarn("msg=shadows")
   final case class Text[+F[_], +Listeners](value: String, listeners: Listeners, lifecycle: Lifecycle.Text[F])
       extends Node[F, Listeners, Nothing]
 
@@ -104,6 +131,7 @@ object Node {
     }
   }
 
+  @nowarn("msg=shadows")
   implicit def traverse[F[_], Listeners]: Traverse[Node[F, Listeners, *]] = new Traverse[Node[F, Listeners, *]] {
     override def traverse[G[_]: Applicative, A, B](fa: Node[F, Listeners, A])(f: A => G[B]): G[Node[F, Listeners, B]] =
       fa match {
@@ -127,10 +155,12 @@ object Node {
       }
   }
 
+  @nowarn("msg=shadows")
   implicit def nodes[F[_], Listeners]: NodeTraverse[Node[F, Listeners, *]] = new NodeTraverse[Node[F, Listeners, *]] {
-    override def traverseWithKey[G[_]: Applicative, A, B](fa: Node[F, Listeners, A])(
-        f: (Key, A) => G[B]
-    ): G[Node[F, Listeners, B]] = fa.traverseWithKey(f)
+    override def traverseWithKey[G[_]: Applicative, A, B](
+        fa: Node[F, Listeners, A]
+    )(f: (Key, A) => G[B]): G[Node[F, Listeners, B]] =
+      fa.traverseWithKey(f)
   }
 
   implicit def bifunctor[F[_]]: Bifunctor[Node[F, *, *]] = new Bifunctor[Node[F, *, *]] {

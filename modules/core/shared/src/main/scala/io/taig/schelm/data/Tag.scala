@@ -1,8 +1,11 @@
 package io.taig.schelm.data
 
+import scala.annotation.nowarn
+
 import cats._
 import cats.implicits._
 
+@nowarn("msg=shadows")
 final case class Tag[+Listeners](name: Tag.Name, attributes: Attributes, listeners: Listeners)
 
 object Tag {

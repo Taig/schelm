@@ -12,12 +12,12 @@ object StateRenderer {
   def apply[F[_]: Monad, G[_]: NodeTraverse, A](
       renderer: Renderer[F, Fix[G], A],
       states: StateManager[F, A]
-  ): Renderer[Kleisli[F, Path, *], Fix[λ[α => State[F, G[α]]]], Fix[G]] = {
-    def stateful[B](state: State.Stateful[F, B, G[Fix[λ[α => State[F, G[α]]]]]], path: Path): F[Fix[G]] = {
-      val get = states.get[B](path).map(_.getOrElse(state.initial))
+  ): Renderer[Kleisli[F, Path, *], Fix[λ[B => State[F, G[B]]]], Fix[G]] = {
+    def stateful[C](state: State.Stateful[F, C, G[Fix[λ[B => State[F, G[B]]]]]], path: Path): F[Fix[G]] = {
+      val get = states.get[C](path).map(_.getOrElse(state.initial))
 
-      val update = new ((B => B) => F[Unit]) {
-        override def apply(f: B => B): F[Unit] =
+      val update = new ((C => C) => F[Unit]) {
+        override def apply(f: C => C): F[Unit] =
           get.map(f).flatMap { update =>
             state
               .render(this, update)
@@ -35,10 +35,10 @@ object StateRenderer {
       }
     }
 
-    def render(state: Fix[λ[α => State[F, G[α]]]]): Kleisli[F, Path, Fix[G]] =
+    def render(state: Fix[λ[B => State[F, G[B]]]]): Kleisli[F, Path, Fix[G]] =
       Kleisli { path =>
         state.unfix match {
-          case state: State.Stateful[F, _, G[Fix[λ[A => State[F, G[A]]]]]] => stateful(state, path)
+          case state: State.Stateful[F, _, G[Fix[λ[B => State[F, G[B]]]]]] => stateful(state, path)
           case State.Stateless(value) =>
             value.traverseWithKey((key, node) => render(node).run(path / key)).map(Fix.apply)
         }
@@ -50,6 +50,6 @@ object StateRenderer {
   def root[F[_]: Monad, G[_]: NodeTraverse, A](
       renderer: Renderer[F, Fix[G], A],
       states: StateManager[F, A]
-  ): Renderer[F, Fix[λ[α => State[F, G[α]]]], Fix[G]] =
+  ): Renderer[F, Fix[λ[B => State[F, G[B]]]], Fix[G]] =
     StateRenderer(renderer, states).mapK(Kleisli.applyK(Path.Root))
 }

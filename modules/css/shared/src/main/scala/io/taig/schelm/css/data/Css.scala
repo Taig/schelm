@@ -3,7 +3,9 @@ package io.taig.schelm.css.data
 import cats.implicits._
 import cats.{Applicative, Eval, Traverse}
 
-final case class Css[+A](value: A, style: Style)
+final case class Css[+A](value: A, style: Style) {
+  def modifyStyle(f: Style => Style): Css[A] = copy(style = f(style))
+}
 
 object Css {
   def unstyled[A](value: A): Css[A] = Css(value, Style.Empty)

@@ -1,5 +1,7 @@
 package io.taig.schelm.interpreter
 
+import scala.annotation.nowarn
+
 import cats.MonadError
 import cats.data.Kleisli
 import cats.implicits._
@@ -8,6 +10,7 @@ import io.taig.schelm.data.Node.Element.Variant
 import io.taig.schelm.data.{Html, HtmlAttachedReference, HtmlDiff, HtmlReference, Node, NodeReference}
 
 object HtmlPatcher {
+  @nowarn("msg=never used")
   def apply[F[_]: MonadError[*[_], Throwable]](
       dom: Dom[F],
       renderer: Renderer[F, Html[F], HtmlReference[F]]

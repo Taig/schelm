@@ -2,7 +2,7 @@ package io.taig.schelm.util
 
 import cats.implicits._
 import cats.{Applicative, Traverse}
-import io.taig.schelm.data.{Attribute, Attributes, Key}
+import io.taig.schelm.data.Key
 import simulacrum.typeclass
 
 @typeclass

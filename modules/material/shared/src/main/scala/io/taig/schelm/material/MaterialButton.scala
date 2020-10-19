@@ -83,7 +83,7 @@ object MaterialButton {
       style: Style = Style.Empty,
       listeners: Listeners[F] = Listeners.Empty
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    val variant = theme.flavor
+    val variant = theme.variant
     val button = flavor match {
       case Some(Flavor.Primary)   => variant.buttons.primary
       case Some(Flavor.Secondary) => variant.buttons.secondary
@@ -91,6 +91,6 @@ object MaterialButton {
       case None                   => variant.buttons.normal
     }
 
-    MaterialButton[F](tag, label, variant.spacing, button, attributes, style, listeners)
+    MaterialButton[F](tag, label, theme.spacing, button, attributes, style, listeners)
   }
 }

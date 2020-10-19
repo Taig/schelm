@@ -3,9 +3,9 @@ package io.taig.schelm.data
 final case class Listeners[+F[_]](values: Map[Listener.Name, Listener.Action[F]]) extends AnyVal {
   def isEmpty: Boolean = values.isEmpty
 
-  def ++[G[α] >: F[α]](listeners: Listeners[G]): Listeners[G] = Listeners(values ++ listeners.values)
+  def ++[G[A] >: F[A]](listeners: Listeners[G]): Listeners[G] = Listeners(values ++ listeners.values)
 
-  def +[G[α] >: F[α]](listener: Listener[G]): Listeners[G] = Listeners(values + listener.toTuple)
+  def +[G[A] >: F[A]](listener: Listener[G]): Listeners[G] = Listeners(values + listener.toTuple)
 
   def toList: List[Listener[F]] = values.map { case (name, action) => Listener(name, action) }.toList
 }

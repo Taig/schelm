@@ -1,12 +1,11 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
 val CatsEffectVersion = "2.2.0"
-val ColorVersion = "0.2.3-SNAPSHOT"
+val ColorVersion = "0.2.3"
 val Fs2Version = "2.4.4"
 val JsoupVersion = "1.13.1"
 val ScalaCollectionCompatVersion = "2.2.0"
 val ScalajsDomVersion = "1.1.0"
-val ShapelessVersion = "2.3.3"
 
 noPublishSettings
 

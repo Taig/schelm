@@ -1,5 +1,7 @@
 package io.taig.schelm.interpreter
 
+import scala.annotation.nowarn
+
 import cats.implicits._
 import io.taig.schelm.algebra.Differ
 import io.taig.schelm.data._
@@ -108,6 +110,7 @@ object HtmlDiffer {
       } else HtmlDiff.from(diffs)
     }
 
+    @nowarn("msg=never used")
     def identifiedChildren(
         previous: Children.Identified[Html[F]],
         next: Children.Identified[Html[F]]
