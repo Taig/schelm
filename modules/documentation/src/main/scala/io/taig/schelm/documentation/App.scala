@@ -3,7 +3,14 @@ package io.taig.schelm.documentation
 import cats.effect.Sync
 import io.taig.schelm.data.{Children, Listeners}
 import io.taig.schelm.dsl._
-import io.taig.schelm.material.{MaterialButton, MaterialElevation, MaterialSurface, MaterialTheme, MaterialTypography}
+import io.taig.schelm.material.{
+  MaterialButton,
+  MaterialElevation,
+  MaterialInput,
+  MaterialSurface,
+  MaterialTheme,
+  MaterialTypography
+}
 
 object App {
   def apply[F[_]](state: State)(implicit F: Sync[F]): Widget[F, Event, MaterialTheme] = {
@@ -22,7 +29,9 @@ object App {
             MaterialElevation(
               MaterialButton.default("hello world", tag = MaterialButton.Tag.Input(tpe = "submit")),
               clickable = true
-            )
+            ),
+            MaterialTypography.h3("Input"),
+            MaterialInput.default(label = "Adresse")
           )
         )
       )

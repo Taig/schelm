@@ -17,7 +17,8 @@ object HtmlGenerator {
       "p",
       "section",
       "span",
-      "strong"
+      "strong",
+      "textarea"
     )
 
   val Voids: List[String] = List("br", "hr", "input")
