@@ -30,7 +30,7 @@ object MaterialSurface {
   ): Widget[F, Event, MaterialTheme] = contextual { theme =>
     MaterialSurface[F, Event, MaterialTheme](
       tag,
-      theme.flavor.palette.surface,
+      theme.flavor.palette.surface.main,
       attributes,
       listeners,
       style,
