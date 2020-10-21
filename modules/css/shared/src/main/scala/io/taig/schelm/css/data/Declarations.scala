@@ -1,15 +1,33 @@
 package io.taig.schelm.css.data
 
+import scala.collection.mutable
+
 import cats.Monoid
 
 final case class Declarations(values: List[Declaration]) extends AnyVal {
   def isEmpty: Boolean = values.isEmpty
+
+  def concat(declarations: Declarations, divider: String): Declarations = {
+    val self = this.toMap.to(mutable.HashMap)
+
+    declarations.toMap.foreach {
+      case (name, value) =>
+        self.updateWith(name) {
+          case Some(current) => Some(current.concat(value, divider))
+          case None => Some(value)
+        }
+    }
+
+    Declarations.from(self.map { case (name, value) => Declaration(name, value) })
+  }
 
   def :+(declaration: Declaration): Declarations = Declarations(values :+ declaration)
 
   def +:(declaration: Declaration): Declarations = Declarations(declaration +: values)
 
   def ++(declarations: Declarations): Declarations = Declarations(values ++ declarations.values)
+
+  def toMap: Map[Declaration.Name, Declaration.Value] = values.map { case Declaration(name, value) => (name, value) }.toMap
 }
 
 object Declarations {

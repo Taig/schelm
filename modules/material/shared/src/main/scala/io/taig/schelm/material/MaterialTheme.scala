@@ -7,7 +7,6 @@ import io.taig.schelm.material.MaterialTheme.{Context, Mode}
 final case class MaterialTheme(
     mode: MaterialTheme.Mode,
     context: MaterialTheme.Context,
-    spacing: Int,
     light: MaterialTheme.Flavor,
     dark: MaterialTheme.Flavor
 ) {
@@ -53,11 +52,23 @@ object MaterialTheme {
   /** A color with its light and dark variants */
   final case class Shade(light: Color, normal: Color, dark: Color)
 
-  final case class Flavor(palette: Palette, surface: Variant, paper: Variant, primary: Variant, secondary: Variant)
+  final case class Flavor(
+      palette: Palette,
+      spacing: Int,
+      surface: Variant,
+      paper: Variant,
+      primary: Variant,
+      secondary: Variant
+  )
+
+  object Shade {
+    def derive(color: Color): Shade = Shade(color.brighter(factor = 0.9d), color, color.darker(factor = 0.9d))
+  }
 
   object Flavor {
     def derive(palette: Palette): Flavor = Flavor(
       palette,
+      spacing = DefaultSpacing,
       surface = Variant.derive(palette, _.surface),
       paper = Variant.derive(palette, _.paper),
       primary = Variant.derive(palette, _.primary),
@@ -87,10 +98,6 @@ object MaterialTheme {
 
   object Palette {
     final case class Variant[A](main: A, text: Color, notification: Notification)
-  }
-
-  object Shade {
-    def derive(color: Color): Shade = Shade(color.brighter(), color, color.darker())
   }
 
   /** Color codes for error, warning and success messages */
@@ -158,10 +165,11 @@ object MaterialTheme {
         ),
         input = Input(
           background = None,
+          spacing = DefaultSpacing,
           border = palette.neutral.main.light,
           focus = palette.primary.main.normal,
           radius = DefaultRadius,
-          font = typography.button.copy(color = variant.text)
+          font = typography.body1.copy(color = variant.text)
         )
       )
     }
@@ -205,6 +213,7 @@ object MaterialTheme {
 
   final case class Button(
       background: Color,
+      spacing: Int,
       radius: String,
       font: Font,
       hover: Button.Effect,
@@ -216,6 +225,7 @@ object MaterialTheme {
 
     def derive(text: Color, background: Color, hover: Color): Button = Button(
       background = background,
+      spacing = DefaultSpacing,
       radius = DefaultRadius,
       font = Font(
         family = DefaultFontFamily,
@@ -237,7 +247,14 @@ object MaterialTheme {
       derive(text = palette.text, background = palette.main.normal, hover = palette.main.dark)
   }
 
-  final case class Input(background: Option[Color], border: Color, focus: Color, radius: String, font: Font)
+  final case class Input(
+      background: Option[Color],
+      spacing: Int,
+      border: Color,
+      focus: Color,
+      radius: String,
+      font: Font
+  )
 
   final case class Font(
       family: String,
@@ -272,7 +289,7 @@ object MaterialTheme {
         notification = Notification.Default
       ),
       neutral = Palette.Variant(
-        main = Shade.derive(rgb"#e0e0e0"),
+        main = Shade.derive(rgb"#cbcbcb"),
         text = rgb"#000000de",
         notification = Notification.Default
       )
@@ -309,7 +326,6 @@ object MaterialTheme {
     MaterialTheme(
       mode = Mode.Light,
       context = Context.Surface,
-      spacing = DefaultSpacing,
       light = Flavor.derive(light),
       dark = Flavor.derive(dark)
     )

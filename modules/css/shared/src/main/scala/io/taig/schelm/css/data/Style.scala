@@ -5,6 +5,9 @@ import cats.Monoid
 final case class Style(declarations: Declarations, pseudos: PseudoDeclarations) {
   def isEmpty: Boolean = declarations.isEmpty && pseudos.isEmpty
 
+  def concat(style: Style, divider: String): Style =
+    Style(declarations.concat(style.declarations, divider), pseudos.concat(pseudos, divider))
+
   def ++(style: Style): Style = Style(declarations ++ style.declarations, pseudos ++ style.pseudos)
 
   def +:(declaration: Declaration): Style = copy(declarations = declaration +: declarations)

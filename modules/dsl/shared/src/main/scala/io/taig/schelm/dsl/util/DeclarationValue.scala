@@ -15,6 +15,8 @@ object DeclarationValue {
 
   implicit val declarationValue: DeclarationValue[Declaration.Value] = _.some
 
+  implicit def integral[A: Integral]: DeclarationValue[A] = value => Some(Declaration.Value(s"${value}px"))
+
   implicit def option[A: DeclarationValue]: DeclarationValue[Option[A]] = _.flatMap(DeclarationValue[A].lift)
 
   implicit val string: DeclarationValue[String] = value => Declaration.Value(value).some

@@ -1,6 +1,6 @@
 package io.taig.schelm.material
 
-import io.taig.schelm.css.data.{Declaration, Style}
+import io.taig.schelm.css.data.Style
 import io.taig.schelm.data.{Attributes, Children, Listeners}
 import io.taig.schelm.dsl._
 import io.taig.schelm.material.MaterialButton.Tag
@@ -8,7 +8,6 @@ import io.taig.schelm.material.MaterialButton.Tag
 final case class MaterialButton[+F[_]](
     tag: MaterialButton.Tag,
     label: String,
-    spacing: Int,
     theme: MaterialTheme.Button,
     attributes: Attributes,
     style: Style,
@@ -26,11 +25,9 @@ final case class MaterialButton[+F[_]](
     letterSpacing := theme.font.letterSpacing,
     margin := "0",
     outline := "none",
-    padding := s"${spacing}px ${spacing * 2}px",
+    padding := s"${theme.spacing}px ${theme.spacing * 2}px",
     textTransform := theme.font.transform,
-    transition := "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms," +
-      "box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms," +
-      "border 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms"
+    transition := "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms"
   ).&(hover)(backgroundColor := theme.hover.background)
     .&(active)(backgroundColor := theme.active.background) ++
     fontSmoothing ++
@@ -83,6 +80,6 @@ object MaterialButton {
       case None                   => variant.buttons.normal
     }
 
-    MaterialButton[F](tag, label, theme.spacing, button, attributes, style, listeners)
+    MaterialButton[F](tag, label, button, attributes, style, listeners)
   }
 }

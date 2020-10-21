@@ -26,14 +26,20 @@ trait style {
   )
 
   val zero: Declaration.Value = Declaration.Value("0")
+  val none: Declaration.Value = Declaration.Value("none")
 
-  val hover: Modifier = Modifier(":hover")
+  val pointer: Declaration.Value = Declaration.Value("pointer")
+
   val active: Modifier = Modifier(":active")
+  val focus: Modifier = Modifier(":focus")
+  val hover: Modifier = Modifier(":hover")
 
   val background: Declaration.Name = Declaration.Name("background")
   val backgroundColor: Declaration.Name = Declaration.Name("background-color")
   val border: Declaration.Name = Declaration.Name("border")
+  val borderColor: Declaration.Name = Declaration.Name("border-color")
   val borderRadius: Declaration.Name = Declaration.Name("border-radius")
+  val borderWidth: Declaration.Name = Declaration.Name("border-width")
   val boxShadow: Declaration.Name = Declaration.Name("box-shadow")
   val color: Declaration.Name = Declaration.Name("color")
   val cursor: Declaration.Name = Declaration.Name("cursor")
