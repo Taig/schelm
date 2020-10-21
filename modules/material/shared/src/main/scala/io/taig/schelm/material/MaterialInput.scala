@@ -5,13 +5,16 @@ import io.taig.schelm.data.{Attributes, Lifecycle, Listeners}
 import io.taig.schelm.dsl._
 
 final case class MaterialInput[+F[_]](
+    label: Option[String],
     theme: MaterialTheme.Input,
     attributes: Attributes,
     listeners: Listeners[F],
-    style: Style,
+    styles: MaterialInput.Styles,
     lifecycle: Lifecycle.Element[F]
 ) extends Component[F, Nothing, Any] {
-  val styles: Style = css(
+  val labelStyle: Style = styles.label
+
+  val inputStyle: Style = css(
     border := s"1px solid ${theme.border.toHex}",
     borderRadius := theme.radius,
     cursor := "text",
@@ -25,14 +28,21 @@ final case class MaterialInput[+F[_]](
     borderColor := theme.focus,
     borderWidth := 2,
     margin := 0
-  ) ++ style
+  ) ++ styles.input
 
-  override def render: Widget[F, Nothing, Any] = input(attributes, listeners, styles, lifecycle)
+  override def render: Widget[F, Nothing, Any] =
+    div(
+      children =
+//        Children.from(label.map(label => MaterialTypography.default(content = label, tag = Label))) ++
+        indexed(input(attributes, listeners, inputStyle, lifecycle))
+    )
 }
 
 object MaterialInput {
+  final case class Styles(label: Style, input: Style)
+
   def default[F[_]](
-      label: String,
+      label: Option[String] = None,
       placeholder: Option[String] = None,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
@@ -40,10 +50,11 @@ object MaterialInput {
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
     MaterialInput(
+      label,
       theme.variant.input,
       attrs(syntax.attribute.placeholder := placeholder) ++ attributes,
       listeners,
-      style,
+      Styles(label = Style.Empty, input = style),
       lifecycle
     )
   }

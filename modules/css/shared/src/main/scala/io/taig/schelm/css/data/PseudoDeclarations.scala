@@ -8,13 +8,13 @@ final case class PseudoDeclarations(values: List[PseudoDeclaration]) {
   def isEmpty: Boolean = values.isEmpty
 
   def concat(declarations: PseudoDeclarations, divider: String): PseudoDeclarations = {
-    val self = this.toMap.to(mutable.HashMap)
+    val self = this.toMap.to(mutable.LinkedHashMap) // Order matters
 
     declarations.values.foreach {
       case PseudoDeclaration(modifier, declarations) =>
         self.updateWith(modifier) {
           case Some(current) => Some(current.concat(declarations, divider))
-          case None => Some(declarations)
+          case None          => Some(declarations)
         }
     }
 
@@ -27,7 +27,8 @@ final case class PseudoDeclarations(values: List[PseudoDeclaration]) {
 
   def toRules(selectors: Selectors): List[Rule.Block] = values.map(_.toRule(selectors))
 
-  def toMap: Map[Modifier, Declarations] = values.map { case PseudoDeclaration(modifier, declarations) => (modifier, declarations) }.toMap
+  def toMap: Map[Modifier, Declarations] =
+    values.map { case PseudoDeclaration(modifier, declarations) => (modifier, declarations) }.toMap
 }
 
 object PseudoDeclarations {

@@ -13,6 +13,7 @@ object HtmlGenerator {
       "h6",
       "header",
       "i",
+      "label",
       "main",
       "p",
       "section",

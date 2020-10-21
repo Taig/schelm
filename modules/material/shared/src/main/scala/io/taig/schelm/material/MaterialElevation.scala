@@ -19,8 +19,8 @@ object MaterialElevation {
   ): Widget[F, Event, Context] = {
     val styles =
       if (clickable)
-        css(boxShadow := ShadowNormal).
-          &(hover)(boxShadow := ShadowHover)
+        css(boxShadow := ShadowNormal)
+          .&(hover)(boxShadow := ShadowHover)
           .&(active)(boxShadow := ShadowActive)
       else css(boxShadow := ShadowNormal)
 

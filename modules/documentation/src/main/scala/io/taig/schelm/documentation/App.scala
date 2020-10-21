@@ -11,17 +11,16 @@ object App {
       children = Children.of(
         MaterialTypography.h3("Buttons"),
         MaterialTypography.body1("This is the textual content above le buttons!"),
-        MaterialButton
-          .default("hello world", tag = MaterialButton.Tag.A, flavor = Some(MaterialButton.Flavor.Primary)),
-        MaterialButton.default("hello world", tag = MaterialButton.Tag.Button, listeners = Listeners.of(click := { _ =>
-          F.delay(println("hi"))
-        })),
+        MaterialButton.default("hello world", tag = MaterialButton.Tag.A, flavor = Some(MaterialButton.Flavor.Primary)),
         MaterialElevation(
-          MaterialButton.default("hello world", tag = MaterialButton.Tag.Input(tpe = "submit")),
+          MaterialButton.default("hello world", tag = MaterialButton.Tag.Button, listeners = Listeners.of(click := {
+            _ => F.delay(println("hi"))
+          })),
           clickable = true
         ),
+        MaterialButton.default("hello world", tag = MaterialButton.Tag.Input(tpe = "submit")),
         MaterialTypography.h3("Input"),
-        MaterialInput.default(label = "Address", placeholder = Some("Hasenheide 8"))
+        MaterialInput.default(label = Some("Address"), placeholder = Some("Hasenheide 8"))
       )
     )
   }

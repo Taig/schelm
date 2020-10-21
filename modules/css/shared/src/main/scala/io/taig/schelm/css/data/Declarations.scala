@@ -8,13 +8,13 @@ final case class Declarations(values: List[Declaration]) extends AnyVal {
   def isEmpty: Boolean = values.isEmpty
 
   def concat(declarations: Declarations, divider: String): Declarations = {
-    val self = this.toMap.to(mutable.HashMap)
+    val self = this.toMap.to(mutable.LinkedHashMap) // Order matters
 
     declarations.toMap.foreach {
       case (name, value) =>
         self.updateWith(name) {
           case Some(current) => Some(current.concat(value, divider))
-          case None => Some(value)
+          case None          => Some(value)
         }
     }
 
@@ -27,7 +27,8 @@ final case class Declarations(values: List[Declaration]) extends AnyVal {
 
   def ++(declarations: Declarations): Declarations = Declarations(values ++ declarations.values)
 
-  def toMap: Map[Declaration.Name, Declaration.Value] = values.map { case Declaration(name, value) => (name, value) }.toMap
+  def toMap: Map[Declaration.Name, Declaration.Value] =
+    values.map { case Declaration(name, value) => (name, value) }.toMap
 }
 
 object Declarations {

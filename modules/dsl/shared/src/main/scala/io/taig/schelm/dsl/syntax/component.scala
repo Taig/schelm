@@ -55,6 +55,9 @@ trait component {
   final def eventful[F[_], Event, Context](
       f: EventManager[F, Event] => Widget[F, Nothing, Context]
   ): Widget[F, Event, Context] = ???
+
+  def indexed[F[_], Event, Context](children: Widget[F, Event, Context]*): Children[Widget[F, Event, Context]] =
+    Children.Indexed(children.toVector)
 }
 
 object component extends component

@@ -36,6 +36,17 @@ final case class MaterialTypography[+F[_], +Event, -Context](
 }
 
 object MaterialTypography {
+  def default[F[_]](
+      content: String,
+      tag: Tag.Name,
+      theme: MaterialTheme.Font,
+      attributes: Attributes = Attributes.Empty,
+      listeners: Listeners[F] = Listeners.Empty,
+      style: Style = Style.Empty,
+      lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
+  ): Widget[F, Nothing, Any] =
+    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme)
+
   def h1[F[_]](
       content: String,
       tag: Tag.Name = H1,

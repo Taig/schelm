@@ -30,8 +30,7 @@ final case class MaterialButton[+F[_]](
     transition := "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms"
   ).&(hover)(backgroundColor := theme.hover.background)
     .&(active)(backgroundColor := theme.active.background) ++
-    fontSmoothing ++
-    style
+    fontSmoothing ++ style
 
   override def render: Widget[F, Nothing, Any] = tag match {
     case Tag.A =>
