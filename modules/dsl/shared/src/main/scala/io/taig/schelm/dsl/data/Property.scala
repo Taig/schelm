@@ -1,7 +1,7 @@
 package io.taig.schelm.dsl.data
 
 import io.taig.schelm.css.data.Style
-import io.taig.schelm.data.{Attributes, Lifecycle, Listeners}
+import io.taig.schelm.data.{Attributes, Lifecycle, Listener, Listeners}
 
 final case class Property[+F[_]](
     attributes: Attributes = Attributes.Empty,
@@ -22,6 +22,12 @@ final case class Property[+F[_]](
   def withAttributes(attributes: Attributes): Property[F] = modifyAttributes(_ => attributes)
 
   def appendAttributes(attributes: Attributes): Property[F] = modifyAttributes(_ ++ attributes)
+
+  def modifyListeners[G[A] >: F[A]](f: Listeners[G] => Listeners[G]): Property[G] = copy(listeners = f(listeners))
+
+  def addListeners[G[A] >: F[A]](listeners: Listeners[G]): Property[G] = modifyListeners[G](_ ++ listeners)
+
+  def addListener[G[A] >: F[A]](listener: Listener[G]): Property[G] = modifyListeners[G](_ + listener)
 
   def modifyStyle(f: Style => Style): Property[F] = copy(style = f(style))
 

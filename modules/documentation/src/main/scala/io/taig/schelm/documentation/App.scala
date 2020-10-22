@@ -1,7 +1,7 @@
 package io.taig.schelm.documentation
 
 import cats.effect.Sync
-import io.taig.schelm.data.{Children, Listeners}
+import io.taig.schelm.data.{Children, Listener, Listeners}
 import io.taig.schelm.dsl._
 import io.taig.schelm.dsl.data.Property
 import io.taig.schelm.material.{MaterialButton, MaterialElevation, MaterialInput, MaterialTheme, MaterialTypography}
@@ -31,9 +31,7 @@ object App {
           id = Some("name"),
           variant = MaterialInput.Variant.Error,
           helper = Some("Dit war nix"),
-          properties = MaterialInput.Properties(input = Property(listeners = Listeners.of(input := { event =>
-            F.delay(println(event))
-          })))
+          onInput = Listener.Action((event) => F.delay(println(event.target.value)))
         ),
         MaterialInput.themed(
           label = Some("Name"),

@@ -1,7 +1,7 @@
 package io.taig.schelm.material
 
 import io.taig.schelm.css.data.Style
-import io.taig.schelm.data.Children
+import io.taig.schelm.data.{Children, Listener}
 import io.taig.schelm.dsl._
 import io.taig.schelm.dsl.data.Property
 
@@ -111,12 +111,23 @@ object MaterialInput {
       placeholder: Option[String] = None,
       helper: Option[String] = None,
       reserveHelperSpace: Boolean = true,
+      onChange: Listener.Action[F] = Listener.Action.Noop,
+      onInput: Listener.Action[F] = Listener.Action.Noop,
       properties: Properties[F] = Properties.Empty
   ): Widget[F, Event, Context] =
     syntax.html.div(
       properties.root,
       Children.fromOption(label.map(Label(_, theme, id, properties.label))) ++
-        indexed(Input(theme, highlight, id, placeholder, reserveHelperSpace && helper.isEmpty, properties.input)) ++
+        indexed(
+          Input(
+            theme,
+            highlight,
+            id,
+            placeholder,
+            reserveHelperSpace && helper.isEmpty,
+            properties.input.addListener(change := onChange).addListener(input := onInput)
+          )
+        ) ++
         Children.fromOption(helper.map(Helper(_, theme, properties.helper)))
     )
 
@@ -127,6 +138,8 @@ object MaterialInput {
       id: Option[String] = None,
       reserveHelperSpace: Boolean = true,
       variant: Variant = Variant.Normal,
+      onChange: Listener.Action[F] = Listener.Action.Noop,
+      onInput: Listener.Action[F] = Listener.Action.Noop,
       properties: Properties[F] = Properties.Empty
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
     val input = variant match {
@@ -144,6 +157,8 @@ object MaterialInput {
       placeholder,
       helper,
       reserveHelperSpace,
+      onChange,
+      onInput,
       properties
     )
   }
