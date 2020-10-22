@@ -1,4 +1,5 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
+import sbtcrossproject.CrossProject
 
 val CatsEffectVersion = "2.2.0"
 val ColorVersion = "0.2.3"
@@ -9,7 +10,7 @@ val ScalajsDomVersion = "1.1.0"
 
 noPublishSettings
 
-lazy val core = crossProject(JVMPlatform, JSPlatform)
+lazy val core: CrossProject = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
   .in(file("modules/core"))
   .settings(sonatypePublishSettings)
@@ -24,7 +25,21 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
     libraryDependencies ++=
       "org.jsoup" % "jsoup" % JsoupVersion ::
         "org.scala-lang.modules" %% "scala-collection-compat" % ScalaCollectionCompatVersion ::
-        Nil
+        Nil,
+    scalacOptions += "-Wconf:src=src_managed/.*:silent",
+    Compile / sourceGenerators += Def.taskDyn {
+      Def.task {
+        val classpath = (core.js / Compile / dependencyClasspath).value
+        val sources = ScalaJsJvmStubsGenerator(classpath)
+        val target = (Compile / sourceManaged).value
+        sources.zipWithIndex.map {
+          case (source, index) =>
+            val file = target / s"scalajs-stub-$index.scala"
+            IO.write(file, source)
+            file
+        }
+      }
+    }
   )
   .jsSettings(
     libraryDependencies ++=

@@ -1,12 +1,12 @@
 package io.taig.schelm.dsl.syntax
 
-import io.taig.schelm.algebra.Dom
 import io.taig.schelm.data
 import io.taig.schelm.data.Listener
+import org.scalajs.dom.raw.Event
 
 trait listener {
   implicit class ListenerNameOps(name: data.Listener.Name) {
-    def :=[F[_]](f: Dom.Event => F[Unit]): Listener[F] = Listener(name, Listener.Action.Effect(f))
+    def :=[F[_]](f: Event => F[Unit]): Listener[F] = Listener(name, Listener.Action.Effect(f))
   }
 
   val change: Listener.Name = Listener.Name("change")

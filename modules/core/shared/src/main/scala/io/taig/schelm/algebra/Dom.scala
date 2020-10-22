@@ -55,7 +55,5 @@ object Dom extends Platform {
 
   type Document
 
-  type Event
-
   type Listener
 }
