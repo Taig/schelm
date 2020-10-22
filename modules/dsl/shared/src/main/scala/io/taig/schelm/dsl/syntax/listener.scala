@@ -6,7 +6,7 @@ import io.taig.schelm.data.Listener
 
 trait listener {
   implicit class ListenerNameOps(name: data.Listener.Name) {
-    def :=[F[_]](f: Dom.Event => F[Unit]): Listener[F] = Listener(name, f)
+    def :=[F[_]](f: Dom.Event => F[Unit]): Listener[F] = Listener(name, Listener.Action.Effect(f))
   }
 
   val change: Listener.Name = Listener.Name("change")

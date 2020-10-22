@@ -6,21 +6,27 @@ import cats.effect.implicits._
 import cats.effect.{Effect, IO}
 import cats.implicits._
 import io.taig.schelm.algebra.Dom
+import io.taig.schelm.data.Listener
+import io.taig.schelm.data.Listener.Action
 import org.scalajs.dom
 import org.scalajs.dom.Event
 
 final class BrowserDom[F[_]](implicit F: Effect[F]) extends Dom[F] {
-  override def unsafeRun(f: dom.Event => F[Unit]): js.Function1[Event, _] = { event =>
-    f(event)
-      .runAsync {
-        case Right(_) => IO.unit
-        case Left(throwable) =>
-          IO {
-            System.err.println("Failed to run event handler")
-            throwable.printStackTrace(System.err)
+  override def unsafeRun(action: Listener.Action[F]): js.Function1[Event, _] = { event =>
+    action match {
+      case Action.Noop => ()
+      case Action.Effect(f) =>
+        f(event)
+          .runAsync {
+            case Right(_) => IO.unit
+            case Left(throwable) =>
+              IO {
+                System.err.println("Failed to run event handler")
+                throwable.printStackTrace(System.err)
+              }
           }
-      }
-      .unsafeRunSync()
+          .unsafeRunSync()
+    }
   }
 
   override def addEventListener(node: dom.Node, name: String, listener: js.Function1[Event, _]): F[Unit] =

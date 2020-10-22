@@ -1,9 +1,9 @@
 package io.taig.schelm.algebra
 
-import io.taig.schelm.data.Platform
+import io.taig.schelm.data.{Listener, Platform}
 
 abstract class Dom[F[_]] {
-  def unsafeRun(f: Dom.Event => F[Unit]): Dom.Listener
+  def unsafeRun(action: Listener.Action[F]): Dom.Listener
 
   def addEventListener(node: Dom.Node, name: String, listener: Dom.Listener): F[Unit]
 
