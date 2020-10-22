@@ -1,47 +1,8 @@
 package io.taig.schelm.material
 
-import io.taig.schelm.css.data.Style
-import io.taig.schelm.data.{Attributes, Children, Lifecycle, Listeners}
+import io.taig.schelm.data.Children
 import io.taig.schelm.dsl._
-import io.taig.schelm.material.MaterialButton.Tag
-
-final case class MaterialButton[+F[_]](
-    tag: MaterialButton.Tag,
-    label: String,
-    theme: MaterialTheme.Button,
-    attributes: Attributes = Attributes.Empty,
-    style: Style = Style.Empty,
-    listeners: Listeners[F] = Listeners.Empty,
-    lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
-) extends Component[F, Nothing, Any] {
-  val styles: Style = css(
-    backgroundColor := theme.background,
-    border := none,
-    borderRadius := theme.radius,
-    color := theme.font.color,
-    cursor := pointer,
-    fontFamily := theme.font.family,
-    fontSize := theme.font.size,
-    fontWeight := theme.font.weight,
-    letterSpacing := theme.font.letterSpacing,
-    margin := zero,
-    outline := none,
-    padding := s"${theme.spacing}px ${theme.spacing * 2}px",
-    textTransform := theme.font.transform,
-    transition := MaterialUtils.transition(backgroundColor)
-  ).&(hover)(backgroundColor := theme.hover.background)
-    .&(active)(backgroundColor := theme.active.background) ++
-    fontSmoothing ++ style
-
-  override def render: Widget[F, Nothing, Any] = tag match {
-    case Tag.A =>
-      syntax.html.a(attributes, listeners, styles, lifecycle, children = Children.of(text(label)))
-    case Tag.Button =>
-      syntax.html.button(attributes, listeners, styles, lifecycle, children = Children.of(text(label)))
-    case variant: Tag.Input =>
-      syntax.html.input(attributes ++ attrs(value := label, tpe := variant.tpe), listeners, styles, lifecycle)
-  }
-}
+import io.taig.schelm.dsl.data.Property
 
 object MaterialButton {
   sealed abstract class Tag extends Product with Serializable
@@ -60,13 +21,44 @@ object MaterialButton {
     final case object Danger extends Variant
   }
 
-  def auto[F[_]](
+  def apply[F[_]](
+      tag: Tag,
+      label: String,
+      theme: MaterialTheme.Button,
+      property: Property[F] = Property.Empty
+  ): Widget[F, Nothing, Any] = {
+    val style = css(
+      backgroundColor := theme.background,
+      border := none,
+      borderRadius := theme.radius,
+      color := theme.font.color,
+      cursor := pointer,
+      fontFamily := theme.font.family,
+      fontSize := theme.font.size,
+      fontWeight := theme.font.weight,
+      letterSpacing := theme.font.letterSpacing,
+      margin := zero,
+      outline := none,
+      padding := s"${theme.spacing}px ${theme.spacing * 2}px",
+      textTransform := theme.font.transform,
+      transition := MaterialUtils.transition(backgroundColor)
+    ).&(hover)(backgroundColor := theme.hover.background)
+      .&(active)(backgroundColor := theme.active.background) ++
+      fontSmoothing
+
+    tag match {
+      case Tag.A      => syntax.html.a(property.prependStyle(style), children = Children.of(text(label)))
+      case Tag.Button => syntax.html.button(property.prependStyle(style), children = Children.of(text(label)))
+      case variant: Tag.Input =>
+        syntax.html.input(property.appendAttributes(attrs(value := label, tpe := variant.tpe)).prependStyle(style))
+    }
+  }
+
+  def themed[F[_]](
       label: String,
       tag: Tag = Tag.Button,
       variant: Option[Variant] = None,
-      attributes: Attributes = Attributes.Empty,
-      style: Style = Style.Empty,
-      listeners: Listeners[F] = Listeners.Empty
+      property: Property[F] = Property.Empty
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
     val button = variant match {
       case Some(Variant.Primary)   => theme.variant.buttons.primary
@@ -75,6 +67,6 @@ object MaterialButton {
       case None                    => theme.variant.buttons.normal
     }
 
-    MaterialButton[F](tag, label, button, attributes, style, listeners)
+    MaterialButton[F](tag, label, button, property)
   }
 }

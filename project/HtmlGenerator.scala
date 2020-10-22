@@ -27,9 +27,9 @@ object HtmlGenerator {
   def apply(): String =
     s"""package io.taig.schelm.dsl.syntax
        |
-       |import io.taig.schelm.css.data.Style
-       |import io.taig.schelm.data.{Attributes, Children, Lifecycle, Listeners, Tag}
+       |import io.taig.schelm.data.{Children, Tag}
        |import io.taig.schelm.dsl.Widget
+       |import io.taig.schelm.dsl.data.Property
        |
        |trait html {
        |${Elements.map(normal).mkString("\n\n")}
@@ -44,23 +44,15 @@ object HtmlGenerator {
        |  val ${tag.capitalize}: Tag.Name = Tag.Name("$tag")
        |
        |  def $tag[F[_], Event, Context](
-       |    attributes: Attributes = Attributes.Empty,
-       |    listeners: Listeners[F] = Listeners.Empty,
-       |    style: Style = Style.Empty,
-       |    lifecycle: Lifecycle.Element[F] = Lifecycle.Noop,
+       |    property: Property[F] = Property.Empty,
        |    children: Children[Widget[F, Event, Context]] = Children.Empty
        |  ): Widget[F, Event, Context] =
-       |    component.element(${tag.capitalize}, attributes, listeners, style, lifecycle, children)""".stripMargin
+       |    component.element(${tag.capitalize}, property, children)""".stripMargin
 
   def void(tag: String): String =
     s"""  /** `<$tag></$tag>` tag */
        |  val ${tag.capitalize}: Tag.Name = Tag.Name("$tag")
        |
-       |  def $tag[F[_], Event, Context](
-       |    attributes: Attributes = Attributes.Empty,
-       |    listeners: Listeners[F] = Listeners.Empty,
-       |    style: Style = Style.Empty,
-       |    lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
-       |  ): Widget[F, Event, Context] =
-       |    component.void(${tag.capitalize}, attributes, listeners, style, lifecycle)""".stripMargin
+       |  def $tag[F[_], Event, Context](property: Property[F] = Property.Empty): Widget[F, Event, Context] =
+       |    component.void(${tag.capitalize}, property)""".stripMargin
 }

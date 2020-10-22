@@ -1,29 +1,22 @@
 package io.taig.schelm.material
 
 import io.taig.schelm.css.data.Style
-import io.taig.schelm.data.{Attributes, Children, Lifecycle, Listeners}
+import io.taig.schelm.data.Children
 import io.taig.schelm.dsl._
-
-final case class MaterialInput[+F[_], +Event, -Context](
-    label: Option[Widget[F, Event, Context]],
-    input: Widget[F, Event, Context],
-    helper: Option[Widget[F, Event, Context]],
-    attributes: Attributes = Attributes.Empty,
-    listeners: Listeners[F] = Listeners.Empty,
-    style: Style = Style.Empty,
-    lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
-) extends Component[F, Event, Context] {
-  override def render: Widget[F, Event, Context] =
-    syntax.html.div(
-      attributes,
-      listeners,
-      style,
-      lifecycle,
-      Children.fromOption(label) ++ indexed(input) ++ Children.fromOption(helper)
-    )
-}
+import io.taig.schelm.dsl.data.Property
 
 object MaterialInput {
+  final case class Properties[+F[_]](
+      root: Property[F] = Property.Empty,
+      label: Property[F] = Property.Empty,
+      input: Property[F] = Property.Empty,
+      helper: Property[F] = Property.Empty
+  )
+
+  object Properties {
+    val Empty: Properties[Nothing] = Properties()
+  }
+
   sealed abstract class Variant extends Product with Serializable
 
   object Variant {
@@ -37,50 +30,35 @@ object MaterialInput {
     def apply[F[_], Event, Context](
         content: String,
         theme: MaterialTheme.Input,
-        attributes: Attributes = Attributes.Empty,
-        listeners: Listeners[F] = Listeners.Empty,
-        style: Style = Style.Empty,
-        lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
+        id: Option[String] = None,
+        property: Property[F] = Property.Empty
     ): Widget[F, Nothing, Any] = {
-      val pointerFor = if (attributes.contains(`for`)) css(cursor := pointer) else Style.Empty
-
-      val styles = css(
+      val style = css(
         display := block,
-        margin := s"0 ${theme.spacing * 2}px"
-      ) ++ pointerFor ++ style
+        margin := s"0 ${theme.spacing * 2}px",
+        cursor := (if (id.isDefined) Some(pointer) else None)
+      )
 
       MaterialTypography(
         tag = syntax.html.Label,
         content,
         theme.label,
-        attributes,
-        listeners,
-        styles,
-        lifecycle
+        property.appendAttributes(attrs(`for` := id)).prependStyle(style)
       )
     }
-
-    def default[F[_], Event, Context](
-        content: String,
-        theme: MaterialTheme.Input,
-        id: Option[String] = None,
-        attributes: Attributes = Attributes.Empty,
-        listeners: Listeners[F] = Listeners.Empty,
-        style: Style = Style.Empty,
-        lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
-    ): Widget[F, Nothing, Any] =
-      Label(content, theme, attributes ++ attrs(`for` := id), listeners, style, lifecycle)
   }
 
   object Input {
     def apply[F[_], Event, Context](
         theme: MaterialTheme.Input,
         highlight: Boolean = false,
-        attributes: Attributes = Attributes.Empty,
-        listeners: Listeners[F] = Listeners.Empty,
-        style: Style = Style.Empty,
-        lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
+        id: Option[String] = None,
+        placeholder: Option[String] = None,
+        reserveHelperSpace: Boolean = false,
+        property: Property[F] = Property.Empty
     ): Widget[F, Nothing, Any] = {
+      val attributes = attrs(syntax.attribute.id := id, syntax.attribute.placeholder := placeholder)
+
       val borderHover = theme.hover
         .map(color => css().&(hover)(boxShadow := s"inset 0 0 0 2px ${color.toHex}"))
         .getOrElse(Style.Empty)
@@ -91,7 +69,7 @@ object MaterialInput {
           css(boxShadow := s"inset 0 0 0 1px ${theme.border.toHex}")
             .&(focus)(boxShadow := s"inset 0 0 0 2px ${theme.focus.toHex}")
 
-      val styles = css(
+      val style = css(
         border := none,
         borderRadius := theme.radius,
         boxSizing := borderBox,
@@ -99,72 +77,57 @@ object MaterialInput {
         fontFamily := theme.value.family,
         fontSize := theme.value.size,
         margin := 0,
+        marginBottom := (if (reserveHelperSpace) Some(theme.helper.lineHeight) else None),
         outline := none,
         padding := theme.spacing * 2,
         transition := MaterialUtils.transition(borderColor),
         width := "100%"
-      ) ++ borderHover ++ borderFocus ++ style
+      ) ++ borderHover ++ borderFocus
 
-      syntax.html.input(attributes, listeners, styles, lifecycle)
+      syntax.html.input(property.appendAttributes(attributes).prependStyle(style))
     }
-
-    def default[F[_], Event, Context](
-        theme: MaterialTheme.Input,
-        highlight: Boolean = false,
-        placeholder: Option[String] = None,
-        id: Option[String] = None,
-        attributes: Attributes = Attributes.Empty,
-        listeners: Listeners[F] = Listeners.Empty,
-        style: Style = Style.Empty,
-        lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
-    ): Widget[F, Nothing, Any] =
-      Input(
-        theme,
-        highlight,
-        attributes ++ attrs(syntax.attribute.id := id, syntax.attribute.placeholder := placeholder),
-        listeners,
-        style,
-        lifecycle
-      )
   }
 
   object Helper {
     def apply[F[_], Event, Context](
         content: String,
         theme: MaterialTheme.Input,
-        attributes: Attributes = Attributes.Empty,
-        listeners: Listeners[F] = Listeners.Empty,
-        style: Style = Style.Empty,
-        lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
+        property: Property[F] = Property.Empty
     ): Widget[F, Nothing, Any] = {
-      val styles = css(
+      val style = css(
         display := block,
         margin := s"0 ${theme.spacing * 2}px"
-      ) ++ style
-
-      MaterialTypography(
-        tag = syntax.html.P,
-        content,
-        theme.label,
-        attributes,
-        listeners,
-        styles,
-        lifecycle
       )
+
+      MaterialTypography(tag = syntax.html.P, content, theme.label, property.prependStyle(style))
     }
   }
 
-  def auto[F[_]](
+  def apply[F[_], Event, Context](
+      theme: MaterialTheme.Input,
+      highlight: Boolean = false,
       label: Option[String] = None,
+      id: Option[String] = None,
       placeholder: Option[String] = None,
       helper: Option[String] = None,
+      reserveHelperSpace: Boolean = true,
+      properties: Properties[F] = Properties.Empty
+  ): Widget[F, Event, Context] =
+    syntax.html.div(
+      properties.root,
+      Children.fromOption(label.map(Label(_, theme, id, properties.label))) ++
+        indexed(Input(theme, highlight, id, placeholder, reserveHelperSpace && helper.isEmpty, properties.input)) ++
+        Children.fromOption(helper.map(Helper(_, theme, properties.helper)))
+    )
+
+  def themed[F[_]](
+      label: Option[String] = None,
+      helper: Option[String] = None,
+      placeholder: Option[String] = None,
       id: Option[String] = None,
       reserveHelperSpace: Boolean = true,
       variant: Variant = Variant.Normal,
-      attributes: Attributes = Attributes.Empty,
-      listeners: Listeners[F] = Listeners.Empty,
-      style: Style = Style.Empty,
-      lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
+      properties: Properties[F] = Properties.Empty
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
     val input = variant match {
       case Variant.Error   => theme.variant.inputs.error
@@ -173,20 +136,15 @@ object MaterialInput {
       case Variant.Warning => theme.variant.inputs.warning
     }
 
-    val reserveHelperSpaceStyle =
-      if (reserveHelperSpace && helper.isEmpty)
-        css(marginBottom := input.helper.lineHeight)
-      else Style.Empty
-
     MaterialInput(
-      label = label.map(Label.default(_, input, id)),
-      input =
-        Input.default(input, highlight = variant != Variant.Normal, placeholder, id, style = reserveHelperSpaceStyle),
-      helper.map(Helper(_, input)),
-      attributes,
-      listeners,
-      style,
-      lifecycle
+      input,
+      highlight = variant != Variant.Normal,
+      label,
+      id,
+      placeholder,
+      helper,
+      reserveHelperSpace,
+      properties
     )
   }
 }

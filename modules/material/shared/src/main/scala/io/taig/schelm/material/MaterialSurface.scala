@@ -1,40 +1,30 @@
 package io.taig.schelm.material
 
 import io.taig.color.Color
-import io.taig.schelm.css.data.Style
-import io.taig.schelm.data.{Attributes, Children, Lifecycle, Listeners, Tag}
+import io.taig.schelm.data.{Children, Tag}
 import io.taig.schelm.dsl._
-
-final case class MaterialSurface[+F[_], +Event, -Context](
-    tag: Tag.Name,
-    background: Color,
-    attributes: Attributes,
-    listeners: Listeners[F],
-    style: Style,
-    lifecycle: Lifecycle.Element[F],
-    children: Children[Widget[F, Event, Context]]
-) extends Component[F, Event, Context] {
-  val styles: Style = css(backgroundColor := background, margin := zero) ++ style
-
-  override def render: Widget[F, Event, Context] = element(tag, attributes, listeners, styles, lifecycle, children)
-}
+import io.taig.schelm.dsl.data.Property
 
 object MaterialSurface {
-  def default[F[_], Event](
-      children: Children[Widget[F, Event, MaterialTheme]],
-      tag: Tag.Name = Body,
-      attributes: Attributes = Attributes.Empty,
-      listeners: Listeners[F] = Listeners.Empty,
-      style: Style = Style.Empty,
-      lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
+  def apply[F[_], Event, Context](
+      background: Color,
+      tag: Tag.Name = syntax.html.Body,
+      property: Property[F] = Property.Empty,
+      children: Children[Widget[F, Event, Context]] = Children.Empty
+  ): Widget[F, Event, Context] = {
+    val style = css(backgroundColor := background, margin := zero)
+    element(tag, property.prependStyle(style), children)
+  }
+
+  def themed[F[_], Event](
+      tag: Tag.Name = syntax.html.Body,
+      property: Property[F] = Property.Empty,
+      children: Children[Widget[F, Event, MaterialTheme]] = Children.Empty
   ): Widget[F, Event, MaterialTheme] = contextual { theme =>
     MaterialSurface[F, Event, MaterialTheme](
+      background = theme.flavor.palette.surface.main,
       tag,
-      theme.flavor.palette.surface.main,
-      attributes,
-      listeners,
-      style,
-      lifecycle,
+      property,
       children
     )
   }
