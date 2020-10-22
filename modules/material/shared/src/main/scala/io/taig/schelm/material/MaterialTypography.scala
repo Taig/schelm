@@ -6,187 +6,168 @@ import io.taig.schelm.dsl._
 
 final case class MaterialTypography[+F[_], +Event, -Context](
     tag: Tag.Name,
-    content: Widget[F, Event, Context],
-    attributes: Attributes,
-    listeners: Listeners[F],
-    style: Style,
-    lifecycle: Lifecycle.Element[F],
-    theme: MaterialTheme.Font
+    content: String,
+    theme: MaterialTheme.Font,
+    attributes: Attributes = Attributes.Empty,
+    listeners: Listeners[F] = Listeners.Empty,
+    style: Style = Style.Empty,
+    lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
 ) extends Component[F, Event, Context] {
-  override def render: Widget[F, Event, Context] = {
-    val styles = css(
-      color := theme.color,
-      fontFamily := theme.family,
-      fontSize := theme.size,
-      fontWeight := theme.weight,
-      letterSpacing := theme.letterSpacing,
-      lineHeight := theme.lineHeight,
-      textTransform := theme.transform
-    ) ++ fontSmoothing ++ style
+  val styles: Style = css(
+    color := theme.color,
+    fontFamily := theme.family,
+    fontSize := theme.size,
+    fontWeight := theme.weight,
+    letterSpacing := theme.letterSpacing,
+    lineHeight := theme.lineHeight,
+    textTransform := theme.transform
+  ) ++ fontSmoothing ++ style
 
-    element(
-      tag,
-      attributes = attributes,
-      listeners = listeners,
-      style = styles,
-      lifecycle,
-      children = Children.of(content)
-    )
-  }
+  override val render: Widget[F, Event, Context] =
+    element(tag, attributes, listeners, styles, lifecycle, children = Children.of(text(content)))
 }
 
 object MaterialTypography {
-  def default[F[_]](
-      content: String,
-      tag: Tag.Name,
-      theme: MaterialTheme.Font,
-      attributes: Attributes = Attributes.Empty,
-      listeners: Listeners[F] = Listeners.Empty,
-      style: Style = Style.Empty,
-      lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
-  ): Widget[F, Nothing, Any] =
-    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme)
-
   def h1[F[_]](
       content: String,
-      tag: Tag.Name = H1,
+      tag: Tag.Name = syntax.html.H1,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme.variant.typography.h1)
+    MaterialTypography(tag, content, theme.variant.typography.h1, attributes, listeners, style, lifecycle)
   }
 
   def h2[F[_]](
       content: String,
-      tag: Tag.Name = H2,
+      tag: Tag.Name = syntax.html.H2,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme.variant.typography.h2)
+    MaterialTypography(tag, content, theme.variant.typography.h2, attributes, listeners, style, lifecycle)
   }
 
   def h3[F[_]](
       content: String,
-      tag: Tag.Name = H3,
+      tag: Tag.Name = syntax.html.H3,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme.variant.typography.h3)
+    MaterialTypography(tag, content, theme.variant.typography.h3, attributes, listeners, style, lifecycle)
   }
 
   def h4[F[_]](
       content: String,
-      tag: Tag.Name = H4,
+      tag: Tag.Name = syntax.html.H4,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme.variant.typography.h4)
+    MaterialTypography(tag, content, theme.variant.typography.h4, attributes, listeners, style, lifecycle)
   }
 
   def h5[F[_]](
       content: String,
-      tag: Tag.Name = H5,
+      tag: Tag.Name = syntax.html.H5,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme.variant.typography.h5)
+    MaterialTypography(tag, content, theme.variant.typography.h5, attributes, listeners, style, lifecycle)
   }
 
   def h6[F[_]](
       content: String,
-      tag: Tag.Name = H6,
+      tag: Tag.Name = syntax.html.H6,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme.variant.typography.h6)
+    MaterialTypography(tag, content, theme.variant.typography.h6, attributes, listeners, style, lifecycle)
   }
 
   def subtitle1[F[_]](
       content: String,
-      tag: Tag.Name = H6,
+      tag: Tag.Name = syntax.html.H6,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme.variant.typography.subtitle1)
+    MaterialTypography(tag, content, theme.variant.typography.subtitle1, attributes, listeners, style, lifecycle)
   }
 
   def subtitle2[F[_]](
       content: String,
-      tag: Tag.Name = H6,
+      tag: Tag.Name = syntax.html.H6,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme.variant.typography.subtitle2)
+    MaterialTypography(tag, content, theme.variant.typography.subtitle2, attributes, listeners, style, lifecycle)
   }
 
   def body1[F[_]](
       content: String,
-      tag: Tag.Name = P,
+      tag: Tag.Name = syntax.html.P,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme.variant.typography.body1)
+    MaterialTypography(tag, content, theme.variant.typography.body1, attributes, listeners, style, lifecycle)
   }
 
   def body2[F[_]](
       content: String,
-      tag: Tag.Name = P,
+      tag: Tag.Name = syntax.html.P,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme.variant.typography.body2)
+    MaterialTypography(tag, content, theme.variant.typography.body2, attributes, listeners, style, lifecycle)
   }
 
   def button[F[_]](
       content: String,
-      tag: Tag.Name = Span,
+      tag: Tag.Name = syntax.html.Span,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme.variant.typography.button)
+    MaterialTypography(tag, content, theme.variant.typography.button, attributes, listeners, style, lifecycle)
   }
 
   def caption[F[_]](
       content: String,
-      tag: Tag.Name = Span,
+      tag: Tag.Name = syntax.html.Span,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme.variant.typography.caption)
+    MaterialTypography(tag, content, theme.variant.typography.caption, attributes, listeners, style, lifecycle)
   }
 
   def overline[F[_]](
       content: String,
-      tag: Tag.Name = Span,
+      tag: Tag.Name = syntax.html.Span,
       attributes: Attributes = Attributes.Empty,
       listeners: Listeners[F] = Listeners.Empty,
       style: Style = Style.Empty,
       lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    MaterialTypography(tag, text(content), attributes, listeners, style, lifecycle, theme.variant.typography.overline)
+    MaterialTypography(tag, content, theme.variant.typography.overline, attributes, listeners, style, lifecycle)
   }
 }

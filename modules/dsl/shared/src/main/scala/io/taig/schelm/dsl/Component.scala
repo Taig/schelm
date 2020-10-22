@@ -49,6 +49,8 @@ object Widget {
       case widget: Pure[F, Event, Context]      => widget.redux
       case widget: Component[F, Event, Context] => run(widget.render)
     }
+
+  implicit def fromString(value: String): Widget[Nothing, Nothing, Any] = syntax.component.text(value)
 }
 
 abstract class Component[+F[_], +Event, -Context] extends Widget[F, Event, Context] {

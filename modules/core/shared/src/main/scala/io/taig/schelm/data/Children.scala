@@ -59,6 +59,8 @@ object Children {
 
   def from[A](children: Iterable[A]): Children[A] = Indexed(children.toVector)
 
+  def fromOption[A](children: Option[A]): Children[A] = Indexed(children.toVector)
+
   def of[A](children: A*): Children[A] = from(children)
 
   implicit val monoidK: MonoidK[Children] = new MonoidK[Children] {

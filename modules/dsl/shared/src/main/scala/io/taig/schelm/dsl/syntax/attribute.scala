@@ -18,6 +18,8 @@ trait attribute {
   val ariaLabel: Attribute.Key = Attribute.Key("aria-label")
   val cls: Attribute.Key = Attribute.Key("class")
   val `class`: Attribute.Key = cls
+  val id: Attribute.Key = Attribute.Key("id")
+  val `for`: Attribute.Key = Attribute.Key("for")
   val placeholder: Attribute.Key = Attribute.Key("placeholder")
   val role: Attribute.Key = Attribute.Key("role")
   val src: Attribute.Key = Attribute.Key("src")

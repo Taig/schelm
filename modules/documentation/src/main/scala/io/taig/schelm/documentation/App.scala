@@ -11,16 +11,37 @@ object App {
       children = Children.of(
         MaterialTypography.h3("Buttons"),
         MaterialTypography.body1("This is the textual content above le buttons!"),
-        MaterialButton.default("hello world", tag = MaterialButton.Tag.A, flavor = Some(MaterialButton.Flavor.Primary)),
+        MaterialButton.auto("hello world", tag = MaterialButton.Tag.A, variant = Some(MaterialButton.Variant.Primary)),
         MaterialElevation(
-          MaterialButton.default("hello world", tag = MaterialButton.Tag.Button, listeners = Listeners.of(click := {
-            _ => F.delay(println("hi"))
+          MaterialButton.auto("hello world", tag = MaterialButton.Tag.Button, listeners = Listeners.of(click := { _ =>
+            F.delay(println("hi"))
           })),
           clickable = true
         ),
-        MaterialButton.default("hello world", tag = MaterialButton.Tag.Input(tpe = "submit")),
+        MaterialButton.auto("hello world", tag = MaterialButton.Tag.Input(tpe = "submit")),
         MaterialTypography.h3("Input"),
-        MaterialInput.default(label = Some("Address"), placeholder = Some("Hasenheide 8"))
+        MaterialInput.auto(label = Some("Address"), placeholder = Some("Hasenheide 8"), id = Some("h8")),
+        MaterialInput.auto(
+          label = Some("Name"),
+          placeholder = Some("Demiank"),
+          id = Some("name"),
+          variant = MaterialInput.Variant.Error,
+          helper = Some("Dit war nix")
+        ),
+        MaterialInput.auto(
+          label = Some("Name"),
+          placeholder = Some("Demiank"),
+          id = Some("foobar"),
+          variant = MaterialInput.Variant.Success,
+          helper = Some("Dit war nix")
+        ),
+        MaterialInput.auto(
+          label = Some("Name"),
+          placeholder = Some("Demiank"),
+          id = Some("yolo"),
+          variant = MaterialInput.Variant.Warning,
+          helper = None
+        )
       )
     )
   }

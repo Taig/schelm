@@ -1,5 +1,7 @@
 package io.taig.schelm.material
 
+import cats.Functor
+import cats.implicits._
 import io.taig.color.Color
 import io.taig.color.implicits._
 import io.taig.schelm.material.MaterialTheme.{Context, Mode}
@@ -71,8 +73,8 @@ object MaterialTheme {
       spacing = DefaultSpacing,
       surface = Variant.derive(palette, _.surface),
       paper = Variant.derive(palette, _.paper),
-      primary = Variant.derive(palette, _.primary),
-      secondary = Variant.derive(palette, _.secondary)
+      primary = Variant.derive(palette, _.primary.map(_.normal)),
+      secondary = Variant.derive(palette, _.secondary.map(_.normal))
     )
   }
 
@@ -86,91 +88,90 @@ object MaterialTheme {
     *                  primary actions
     * @param surface Surface background, which is usually only applied to the page background
     * @param paper Background color for paper elements, usually white
-    * @param neutral An unobtrusive color, usually grey, that is used for subsidiary page elements
     */
   final case class Palette(
       primary: Palette.Variant[Shade],
       secondary: Palette.Variant[Shade],
       surface: Palette.Variant[Color],
-      paper: Palette.Variant[Color],
-      neutral: Palette.Variant[Shade]
+      paper: Palette.Variant[Color]
   )
 
   object Palette {
-    final case class Variant[A](main: A, text: Color, notification: Notification)
-  }
+    final case class Variant[A](main: A, text: Color, neutral: Neutral, notification: Notification)
 
-  /** Color codes for error, warning and success messages */
-  final case class Notification(
-      info: Notification.Variant,
-      success: Notification.Variant,
-      warning: Notification.Variant,
-      error: Notification.Variant
-  )
+    object Variant {
+      implicit val functor: Functor[Variant] = new Functor[Variant] {
+        override def map[A, B](fa: Variant[A])(f: A => B): Variant[B] = fa.copy(main = f(fa.main))
+      }
+    }
 
-  object Notification {
-    final case class Variant(main: Shade, text: Color)
+    final case class Neutral(main: Shade, text: Color)
 
-    /** @see https://material-ui.com/customization/palette/#default-values */
-    val Default: Notification = Notification(
-      info = Variant(
-        main = Shade(
-          light = rgb"#64b5f6",
-          normal = rgb"#2196f3",
-          dark = rgb"#1976d2"
-        ),
-        text = Color.White
-      ),
-      success = Variant(
-        main = Shade(
-          light = rgb"#81c784",
-          normal = rgb"#4caf50",
-          dark = rgb"#388e3c"
-        ),
-        text = Color.White
-      ),
-      warning = Variant(
-        main = Shade(
-          light = rgb"#ffb74d",
-          normal = rgb"#ff9800",
-          dark = rgb"#f57c00"
-        ),
-        text = Color.White
-      ),
-      error = Variant(
-        main = Shade(
-          light = rgb"#e57373",
-          normal = rgb"#f44336",
-          dark = rgb"#d32f2f"
-        ),
-        text = Color.White
-      )
+    /** Color codes for error, warning and success messages */
+    final case class Notification(
+        info: Notification.Variant,
+        success: Notification.Variant,
+        warning: Notification.Variant,
+        error: Notification.Variant
     )
+
+    object Notification {
+      final case class Variant(main: Shade, text: Color)
+
+      /** @see https://material-ui.com/customization/palette/#default-values */
+      val Default: Notification = Notification(
+        info = Variant(
+          main = Shade(
+            light = rgb"#64b5f6",
+            normal = rgb"#2196f3",
+            dark = rgb"#1976d2"
+          ),
+          text = Color.White
+        ),
+        success = Variant(
+          main = Shade(
+            light = rgb"#81c784",
+            normal = rgb"#4caf50",
+            dark = rgb"#388e3c"
+          ),
+          text = Color.White
+        ),
+        warning = Variant(
+          main = Shade(
+            light = rgb"#ffb74d",
+            normal = rgb"#ff9800",
+            dark = rgb"#f57c00"
+          ),
+          text = Color.White
+        ),
+        error = Variant(
+          main = Shade(
+            light = rgb"#e57373",
+            normal = rgb"#f44336",
+            dark = rgb"#d32f2f"
+          ),
+          text = Color.White
+        )
+      )
+    }
   }
 
-  final case class Variant(typography: Typography, buttons: Buttons, input: Input)
+  final case class Variant(typography: Typography, buttons: Buttons, inputs: Inputs)
 
   object Variant {
-    def derive[A](palette: Palette, select: Palette => Palette.Variant[A]): Variant = {
+    def derive(palette: Palette, select: Palette => Palette.Variant[Color]): Variant = {
       val variant = select(palette)
       val typography = Typography.derive(variant.text)
 
       Variant(
         typography = typography,
         buttons = Buttons(
-          normal = Button.fromPalette(palette.neutral),
+          normal = Button.fromNeutral(variant.neutral),
           primary = Button.fromPalette(palette.primary),
           secondary = Button.fromPalette(palette.secondary),
           danger = Button.fromNotification(variant.notification.error)
         ),
-        input = Input(
-          background = None,
-          spacing = DefaultSpacing,
-          border = palette.neutral.main.light,
-          focus = palette.primary.main.normal,
-          radius = DefaultRadius,
-          font = typography.body1.copy(color = variant.text)
-        )
+        inputs = Inputs.derive(palette = variant, palette.primary.main.normal, typography)
       )
     }
   }
@@ -243,18 +244,67 @@ object MaterialTheme {
     def fromPalette(palette: Palette.Variant[Shade]): Button =
       derive(text = palette.text, background = palette.main.normal, hover = palette.main.dark)
 
-    def fromNotification(palette: Notification.Variant): Button =
+    def fromNeutral(palette: Palette.Neutral): Button =
+      derive(text = palette.text, background = palette.main.normal, hover = palette.main.dark)
+
+    def fromNotification(palette: Palette.Notification.Variant): Button =
       derive(text = palette.text, background = palette.main.normal, hover = palette.main.dark)
   }
 
+  final case class Inputs(normal: Input, warning: Input, error: Input, success: Input)
+
+  object Inputs {
+    def derive(palette: Palette.Variant[Color], primary: Color, typography: Typography): Inputs = Inputs(
+      normal =
+        Input.derive(palette, typography, focus = primary, hover = Some(palette.neutral.main.dark), highlight = false),
+      warning = Input.fromNotification(palette, typography, notification = palette.notification.warning),
+      error = Input.fromNotification(palette, typography, notification = palette.notification.error),
+      success = Input.fromNotification(palette, typography, notification = palette.notification.success)
+    )
+  }
+
   final case class Input(
-      background: Option[Color],
       spacing: Int,
+      radius: String,
+      background: Option[Color],
       border: Color,
       focus: Color,
-      radius: String,
-      font: Font
+      hover: Option[Color],
+      value: Font,
+      label: Font,
+      helper: Font
   )
+
+  object Input {
+    def derive(
+        palette: Palette.Variant[Color],
+        typography: Typography,
+        focus: Color,
+        hover: Option[Color],
+        highlight: Boolean
+    ): Input = {
+      val caption = if (highlight) typography.caption.copy(color = focus) else typography.caption
+
+      Input(
+        spacing = DefaultSpacing,
+        radius = DefaultRadius,
+        background = None,
+        border = if (highlight) focus else palette.neutral.main.normal,
+        focus,
+        hover,
+        value = typography.body1.copy(color = palette.text),
+        label = caption,
+        helper = caption
+      )
+    }
+
+    def fromNotification(
+        palette: Palette.Variant[Color],
+        typography: Typography,
+        notification: Palette.Notification.Variant
+    ): Input =
+      derive(palette, typography, hover = None, focus = notification.main.normal, highlight = true)
+  }
 
   final case class Font(
       family: String,
@@ -271,27 +321,26 @@ object MaterialTheme {
       primary = Palette.Variant(
         main = Shade.derive(primary),
         text = rgb"#ffffff",
-        notification = Notification.Default
+        neutral = Palette.Neutral(main = Shade.derive(rgb"#cbcbcb"), text = rgb"#000000de"),
+        notification = Palette.Notification.Default
       ),
       secondary = Palette.Variant(
         main = Shade.derive(secondary),
         text = rgb"#ffffff",
-        notification = Notification.Default
+        neutral = Palette.Neutral(main = Shade.derive(rgb"#cbcbcb"), text = rgb"#000000de"),
+        notification = Palette.Notification.Default
       ),
       surface = Palette.Variant(
         main = rgb"#f7f7f7",
         text = rgb"#000000de",
-        notification = Notification.Default
+        neutral = Palette.Neutral(main = Shade.derive(rgb"#cbcbcb"), text = rgb"#000000de"),
+        notification = Palette.Notification.Default
       ),
       paper = Palette.Variant(
         main = rgb"#ffffff",
         text = rgb"#000000de",
-        notification = Notification.Default
-      ),
-      neutral = Palette.Variant(
-        main = Shade.derive(rgb"#cbcbcb"),
-        text = rgb"#000000de",
-        notification = Notification.Default
+        neutral = Palette.Neutral(main = Shade.derive(rgb"#cbcbcb"), text = rgb"#000000de"),
+        notification = Palette.Notification.Default
       )
     )
 
@@ -299,27 +348,26 @@ object MaterialTheme {
       primary = Palette.Variant(
         main = Shade.derive(primary),
         text = rgb"#ffffff",
-        notification = Notification.Default
+        neutral = Palette.Neutral(main = Shade.derive(rgb"#e0e0e0"), text = rgb"#000000de"),
+        notification = Palette.Notification.Default
       ),
       secondary = Palette.Variant(
         main = Shade.derive(secondary),
         text = rgb"#ffffff",
-        notification = Notification.Default
+        neutral = Palette.Neutral(main = Shade.derive(rgb"#e0e0e0"), text = rgb"#000000de"),
+        notification = Palette.Notification.Default
       ),
       surface = Palette.Variant(
         main = rgb"#121212",
         text = rgb"#ffffff",
-        notification = Notification.Default
+        neutral = Palette.Neutral(main = Shade.derive(rgb"#e0e0e0"), text = rgb"#000000de"),
+        notification = Palette.Notification.Default
       ),
       paper = Palette.Variant(
         main = rgb"#333333",
         text = rgb"#ffffff",
-        notification = Notification.Default
-      ),
-      neutral = Palette.Variant(
-        main = Shade.derive(rgb"#e0e0e0"),
-        text = rgb"#000000de",
-        notification = Notification.Default
+        neutral = Palette.Neutral(main = Shade.derive(rgb"#e0e0e0"), text = rgb"#000000de"),
+        notification = Palette.Notification.Default
       )
     )
 

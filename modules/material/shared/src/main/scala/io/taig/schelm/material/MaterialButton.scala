@@ -1,7 +1,7 @@
 package io.taig.schelm.material
 
 import io.taig.schelm.css.data.Style
-import io.taig.schelm.data.{Attributes, Children, Listeners}
+import io.taig.schelm.data.{Attributes, Children, Lifecycle, Listeners}
 import io.taig.schelm.dsl._
 import io.taig.schelm.material.MaterialButton.Tag
 
@@ -9,40 +9,37 @@ final case class MaterialButton[+F[_]](
     tag: MaterialButton.Tag,
     label: String,
     theme: MaterialTheme.Button,
-    attributes: Attributes,
-    style: Style,
-    listeners: Listeners[F]
+    attributes: Attributes = Attributes.Empty,
+    style: Style = Style.Empty,
+    listeners: Listeners[F] = Listeners.Empty,
+    lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
 ) extends Component[F, Nothing, Any] {
   val styles: Style = css(
     backgroundColor := theme.background,
-    border := "none",
+    border := none,
     borderRadius := theme.radius,
     color := theme.font.color,
-    cursor := "pointer",
+    cursor := pointer,
     fontFamily := theme.font.family,
     fontSize := theme.font.size,
     fontWeight := theme.font.weight,
     letterSpacing := theme.font.letterSpacing,
-    margin := "0",
-    outline := "none",
+    margin := zero,
+    outline := none,
     padding := s"${theme.spacing}px ${theme.spacing * 2}px",
     textTransform := theme.font.transform,
-    transition := "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms"
+    transition := MaterialUtils.transition(backgroundColor)
   ).&(hover)(backgroundColor := theme.hover.background)
     .&(active)(backgroundColor := theme.active.background) ++
     fontSmoothing ++ style
 
   override def render: Widget[F, Nothing, Any] = tag match {
     case Tag.A =>
-      a(attributes = attributes, style = styles, listeners = listeners, children = Children.of(text(label)))
+      syntax.html.a(attributes, listeners, styles, lifecycle, children = Children.of(text(label)))
     case Tag.Button =>
-      button(attributes = attributes, style = styles, listeners = listeners, children = Children.of(text(label)))
+      syntax.html.button(attributes, listeners, styles, lifecycle, children = Children.of(text(label)))
     case variant: Tag.Input =>
-      input(
-        attributes = attributes ++ attrs(value := label, tpe := variant.tpe),
-        style = styles,
-        listeners = listeners
-      )
+      syntax.html.input(attributes ++ attrs(value := label, tpe := variant.tpe), listeners, styles, lifecycle)
   }
 }
 
@@ -55,28 +52,27 @@ object MaterialButton {
     final case class Input(tpe: String) extends Tag
   }
 
-  sealed abstract class Flavor extends Product with Serializable
+  sealed abstract class Variant extends Product with Serializable
 
-  object Flavor {
-    final case object Primary extends Flavor
-    final case object Secondary extends Flavor
-    final case object Danger extends Flavor
+  object Variant {
+    final case object Primary extends Variant
+    final case object Secondary extends Variant
+    final case object Danger extends Variant
   }
 
-  def default[F[_]](
+  def auto[F[_]](
       label: String,
       tag: Tag = Tag.Button,
-      flavor: Option[Flavor] = None,
+      variant: Option[Variant] = None,
       attributes: Attributes = Attributes.Empty,
       style: Style = Style.Empty,
       listeners: Listeners[F] = Listeners.Empty
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
-    val variant = theme.variant
-    val button = flavor match {
-      case Some(Flavor.Primary)   => variant.buttons.primary
-      case Some(Flavor.Secondary) => variant.buttons.secondary
-      case Some(Flavor.Danger)    => variant.buttons.danger
-      case None                   => variant.buttons.normal
+    val button = variant match {
+      case Some(Variant.Primary)   => theme.variant.buttons.primary
+      case Some(Variant.Secondary) => theme.variant.buttons.secondary
+      case Some(Variant.Danger)    => theme.variant.buttons.danger
+      case None                    => theme.variant.buttons.normal
     }
 
     MaterialButton[F](tag, label, button, attributes, style, listeners)

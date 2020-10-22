@@ -19,6 +19,9 @@ final case class Attributes(values: Map[Attribute.Key, Attribute.Value]) extends
     Attributes(result.toMap)
   }
 
+  @inline
+  def contains(key: Attribute.Key): Boolean = values.contains(key)
+
   def +(attribute: Attribute): Attributes = ++(Attributes.of(attribute))
 
   def -(key: Attribute.Key): Attributes = Attributes(values.removed(key))
