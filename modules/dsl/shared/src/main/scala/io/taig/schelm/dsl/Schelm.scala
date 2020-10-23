@@ -1,5 +1,7 @@
 package io.taig.schelm.dsl
 
+import scala.annotation.nowarn
+
 import cats.data.Kleisli
 import cats.effect.implicits._
 import cats.effect.{Concurrent, Resource}
@@ -7,7 +9,7 @@ import cats.implicits._
 import io.taig.schelm.algebra._
 import io.taig.schelm.css.data._
 import io.taig.schelm.css.interpreter._
-import io.taig.schelm.data.{Contextual, Listeners, Node, State}
+import io.taig.schelm.data.{Contextual, Listeners, Node, Path, State}
 import io.taig.schelm.dsl.interpreter.WidgetRenderer
 import io.taig.schelm.dsl.util.Functors._
 import io.taig.schelm.interpreter._
@@ -24,9 +26,11 @@ final class Schelm[F[_], Event, Context](
     differ: Differ[StyledHtml[F], CssHtmlDiff[F]],
     patcher: Patcher[F, StyledHtmlAttachedReference[F], CssHtmlDiff[F]]
 )(implicit F: Concurrent[F]) {
-  def start[A](initial: A)(
-      context: A => Context,
-      render: A => Widget[F, Event, Context]
+  @nowarn("msg=shadows")
+  def start[State](initial: State)(
+      context: State => Context,
+      render: State => Widget[F, Event, Context],
+      update: (State, Event) => State = (state: State, _: Event) => state
   ): Resource[F, Unit] =
     for {
       reference <- Resource.liftF {
@@ -36,24 +40,45 @@ final class Schelm[F[_], Event, Context](
           .run(render(initial))
           .flatMap(attacher.run)
       }
-      _ <- process(reference).background
+      _ <- process(initial, context, render, update, reference).background
     } yield ()
 
-  private def process(reference: StyledHtmlAttachedReference[F]): F[Unit] =
+  @nowarn("msg=shadows")
+  private def process[State](
+      initial: State,
+      context: State => Context,
+      render: State => Widget[F, Event, Context],
+      update: (State, Event) => State,
+      reference: StyledHtmlAttachedReference[F]
+  ): F[Unit] =
     states.subscription
       .map(_.asLeft)
       .merge(events.subscription.map(_.asRight))
-      .evalScan(reference) {
-        case (reference, Left(state)) =>
-          reference.modify[F](state.path) { reference =>
-            differ
-              .diff(StyledHtml(reference.styles, reference.html.html), state.structure)
-              .traverse(diff => patcher.run((reference, diff)))
-              .map(_.getOrElse(reference))
+      .evalScan((initial, reference)) {
+        case ((previous, reference), Left(state)) =>
+          reference
+            .modify[F](state.path) { reference =>
+              differ
+                .diff(StyledHtml(reference.styles, reference.html.html), state.structure)
+                .traverse(diff => patcher.run((reference, diff)))
+                .map(_.getOrElse(reference))
+            }
+            .tupleLeft(previous)
+        case (state @ (previous, reference), Right(event)) =>
+          val next = update(previous, event)
+          if (next == previous) state.pure[F]
+          else {
+            reference
+              .modify[F](Path.Root) { reference =>
+                structurer.run(render(next)).run(context(next)).flatMap { html =>
+                  differ
+                    .diff(StyledHtml(reference.styles, reference.html.html), html)
+                    .traverse(diff => patcher.run((reference, diff)))
+                    .map(_.getOrElse(reference))
+                }
+              }
+              .tupleLeft(next)
           }
-        case (reference, Right(event)) =>
-          println("It's event time!")
-          ???
       }
       .compile
       .drain

@@ -18,6 +18,14 @@ object HtmlPatcher {
     def patch(html: HtmlAttachedReference[F], diff: HtmlDiff[F], cursor: Int): F[HtmlAttachedReference[F]] = {
       (html.reference, diff) match {
         case (_, diff: HtmlDiff.Group[F]) => diff.diffs.foldLeftM(html)(patch(_, _, cursor))
+        case (reference: NodeReference.Element[F, HtmlAttachedReference[F]], diff: HtmlDiff.UpdateAttribute) =>
+          val tag = reference.node.tag
+          val attributes = tag.attributes.updated(diff.key, diff.value)
+          dom
+            .setAttribute(reference.dom, diff.key.value, diff.value.value)
+            .as(
+              html.copy(reference = reference.copy(node = reference.node.copy(tag = tag.copy(attributes = attributes))))
+            )
         //      case (NodeReference.Element(_, element), HtmlDiff.AddAttribute(attribute)) =>
         //        dom.setAttribute(element, attribute.key.value, attribute.value.value).as(html)
         //      case (NodeReference.Element(_, element), HtmlDiff.AppendChild(html)) =>

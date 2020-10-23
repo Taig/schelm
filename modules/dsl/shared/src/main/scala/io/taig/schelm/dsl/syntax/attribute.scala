@@ -17,16 +17,18 @@ trait attribute {
 
   val ariaLabel: Attribute.Key = Attribute.Key("aria-label")
   val cls: Attribute.Key = Attribute.Key("class")
-  val `class`: Attribute.Key = cls
+  val forId: Attribute.Key = Attribute.Key("for")
   val id: Attribute.Key = Attribute.Key("id")
-  val `for`: Attribute.Key = Attribute.Key("for")
   val placeholder: Attribute.Key = Attribute.Key("placeholder")
   val role: Attribute.Key = Attribute.Key("role")
   val src: Attribute.Key = Attribute.Key("src")
   val style: Attribute.Key = Attribute.Key("style")
-  val value: Attribute.Key = Attribute.Key("value")
   val tabindex: Attribute.Key = Attribute.Key("tabindex")
   val tpe: Attribute.Key = Attribute.Key("type")
+  val value: Attribute.Key = Attribute.Key("value")
+
+  val `class`: Attribute.Key = cls
+  val `for`: Attribute.Key = forId
   val `type`: Attribute.Key = tpe
 }
 

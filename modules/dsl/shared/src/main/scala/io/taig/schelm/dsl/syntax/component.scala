@@ -1,5 +1,7 @@
 package io.taig.schelm.dsl.syntax
 
+import scala.collection.immutable.VectorMap
+
 import io.taig.schelm.css.data.Css
 import io.taig.schelm.data._
 import io.taig.schelm.dsl.Widget
@@ -49,10 +51,18 @@ trait component {
 
   final def eventful[F[_], Event, Context](
       f: EventManager[F, Event] => Widget[F, Nothing, Context]
-  ): Widget[F, Event, Context] = ???
+  ): Widget[F, Event, Context] =
+    Widget(
+      Redux.Render { (events: EventManager[F, Event]) => Redux.run(events)(f(events).redux) }
+    )
 
   def indexed[F[_], Event, Context](children: Widget[F, Event, Context]*): Children[Widget[F, Event, Context]] =
-    Children.Indexed(children.toVector)
+    Children.from(children)
+
+  def identified[F[_], Event, Context](
+      children: (String, Widget[F, Event, Context])*
+  ): Children[Widget[F, Event, Context]] =
+    Children.Identified(children.to(VectorMap))
 }
 
 object component extends component

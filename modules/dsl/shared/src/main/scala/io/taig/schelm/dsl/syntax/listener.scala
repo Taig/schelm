@@ -6,7 +6,8 @@ import org.scalajs.dom.raw.{Event, EventTarget}
 
 trait listener {
   implicit class ListenerNameOps(name: data.Listener.Name) {
-    def :=[F[_], E <: Event, T <: EventTarget](action: Listener.Action[F, E, T]): Listener[F, E, T] = Listener(name, action)
+    def :=[F[_], E <: Event, T <: EventTarget](action: Listener.Action[F, E, T]): Listener[F, E, T] =
+      Listener(name, action)
   }
 
   @inline
@@ -35,7 +36,6 @@ trait listener {
 
     val noop: Listener.Action[Nothing, Event, EventTarget] = Listener.Action.Noop
   }
-
 
   val change: Listener.Name = Listener.Name("change")
   val click: Listener.Name = Listener.Name("click")

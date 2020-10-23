@@ -54,11 +54,16 @@ object MaterialInput {
         theme: MaterialTheme.Input,
         highlight: Boolean = false,
         id: Option[String] = None,
+        value: Option[String] = None,
         placeholder: Option[String] = None,
         reserveHelperSpace: Boolean = false,
         property: Property[F] = Property.Empty
     ): Widget[F, Nothing, Any] = {
-      val attributes = attrs(syntax.attribute.id := id, syntax.attribute.placeholder := placeholder)
+      val attributes = attrs(
+        syntax.attribute.id := id,
+        syntax.attribute.value := value,
+        syntax.attribute.placeholder := placeholder
+      )
 
       val borderHover = theme.hover
         .map(color => css().&(hover)(boxShadow := s"inset 0 0 0 2px ${color.toHex}"))
@@ -109,6 +114,7 @@ object MaterialInput {
       highlight: Boolean = false,
       label: Option[String] = None,
       id: Option[String] = None,
+      value: Option[String] = None,
       placeholder: Option[String] = None,
       helper: Option[String] = None,
       reserveHelperSpace: Boolean = true,
@@ -124,6 +130,7 @@ object MaterialInput {
             theme,
             highlight,
             id,
+            value,
             placeholder,
             reserveHelperSpace && helper.isEmpty,
             properties.input.addListener(change := onChange).addListener(input := onInput)
@@ -135,8 +142,9 @@ object MaterialInput {
   def themed[F[_]](
       label: Option[String] = None,
       helper: Option[String] = None,
-      placeholder: Option[String] = None,
       id: Option[String] = None,
+      value: Option[String] = None,
+      placeholder: Option[String] = None,
       reserveHelperSpace: Boolean = true,
       variant: Variant = Variant.Normal,
       onChange: Listener.Action.Target[F, HTMLInputElement] = effect.noop,
@@ -155,6 +163,7 @@ object MaterialInput {
       highlight = variant != Variant.Normal,
       label,
       id,
+      value,
       placeholder,
       helper,
       reserveHelperSpace,
