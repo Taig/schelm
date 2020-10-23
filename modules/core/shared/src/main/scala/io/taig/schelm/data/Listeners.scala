@@ -7,7 +7,7 @@ final case class Listeners[+F[_]](values: Map[Listener.Name, Listener.Action[F, 
 
   def ++[G[A] >: F[A]](listeners: Listeners[G]): Listeners[G] = Listeners(values ++ listeners.values)
 
-  def +[G[A] >: F[A]](listener: Listener[G, Event, EventTarget]): Listeners[G] = Listeners(values + listener.toTuple)
+  def +[G[A] >: F[A]](listener: Listener[G, _ <: Event, _ <: EventTarget]): Listeners[G] = Listeners(values + listener.widen.toTuple)
 
   def toList: List[Listener[F, Event, EventTarget]] =
     values.map { case (name, action) => Listener(name, action) }.toList

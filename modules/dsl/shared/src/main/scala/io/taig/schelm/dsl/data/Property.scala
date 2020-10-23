@@ -28,7 +28,7 @@ final case class Property[+F[_]](
 
   def addListeners[G[A] >: F[A]](listeners: Listeners[G]): Property[G] = modifyListeners[G](_ ++ listeners)
 
-  def addListener[G[A] >: F[A], E <: Event, T <: EventTarget](listener: Listener[G, E, T]): Property[G] =
+  def addListener[G[A] >: F[A]](listener: Listener[G, _ <: Event, _ <: EventTarget]): Property[G] =
     modifyListeners[G](_ + listener)
 
   def modifyStyle(f: Style => Style): Property[F] = copy(style = f(style))
