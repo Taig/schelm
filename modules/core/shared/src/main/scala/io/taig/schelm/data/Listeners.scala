@@ -1,13 +1,16 @@
 package io.taig.schelm.data
 
-final case class Listeners[+F[_]](values: Map[Listener.Name, Listener.Action[F]]) extends AnyVal {
+import org.scalajs.dom.raw.{Event, EventTarget}
+
+final case class Listeners[+F[_]](values: Map[Listener.Name, Listener.Action[F, Event, EventTarget]]) extends AnyVal {
   def isEmpty: Boolean = values.isEmpty
 
   def ++[G[A] >: F[A]](listeners: Listeners[G]): Listeners[G] = Listeners(values ++ listeners.values)
 
-  def +[G[A] >: F[A]](listener: Listener[G]): Listeners[G] = Listeners(values + listener.toTuple)
+  def +[G[A] >: F[A]](listener: Listener[G, Event, EventTarget]): Listeners[G] = Listeners(values + listener.toTuple)
 
-  def toList: List[Listener[F]] = values.map { case (name, action) => Listener(name, action) }.toList
+  def toList: List[Listener[F, Event, EventTarget]] =
+    values.map { case (name, action) => Listener(name, action) }.toList
 }
 
 object Listeners {
@@ -15,7 +18,8 @@ object Listeners {
 
   val Empty: Listeners[Nothing] = empty
 
-  def from[F[_]](listeners: Iterable[Listener[F]]): Listeners[F] = Listeners(listeners.map(_.toTuple).toMap)
+  def from[F[_]](listeners: Iterable[Listener[F, Event, EventTarget]]): Listeners[F] =
+    Listeners(listeners.map(_.toTuple).toMap)
 
-  def of[F[_]](listeners: Listener[F]*): Listeners[F] = from(listeners)
+  def of[F[_]](listeners: Listener[F, Event, EventTarget]*): Listeners[F] = from(listeners)
 }

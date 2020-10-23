@@ -2,6 +2,7 @@ package io.taig.schelm.dsl.data
 
 import io.taig.schelm.css.data.Style
 import io.taig.schelm.data.{Attributes, Lifecycle, Listener, Listeners}
+import org.scalajs.dom.raw.{Event, EventTarget}
 
 final case class Property[+F[_]](
     attributes: Attributes = Attributes.Empty,
@@ -27,7 +28,8 @@ final case class Property[+F[_]](
 
   def addListeners[G[A] >: F[A]](listeners: Listeners[G]): Property[G] = modifyListeners[G](_ ++ listeners)
 
-  def addListener[G[A] >: F[A]](listener: Listener[G]): Property[G] = modifyListeners[G](_ + listener)
+  def addListener[G[A] >: F[A], E <: Event, T <: EventTarget](listener: Listener[G, E, T]): Property[G] =
+    modifyListeners[G](_ + listener)
 
   def modifyStyle(f: Style => Style): Property[F] = copy(style = f(style))
 

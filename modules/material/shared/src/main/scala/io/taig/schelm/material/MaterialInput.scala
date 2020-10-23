@@ -4,6 +4,7 @@ import io.taig.schelm.css.data.Style
 import io.taig.schelm.data.{Children, Listener}
 import io.taig.schelm.dsl._
 import io.taig.schelm.dsl.data.Property
+import org.scalajs.dom.raw.HTMLInputElement
 
 object MaterialInput {
   final case class Properties[+F[_]](
@@ -111,8 +112,8 @@ object MaterialInput {
       placeholder: Option[String] = None,
       helper: Option[String] = None,
       reserveHelperSpace: Boolean = true,
-      onChange: Listener.Action[F] = Listener.Action.Noop,
-      onInput: Listener.Action[F] = Listener.Action.Noop,
+      onChange: Listener.Action[F, DomEvent, HTMLInputElement] = noop,
+      onInput: Listener.Action[F, DomEvent, HTMLInputElement] = noop,
       properties: Properties[F] = Properties.Empty
   ): Widget[F, Event, Context] =
     syntax.html.div(
@@ -138,8 +139,8 @@ object MaterialInput {
       id: Option[String] = None,
       reserveHelperSpace: Boolean = true,
       variant: Variant = Variant.Normal,
-      onChange: Listener.Action[F] = Listener.Action.Noop,
-      onInput: Listener.Action[F] = Listener.Action.Noop,
+      onChange: Listener.Action[F, DomEvent, HTMLInputElement] = noop,
+      onInput: Listener.Action[F, DomEvent, HTMLInputElement] = noop,
       properties: Properties[F] = Properties.Empty
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
     val input = variant match {

@@ -1,11 +1,12 @@
 package io.taig.schelm.algebra
 
 import io.taig.schelm.data.{Listener, Platform}
+import org.scalajs.dom.raw.{Event, EventTarget}
 
 abstract class Dom[F[_]] {
-  def unsafeRun(action: Listener.Action[F]): Dom.Listener
+  def unsafeRun[E <: Event, T <: EventTarget](action: Listener.Action[F, E, T]): Dom.Listener[E]
 
-  def addEventListener(node: Dom.Node, name: String, listener: Dom.Listener): F[Unit]
+  def addEventListener(node: Dom.Node, name: String, listener: Dom.Listener[Event]): F[Unit]
 
   def appendChild(parent: Dom.Element, child: Dom.Node): F[Unit]
 
@@ -39,7 +40,7 @@ abstract class Dom[F[_]] {
 
   def removeChild(parent: Dom.Element, child: Dom.Node): F[Unit]
 
-  def removeEventListener(node: Dom.Node, name: String, listener: Dom.Listener): F[Unit]
+  def removeEventListener(node: Dom.Node, name: String, listener: Dom.Listener[Event]): F[Unit]
 
   def replaceChild(parent: Dom.Element, current: Dom.Node, next: Dom.Node): F[Unit]
 
@@ -55,5 +56,5 @@ object Dom extends Platform {
 
   type Document
 
-  type Listener
+  type Listener[E <: Event]
 }

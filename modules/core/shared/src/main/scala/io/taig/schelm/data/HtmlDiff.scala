@@ -1,13 +1,14 @@
 package io.taig.schelm.data
 
 import cats.data.NonEmptyList
+import org.scalajs.dom.raw.{Event, EventTarget}
 
 sealed abstract class HtmlDiff[+F[_]] extends Product with Serializable
 
 object HtmlDiff {
   final case class AddAttribute(attribute: Attribute) extends HtmlDiff[Nothing]
   final case class AppendChild[F[_]](html: Html[F]) extends HtmlDiff[F]
-  final case class AddListener[F[_]](listener: Listener[F]) extends HtmlDiff[F]
+  final case class AddListener[F[_]](listener: Listener[F, Event, EventTarget]) extends HtmlDiff[F]
   final case object Clear extends HtmlDiff[Nothing]
   final case class Group[F[_]](diffs: NonEmptyList[HtmlDiff[F]]) extends HtmlDiff[F]
   final case class Replace[F[_]](html: Html[F]) extends HtmlDiff[F]
@@ -16,7 +17,8 @@ object HtmlDiff {
   final case class RemoveListener(name: Listener.Name) extends HtmlDiff[Nothing]
   final case class UpdateAttribute(key: Attribute.Key, value: Attribute.Value) extends HtmlDiff[Nothing]
   final case class UpdateChild[F[_]](index: Int, diff: HtmlDiff[F]) extends HtmlDiff[F]
-  final case class UpdateListener[F[_]](name: Listener.Name, action: Listener.Action[F]) extends HtmlDiff[F]
+  final case class UpdateListener[F[_]](name: Listener.Name, action: Listener.Action[F, Event, EventTarget])
+      extends HtmlDiff[F]
   final case class UpdateText(value: String) extends HtmlDiff[Nothing]
 
   def from[F[_]](diffs: Iterable[HtmlDiff[F]]): Option[HtmlDiff[F]] =
