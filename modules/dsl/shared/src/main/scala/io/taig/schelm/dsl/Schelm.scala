@@ -3,13 +3,14 @@ package io.taig.schelm.dsl
 import scala.annotation.nowarn
 
 import cats.data.Kleisli
+import cats.effect.Resource
 import cats.effect.implicits._
-import cats.effect.{Concurrent, Resource}
+import cats.effect.kernel.Async
 import cats.implicits._
 import io.taig.schelm.algebra._
 import io.taig.schelm.css.data._
 import io.taig.schelm.css.interpreter._
-import io.taig.schelm.data.{Contextual, Listeners, Node, Path, State}
+import io.taig.schelm.data._
 import io.taig.schelm.dsl.interpreter.WidgetRenderer
 import io.taig.schelm.dsl.util.Functors._
 import io.taig.schelm.interpreter._
@@ -25,7 +26,7 @@ final class Schelm[F[_], Event, Context](
     attacher: Attacher[F, StyledHtmlReference[F], StyledHtmlAttachedReference[F]],
     differ: Differ[StyledHtml[F], CssHtmlDiff[F]],
     patcher: Patcher[F, StyledHtmlAttachedReference[F], CssHtmlDiff[F]]
-)(implicit F: Concurrent[F]) {
+)(implicit F: Async[F]) {
   @nowarn("msg=shadows")
   def start[State](initial: State)(
       context: State => Context,
@@ -91,7 +92,7 @@ final class Schelm[F[_], Event, Context](
 }
 
 object Schelm {
-  def default[F[_]: Concurrent, Event, Context](dom: Dom[F])(root: Dom.Element): F[Schelm[F, Event, Context]] =
+  def default[F[_]: Async, Event, Context](dom: Dom[F])(root: Dom.Element): F[Schelm[F, Event, Context]] =
     for {
       // format: off
       states <- QueueStateManager.empty[F, StyledHtml[F]]

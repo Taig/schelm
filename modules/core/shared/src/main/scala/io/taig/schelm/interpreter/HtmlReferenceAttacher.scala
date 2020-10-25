@@ -1,7 +1,7 @@
 package io.taig.schelm.interpreter
 
 import cats.data.Kleisli
-import cats.effect.Bracket
+import cats.effect.MonadCancel
 import cats.implicits._
 import io.taig.schelm.algebra.{Attacher, Dom}
 import io.taig.schelm.data._
@@ -9,7 +9,7 @@ import io.taig.schelm.data._
 object HtmlReferenceAttacher {
   def apply[F[_]](
       attacher: Attacher[F, Vector[Dom.Node], Dom.Element]
-  )(implicit F: Bracket[F, Throwable]): Attacher[F, HtmlReference[F], HtmlAttachedReference[F]] = {
+  )(implicit F: MonadCancel[F, Throwable]): Attacher[F, HtmlReference[F], HtmlAttachedReference[F]] = {
     def notify(html: HtmlReference[F]): F[HtmlAttachedReference[F]] = html.reference match {
       case reference: NodeReference.Element[F, HtmlReference[F]] =>
         val element = reference.dom
@@ -33,7 +33,7 @@ object HtmlReferenceAttacher {
     Kleisli(html => attacher.run(html.dom) *> notify(html))
   }
 
-  def default[F[_]: Bracket[*[_], Throwable]](
+  def default[F[_]: MonadCancel[*[_], Throwable]](
       dom: Dom[F]
   )(root: Dom.Element): Attacher[F, HtmlReference[F], HtmlAttachedReference[F]] =
     HtmlReferenceAttacher(NodeAttacher(dom)(root))

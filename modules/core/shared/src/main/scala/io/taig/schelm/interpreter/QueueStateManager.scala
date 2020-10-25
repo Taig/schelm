@@ -2,7 +2,7 @@ package io.taig.schelm.interpreter
 
 import cats.Monad
 import cats.effect.Concurrent
-import cats.effect.concurrent.Ref
+import cats.effect.kernel.Ref
 import cats.implicits._
 import fs2.Stream
 import fs2.concurrent.Queue

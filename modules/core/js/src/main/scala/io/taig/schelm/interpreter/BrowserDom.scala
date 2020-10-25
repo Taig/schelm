@@ -2,33 +2,35 @@ package io.taig.schelm.interpreter
 
 import scala.scalajs.js
 
-import cats.effect.implicits._
-import cats.effect.{Effect, IO}
+import cats.effect.Sync
+import cats.effect.std.Dispatcher
 import cats.implicits._
 import io.taig.schelm.algebra.Dom
 import io.taig.schelm.data.Listener
 import io.taig.schelm.data.Listener.Action
 import org.scalajs.dom
 import org.scalajs.dom.Event
-import org.scalajs.dom.raw.EventTarget
+import org.scalajs.dom.raw.{EventTarget, HTMLInputElement}
 
-final class BrowserDom[F[_]](implicit F: Effect[F]) extends Dom[F] {
+final class BrowserDom[F[_]](dispatcher: Dispatcher[F])(implicit F: Sync[F]) extends Dom[F] {
+  private val Value = "value"
+
   override def unsafeRun[E <: Event, T <: EventTarget](action: Listener.Action[F, E, T]): js.Function1[E, _] = {
     event =>
       action match {
         case Action.Noop => ()
         case action: Action.Effect[F, E, T] =>
-          action
-            .f(event, event.target.asInstanceOf[T])
-            .runAsync {
-              case Right(_) => IO.unit
-              case Left(throwable) =>
-                IO {
+          dispatcher.unsafeRunAndForget {
+            action
+              .f(event, event.currentTarget.asInstanceOf[T])
+              .onError { throwable =>
+                F.delay {
                   System.err.println("Failed to run event handler")
                   throwable.printStackTrace(System.err)
                 }
-            }
-            .unsafeRunSync()
+              }
+
+          }
       }
   }
 
@@ -66,7 +68,10 @@ final class BrowserDom[F[_]](implicit F: Effect[F]) extends Dom[F] {
   }
 
   override def getAttribute(element: dom.Element, key: String): F[Option[String]] =
-    F.delay(Option(element.getAttribute(key)).filter(_.nonEmpty))
+    (element, key) match {
+      case (element: HTMLInputElement, Value) => F.delay(Some(element.value).filter(_.nonEmpty))
+      case (_, _)                             => F.delay(Option(element.getAttribute(key)).filter(_.nonEmpty))
+    }
 
   override def getElementById(id: String): F[Option[dom.Element]] = F.delay(Option(document.getElementById(id)))
 
@@ -87,9 +92,12 @@ final class BrowserDom[F[_]](implicit F: Effect[F]) extends Dom[F] {
     F.delay(parent.replaceChild(next, current)).void
 
   override def setAttribute(element: dom.Element, key: String, value: String): F[Unit] =
-    F.delay(element.setAttribute(key, value))
+    (element, key) match {
+      case (element: HTMLInputElement, Value) => F.delay(element.value = value)
+      case (_, _)                             => F.delay(element.setAttribute(key, value))
+    }
 }
 
 object BrowserDom {
-  def apply[F[_]: Effect]: BrowserDom[F] = new BrowserDom[F]
+  def apply[F[_]: Sync](dispatcher: Dispatcher[F]): BrowserDom[F] = new BrowserDom[F](dispatcher)
 }

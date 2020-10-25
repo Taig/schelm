@@ -3,7 +3,6 @@ package io.taig.schelm.documentation
 import cats.effect.Sync
 import io.taig.schelm.data.Children
 import io.taig.schelm.dsl._
-import io.taig.schelm.dsl.data.Property
 import io.taig.schelm.material._
 import io.taig.schelm.redux.algebra.EventManager
 
@@ -19,11 +18,7 @@ object App {
           MaterialButton.themed(
             "hello world",
             tag = MaterialButton.Tag.Button,
-            property = Property(
-              listeners = listeners(
-                click := effect.run(F.delay(println("hi")))
-              )
-            )
+            onClick = effect.run(F.delay(println("hi")))
           ),
           clickable = true
         ),
@@ -31,6 +26,7 @@ object App {
         MaterialTypography.h3("Input"),
         MaterialInput.themed(label = Some("Address"), placeholder = Some("Hasenheide 8"), id = Some("h8")),
         eventful { (events: EventManager[F, Event]) =>
+          println(s"Rendering with value: ${state.text}")
           MaterialInput.themed(
             label = Some("Name"),
             placeholder = Some("Demiank"),

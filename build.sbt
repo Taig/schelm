@@ -1,9 +1,9 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 import sbtcrossproject.CrossProject
 
-val CatsEffectVersion = "2.2.0"
+val CatsEffectVersion = "3.0.0-M2"
 val ColorVersion = "0.2.3"
-val Fs2Version = "2.4.4"
+val Fs2Version = "3.0.0-M2"
 val JsoupVersion = "1.13.1"
 val ScalaCollectionCompatVersion = "2.2.0"
 val ScalajsDomVersion = "1.1.0"
@@ -98,11 +98,13 @@ lazy val documentation = project
   .settings(
     name := "schelm-documentation",
     packageSite := {
+      import scala.sys.process._
       val target = crossTarget.value / "site"
       val resources = (Compile / resourceDirectory).value
       val index = resources / "index.html" -> target / "index.html"
       val javascript = (Compile / fastOptJS).value.data -> target / "asset" / "javascript" / "main.js"
       IO.copy(List(index, javascript))
+      s"open ${index._2}".!
       target
     },
     scalaJSUseMainModuleInitializer := true
