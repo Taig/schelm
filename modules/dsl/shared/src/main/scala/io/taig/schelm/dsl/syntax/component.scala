@@ -18,7 +18,7 @@ trait component {
     val tag = Tag(name, property.attributes, property.listeners)
     val variant = Node.Element.Variant.Normal(children)
     val node = Node.Element(tag, variant, property.lifecycle)
-    Widget(Redux.Pure(Contextual.Pure(State.Stateless(Css(node, property.style)))))
+    Widget(Redux.Pure(Contextual.Pure(Stateless(Css(node, property.style)))))
   }
 
   final def void[F[_], Event, Context](
@@ -27,20 +27,28 @@ trait component {
   ): Widget[F, Event, Context] = {
     val tag = Tag(name, property.attributes, property.listeners)
     val node = Node.Element(tag, Node.Element.Variant.Void, property.lifecycle)
-    Widget(Redux.Pure(Contextual.Pure(State.Stateless(Css(node, property.style)))))
+    Widget(Redux.Pure(Contextual.Pure(Stateless(Css(node, property.style)))))
   }
 
   final def fragment[F[_], Event, Context](
       children: Children[Widget[F, Event, Context]] = Children.Empty
   ): Widget[F, Event, Context] =
-    Widget(Redux.Pure(Contextual.Pure(State.Stateless(Css.unstyled(Node.Fragment(children))))))
+    Widget(Redux.Pure(Contextual.Pure(Stateless(Css.unstyled(Node.Fragment(children))))))
 
   final def text[F[_]](
       value: String,
       listeners: Listeners[F] = Listeners.Empty,
       lifecycle: Lifecycle.Text[F] = Lifecycle.Noop
   ): Widget[F, Nothing, Any] =
-    Widget(Redux.Pure(Contextual.Pure(State.Stateless(Css.unstyled(Node.Text(value, listeners, lifecycle))))))
+    Widget(Redux.Pure(Contextual.Pure(Stateless(Css.unstyled(Node.Text(value, listeners, lifecycle))))))
+
+  def indexed[F[_], Event, Context](children: Widget[F, Event, Context]*): Children[Widget[F, Event, Context]] =
+    Children.from(children)
+
+  def identified[F[_], Event, Context](
+      children: (String, Widget[F, Event, Context])*
+  ): Children[Widget[F, Event, Context]] =
+    Children.Identified(children.to(VectorMap))
 
   final def contextual[F[_], Event, Context](f: Context => Widget[F, Event, Context]): Widget[F, Event, Context] =
     Widget(
@@ -56,13 +64,19 @@ trait component {
       Redux.Render { (events: EventManager[F, Event]) => Redux.run(events)(f(events).redux) }
     )
 
-  def indexed[F[_], Event, Context](children: Widget[F, Event, Context]*): Children[Widget[F, Event, Context]] =
-    Children.from(children)
+  final def stateful[F[_], Event, Context, A](
+      initial: A
+  )(f: ((A => A) => F[Unit], A) => Widget[F, Event, Context]): Widget[F, Event, Context] =
+    Widget(
+      Redux.Render { (events: EventManager[F, Event]) =>
+        Contextual.Render { (context: Context) =>
+          Stateful(initial, { (update: (A => A) => F[Unit], current: A) =>
+            Contextual.run(context)(Redux.run(events)(f(update, current).redux))
+          })
+        }
 
-  def identified[F[_], Event, Context](
-      children: (String, Widget[F, Event, Context])*
-  ): Children[Widget[F, Event, Context]] =
-    Children.Identified(children.to(VectorMap))
+      }
+    )
 }
 
 object component extends component
