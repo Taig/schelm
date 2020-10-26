@@ -2,14 +2,16 @@ package io.taig.schelm.interpreter
 
 import scala.annotation.nowarn
 
+import cats.Applicative
+import cats.data.Kleisli
 import cats.implicits._
 import io.taig.schelm.algebra.Differ
 import io.taig.schelm.data._
 import io.taig.schelm.data.HtmlDiff
 
 object HtmlDiffer {
-  def apply[F[_]]: Differ[Html[F], HtmlDiff[F]] = new Differ[Html[F], HtmlDiff[F]] {
-    override def diff(current: Html[F], next: Html[F]): Option[HtmlDiff[F]] =
+  def apply[F[_]: Applicative]: Differ[F, Html[F], HtmlDiff[F]] = {
+    def diff(current: Html[F], next: Html[F]): Option[HtmlDiff[F]] =
       (current.unfix, next.unfix) match {
         case (current: Node.Element[F, Listeners[F], Html[F]], next: Node.Element[F, Listeners[F], Html[F]]) =>
           element(current, next)
@@ -116,5 +118,9 @@ object HtmlDiffer {
         next: Children.Identified[Html[F]]
     ): Option[HtmlDiff[F]] =
       throw new UnsupportedOperationException("Diffing identified children is not implemented yet")
+
+    Kleisli {
+      case (current, next) => diff(current, next).pure[F]
+    }
   }
 }

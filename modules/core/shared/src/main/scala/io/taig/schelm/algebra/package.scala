@@ -7,6 +7,8 @@ import cats.implicits._
 package object algebra {
   type Attacher[F[_], Reference, Target] = Kleisli[F, Reference, Target]
 
+  type Differ[F[_], Structure, Diff] = Kleisli[F, (Structure, Structure), Option[Diff]]
+
   type Renderer[F[_], -View, Reference] = Kleisli[F, View, Reference]
 
   type Patcher[F[_], Reference, Diff] = Kleisli[F, (Reference, Diff), Reference]

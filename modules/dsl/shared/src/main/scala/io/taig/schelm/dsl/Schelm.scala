@@ -24,7 +24,7 @@ final class Schelm[F[_], Event, Context](
     structurer: Renderer[Kleisli[F, Context, *], Widget[F, Event, Context], StyledHtml[F]],
     renderer: Renderer[F, StyledHtml[F], StyledHtmlReference[F]],
     attacher: Attacher[F, StyledHtmlReference[F], StyledHtmlAttachedReference[F]],
-    differ: Differ[StyledHtml[F], CssHtmlDiff[F]],
+    differ: Differ[F, StyledHtml[F], CssHtmlDiff[F]],
     patcher: Patcher[F, StyledHtmlAttachedReference[F], CssHtmlDiff[F]]
 )(implicit F: Async[F]) {
   @nowarn("msg=shadows")
@@ -60,8 +60,8 @@ final class Schelm[F[_], Event, Context](
           reference
             .modify[F](state.path) { reference =>
               differ
-                .diff(StyledHtml(reference.styles, reference.html.html), state.structure)
-                .traverse(diff => patcher.run((reference, diff)))
+                .run((StyledHtml(reference.styles, reference.html.html), state.structure))
+                .flatMap(_.traverse(diff => patcher.run((reference, diff))))
                 .map(_.getOrElse(reference))
             }
             .tupleLeft(previous)
@@ -73,8 +73,8 @@ final class Schelm[F[_], Event, Context](
               .modify[F](Path.Root) { reference =>
                 structurer.run(render(next)).run(context(next)).flatMap { html =>
                   differ
-                    .diff(StyledHtml(reference.styles, reference.html.html), html)
-                    .traverse(diff => patcher.run((reference, diff)))
+                    .run((StyledHtml(reference.styles, reference.html.html), html))
+                    .flatMap(_.traverse(diff => patcher.run((reference, diff))))
                     .map(_.getOrElse(reference))
                 }
               }
