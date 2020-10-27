@@ -5,7 +5,7 @@ import scala.collection.immutable.VectorMap
 import io.taig.schelm.css.data.Css
 import io.taig.schelm.data._
 import io.taig.schelm.dsl.Widget
-import io.taig.schelm.dsl.data.Property
+import io.taig.schelm.dsl.data.{Property, StateUpdate}
 import io.taig.schelm.redux.algebra.EventManager
 import io.taig.schelm.redux.data.Redux
 
@@ -57,25 +57,33 @@ trait component {
       }
     )
 
-  final def eventful[F[_], Event, Context](
-      f: EventManager[F, Event] => Widget[F, Nothing, Context]
-  ): Widget[F, Event, Context] =
-    Widget(
-      Redux.Render { (events: EventManager[F, Event]) => Redux.run(events)(f(events).redux) }
-    )
+  final def eventful[F[_], Event]: EventfulBuilder[F, Event] = new EventfulBuilder[F, Event]
 
-  final def stateful[F[_], Event, Context, A](
-      initial: A
-  )(f: ((A => A) => F[Unit], A) => Widget[F, Event, Context]): Widget[F, Event, Context] =
-    Widget(
-      Redux.Render { (events: EventManager[F, Event]) =>
-        Contextual.Render { (context: Context) =>
-          Stateful(initial, { (update: (A => A) => F[Unit], current: A) =>
-            Contextual.run(context)(Redux.run(events)(f(update, current).redux))
-          })
+  final class EventfulBuilder[F[_], Event] {
+    def apply[Context](
+        f: EventManager[F, Event] => Widget[F, Nothing, Context]
+    ): Widget[F, Event, Context] =
+      Widget(
+        Redux.Render { (events: EventManager[F, Event]) => Redux.run(events)(f(events).redux) }
+      )
+  }
+
+  final def stateful[F[_]] = new StatefulBuilder[F]
+
+  final class StatefulBuilder[F[_]] {
+    def apply[Event, Context, A](
+        initial: A
+    )(f: StateUpdate[F, A] => Widget[F, Event, Context]): Widget[F, Event, Context] =
+      Widget(
+        Redux.Render { (events: EventManager[F, Event]) =>
+          Contextual.Render { (context: Context) =>
+            Stateful(initial, { (update: (A => A) => F[Unit], current: A) =>
+              Contextual.run(context)(Redux.run(events)(f(new StateUpdate(current, update)).redux))
+            })
+          }
         }
-      }
-    )
+      )
+  }
 }
 
 object component extends component
