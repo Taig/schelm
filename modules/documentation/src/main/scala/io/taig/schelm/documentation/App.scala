@@ -26,7 +26,6 @@ object App {
         MaterialTypography.h3("Input"),
         MaterialInput.themed(label = Some("Address"), placeholder = Some("Hasenheide 8"), id = Some("h8")),
         eventful { (events: EventManager[F, Event]) =>
-          println(s"Rendering with value: ${state.text}")
           MaterialInput.themed(
             label = Some("Name"),
             placeholder = Some("Demiank"),
@@ -38,13 +37,22 @@ object App {
           )
         },
         MaterialTypography.body1(s"Your message to Demian, published via global event handlers: ${state.text}"),
-        MaterialInput.themed(
-          label = Some("Name"),
-          placeholder = Some("Demiank"),
-          id = Some("foobar"),
-          variant = MaterialInput.Variant.Success,
-          helper = Some("Dit war nix")
-        ),
+        stateful("lol@demiankapser.de") { (update: (String => String) => F[Unit], current: String) =>
+          fragment(
+            children = Children.of(
+              MaterialInput.themed(
+                label = Some("Name"),
+                placeholder = Some("Demiank"),
+                id = Some("foobar"),
+                variant = MaterialInput.Variant.Success,
+                helper = Some("Dit war nix"),
+                value = Some(current),
+                onInput = effect.target(target => update(_ => target.value))
+              ),
+              MaterialTypography.body1(s"Your message to Demian, published via local state: ${current}")
+            )
+          )
+        },
         MaterialInput.themed(
           label = Some("Name"),
           placeholder = Some("Demiank"),

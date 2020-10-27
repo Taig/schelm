@@ -31,10 +31,10 @@ final case class StateTree[+A](values: Vector[A], children: Map[Key, StateTree[A
 
   def find(path: Path, state: Int): Option[A] = get(path).flatMap(_.values.lift(state))
 
-  def updatedState[B >: A](path: Path, state: Int, value: B): StateTree[B] =
+  def updatedState[B >: A](path: Path, value: B, index: Int): StateTree[B] =
     updatedWith[B](path) {
       case Some(tree) =>
-        try Some(tree.copy(values = tree.values.updated(state, value)))
+        try Some(tree.copy(values = tree.values.updated(index, value)))
         catch { case _: IndexOutOfBoundsException => Some(tree) }
       case None => None
     }

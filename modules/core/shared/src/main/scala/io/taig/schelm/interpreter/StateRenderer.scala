@@ -28,10 +28,12 @@ object StateRenderer {
       val update = new ((C => C) => F[Unit]) {
         override def apply(f: C => C): F[Unit] = {
           // TODO can the existing snapshot instance be used here or do we have to get the most recent one?
-          currentState(snapshot, state.initial, index).flatMap { current =>
+          currentState(snapshot, state.initial, index).flatMap { previous =>
+            val current = f(previous)
+
             render(Fix[λ[B => State[F, G[B]]]](state.render(this, current)), path, snapshot, index + 1)
               .flatMap(renderer.run)
-              .flatMap(states.submit(path, state.initial, current, _))
+              .flatMap(states.submit(path, _, state.initial, current, index))
           }
         }
       }
