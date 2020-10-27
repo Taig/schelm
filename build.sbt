@@ -1,14 +1,19 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 import sbtcrossproject.CrossProject
 
-val CatsEffectVersion = "3.0.0-M2"
-val ColorVersion = "0.2.3"
-val Fs2Version = "3.0.0-M2"
-val JsoupVersion = "1.13.1"
-val ScalaCollectionCompatVersion = "2.2.0"
-val ScalajsDomVersion = "1.1.0"
+val Version = new {
+  val CatsEffect = "3.0.0-M2"
+  val Color = "0.2.3"
+  val Fs2 = "3.0.0-M2"
+  val Jsoup = "1.13.1"
+  val Munit = "0.7.14"
+  val ScalaCollectionCompat = "2.2.0"
+  val ScalajsDom = "1.1.0"
+}
 
 noPublishSettings
+
+ThisBuild / testFrameworks += new TestFramework("munit.Framework")
 
 lazy val core: CrossProject = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Full)
@@ -16,15 +21,16 @@ lazy val core: CrossProject = crossProject(JVMPlatform, JSPlatform)
   .settings(sonatypePublishSettings)
   .settings(
     libraryDependencies ++=
-      "org.typelevel" %%% "cats-effect" % CatsEffectVersion ::
-        "co.fs2" %%% "fs2-core" % Fs2Version ::
+      "org.typelevel" %%% "cats-effect" % Version.CatsEffect ::
+        "co.fs2" %%% "fs2-core" % Version.Fs2 ::
+        "org.scalameta" %% "munit" % Version.Munit % "test" ::
         Nil,
     name := "schelm-core"
   )
   .jvmSettings(
     libraryDependencies ++=
-      "org.jsoup" % "jsoup" % JsoupVersion ::
-        "org.scala-lang.modules" %% "scala-collection-compat" % ScalaCollectionCompatVersion ::
+      "org.jsoup" % "jsoup" % Version.Jsoup ::
+        "org.scala-lang.modules" %% "scala-collection-compat" % Version.ScalaCollectionCompat ::
         Nil,
     scalacOptions += "-Wconf:src=src_managed/.*:silent",
     Compile / sourceGenerators += Def.taskDyn {
@@ -43,7 +49,7 @@ lazy val core: CrossProject = crossProject(JVMPlatform, JSPlatform)
   )
   .jsSettings(
     libraryDependencies ++=
-      "org.scala-js" %%% "scalajs-dom" % ScalajsDomVersion ::
+      "org.scala-js" %%% "scalajs-dom" % Version.ScalajsDom ::
         Nil
   )
 
@@ -71,7 +77,7 @@ lazy val dsl = crossProject(JVMPlatform, JSPlatform)
   .settings(sonatypePublishSettings)
   .settings(
     libraryDependencies ++=
-      "io.taig" %%% "color-core" % ColorVersion ::
+      "io.taig" %%% "color-core" % Version.Color ::
         Nil,
     name := "schelm-dsl",
     Compile / sourceGenerators += Def.task {

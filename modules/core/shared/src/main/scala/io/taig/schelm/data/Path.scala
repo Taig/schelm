@@ -1,6 +1,7 @@
 package io.taig.schelm.data
 
 import cats.data.Chain
+import cats.implicits._
 
 final case class Path(values: Chain[Key]) extends AnyVal {
   def /(key: Key): Path = Path(values.append(key))
@@ -8,4 +9,8 @@ final case class Path(values: Chain[Key]) extends AnyVal {
 
 object Path {
   val Root: Path = Path(Chain.empty)
+
+  object / {
+    def unapply[T](path: Path): Option[(Key, Path)] = path.values.uncons.map(_.map(apply))
+  }
 }

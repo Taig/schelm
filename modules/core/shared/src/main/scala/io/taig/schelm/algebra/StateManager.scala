@@ -1,12 +1,10 @@
 package io.taig.schelm.algebra
 
 import fs2.Stream
-import io.taig.schelm.data.Path
+import io.taig.schelm.data.{Path, StateTree}
 
 abstract class StateManager[F[_], Structure] {
-  def get[A](path: Path): F[Option[A]]
-
-  def snapshot: F[Map[Path, _]]
+  def snapshot: F[StateTree[_]]
 
   def submit[A](path: Path, initial: A, state: A, view: Structure): F[Unit]
 
