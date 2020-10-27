@@ -17,9 +17,12 @@ object Main extends IOApp {
     case Event.TextChanged(value) => state.copy(text = value.take(20))
   }
 
-  (for {
-    root <- Resource.liftF(dom.getElementById("main").flatMap(_.liftTo[IO](new IllegalStateException)))
-    schelm <- Resource.liftF(Schelm.default[IO, Event, MaterialTheme](dom)(root))
-    _ <- schelm.start(State.Initial)(_ => MaterialTheme.Default, App[IO], update)
-  } yield ExitCode.Success).use(_ => IO.never)
+  override def run(args: List[String]): IO[ExitCode] =
+    (for {
+      dispatcher <- Dispatcher[IO]
+      dom = BrowserDom[IO](dispatcher)
+      root <- Resource.liftF(dom.getElementById("main").flatMap(_.liftTo[IO](new IllegalStateException)))
+      schelm <- Resource.liftF(Schelm.default[IO, Event, MaterialTheme](dom)(root))
+      _ <- schelm.start(State.Initial)(_ => MaterialTheme.Default, App[IO], update)
+    } yield ExitCode.Success).use(_ => IO.never)
 }

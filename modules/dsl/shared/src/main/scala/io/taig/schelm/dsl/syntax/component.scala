@@ -74,7 +74,6 @@ trait component {
             Contextual.run(context)(Redux.run(events)(f(update, current).redux))
           })
         }
-
       }
     )
 }
