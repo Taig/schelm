@@ -11,8 +11,8 @@ object Key {
 
   implicit val order: Order[Key] = new Order[Key] {
     override def compare(x: Key, y: Key): Int = (x, y) match {
-      case (Identifier(x), Identifier(y)) => Order[String].compare(x, y)
-      case (Index(x), Index(y))           => Order[Int].compare(x, y)
+      case (Identifier(x), Identifier(y)) => x compare y
+      case (Index(x), Index(y))           => x compare y
       case (Identifier(_), Index(_))      => 1
       case (Index(_), Identifier(_))      => -1
     }
