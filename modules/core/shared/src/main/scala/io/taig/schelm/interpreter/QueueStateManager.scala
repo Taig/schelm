@@ -19,7 +19,7 @@ final class QueueStateManager[F[_], View](
   override def submit[A](path: Path, view: View, initial: A, state: A, index: Int): F[Unit] =
     states
       .modify[Option[StateManager.Update[View]]] { states =>
-        val previous = states.get(path).getOrElse(initial)
+        val previous = states.find(path).getOrElse(initial)
         println(s"Previous: $previous, Next: $state")
         if (previous == state) (states, None)
         else (states.updatedState(path, state, index), Some(StateManager.Update(path, view)))

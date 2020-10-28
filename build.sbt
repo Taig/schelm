@@ -1,9 +1,13 @@
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport.scalaJSLinkerConfig
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 import sbtcrossproject.CrossProject
 
 val Version = new {
+  val Cats = "2.2.0"
   val CatsEffect = "3.0.0-M2"
+  val CatsScalacheck = "0.3.0"
   val Color = "0.2.3"
+  val DisciplineMunit = "0.3.0"
   val Fs2 = "3.0.0-M2"
   val Jsoup = "1.13.1"
   val Munit = "0.7.14"
@@ -22,8 +26,11 @@ lazy val core: CrossProject = crossProject(JVMPlatform, JSPlatform)
   .settings(
     libraryDependencies ++=
       "org.typelevel" %%% "cats-effect" % Version.CatsEffect ::
+        "org.typelevel" %%% "cats-testkit" % Version.Cats ::
         "co.fs2" %%% "fs2-core" % Version.Fs2 ::
-        "org.scalameta" %% "munit" % Version.Munit % "test" ::
+        "io.chrisdavenport" %%% "cats-scalacheck" % Version.CatsScalacheck % "test" ::
+        "org.scalameta" %%% "munit" % Version.Munit % "test" ::
+        "org.typelevel" %%% "discipline-munit" % Version.DisciplineMunit % "test" ::
         Nil,
     name := "schelm-core"
   )
@@ -50,7 +57,8 @@ lazy val core: CrossProject = crossProject(JVMPlatform, JSPlatform)
   .jsSettings(
     libraryDependencies ++=
       "org.scala-js" %%% "scalajs-dom" % Version.ScalajsDom ::
-        Nil
+        Nil,
+    scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule))
   )
 
 lazy val css = crossProject(JVMPlatform, JSPlatform)

@@ -49,9 +49,7 @@ object StateRenderer {
         snapshot: StateTree[_]
     ): F[Fix[G]] =
       state.value
-        .traverseWithKey((key, node) =>
-          render(node, path / key, snapshot.get(Path.Root / key).getOrElse(StateTree.Empty), index = 0)
-        )
+        .traverseWithKey((key, node) => render(node, path / key, snapshot.get(key).orEmpty, index = 0))
         .map(Fix.apply)
 
     def render(state: Fix[λ[B => State[F, G[B]]]], path: Path, snapshot: StateTree[_], index: Int): F[Fix[G]] =
@@ -62,7 +60,7 @@ object StateRenderer {
 
     Kleisli { state =>
       Kleisli { path =>
-        states.snapshot.map(_.get(path).getOrElse(StateTree.Empty)).flatMap(render(state, path, _, index = 0))
+        states.snapshot.map(_.find(path).getOrElse(StateTree.Empty)).flatMap(render(state, path, _, index = 0))
       }
     }
   }
