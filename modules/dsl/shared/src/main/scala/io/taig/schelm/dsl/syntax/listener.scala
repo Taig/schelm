@@ -1,45 +1,34 @@
 package io.taig.schelm.dsl.syntax
 
+import cats.effect.kernel.Sync
+import cats.implicits._
 import io.taig.schelm.data
 import io.taig.schelm.data.{Listener, Listeners}
-import org.scalajs.dom.raw.{Event, EventTarget}
+import io.taig.schelm.dsl.data.DslListener
+import org.scalajs.dom.raw.Event
 
 trait listener {
   implicit class ListenerNameOps(name: data.Listener.Name) {
-    def :=[F[_], E <: Event, T <: EventTarget](action: Listener.Action[F, E, T]): Listener[F, E, T] =
-      Listener(name, action)
+    def :=[F[_]](action: Listener.Action[F]): DslListener[F] = Listener(name, action)
   }
 
   @inline
-  def listeners[F[_]](values: Listener[F, Event, EventTarget]*): Listeners[F] = Listeners.from(values)
+  def listeners[F[_], A](values: Listener[F]*): Listeners[F] = Listeners.from(values)
 
-  object effect {
+  object action {
     @inline
-    def apply[F[_], E <: Event, T <: EventTarget](f: (E, T) => F[Unit]): Listener.Action[F, E, T] =
-      Listener.Action.Effect(f)
+    def apply[F[_]](f: Event => F[Unit]): Listener.Action[F] = f
 
-    @inline
-    def default[F[_]](f: (Event, EventTarget) => F[Unit]): Listener.Action[F, Event, EventTarget] =
-      Listener.Action.Effect(f)
+    def run[F[_]](fa: F[Unit]): Listener.Action[F] = action(_ => fa)
 
-    @inline
-    def event[F[_], E <: Event](f: E => F[Unit]): Listener.Action[F, E, EventTarget] =
-      Listener.Action.Effect[F, E, EventTarget]((event, _) => f(event))
-
-    @inline
-    def target[F[_], T <: EventTarget](f: T => F[Unit]): Listener.Action[F, Event, T] =
-      Listener.Action.Effect[F, Event, T]((_, target) => f(target))
-
-    @inline
-    def run[F[_]](f: F[Unit]): Listener.Action[F, Event, EventTarget] =
-      Listener.Action.Effect[F, Event, EventTarget]((_, _) => f)
-
-    val noop: Listener.Action[Nothing, Event, EventTarget] = Listener.Action.Noop
+    def target[F[_], A](f: A => F[Unit])(implicit F: Sync[F]): Listener.Action[F] = action { event =>
+      F.delay(event.currentTarget.asInstanceOf[A]).flatMap(f)
+    }
   }
 
-  val change: Listener.Name = Listener.Name("change")
-  val click: Listener.Name = Listener.Name("click")
-  val input: Listener.Name = Listener.Name("input")
+  val onChange: Listener.Name = Listener.Name("change")
+  val onClick: Listener.Name = Listener.Name("click")
+  val onInput: Listener.Name = Listener.Name("input")
 }
 
 object listener extends listener

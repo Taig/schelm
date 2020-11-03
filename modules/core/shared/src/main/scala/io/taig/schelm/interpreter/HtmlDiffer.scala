@@ -8,6 +8,7 @@ import cats.implicits._
 import io.taig.schelm.algebra.Differ
 import io.taig.schelm.data._
 import io.taig.schelm.data.HtmlDiff
+import org.scalajs.dom.raw.Event
 
 object HtmlDiffer {
   def apply[F[_]: Applicative]: Differ[F, Html[F], HtmlDiff[F]] = {
@@ -73,7 +74,7 @@ object HtmlDiffer {
 
         val diffs = unchangedKeys.mapFilter { name =>
           val value = next.values(name)
-          if (current.values(name) == value) None else Some(HtmlDiff.UpdateListener(name, value))
+          if (current.values(name) == value) None else ??? // Some(HtmlDiff.UpdateListener(name, value))
         } ++ removedKeys.map(HtmlDiff.RemoveListener) ++
           addedKeys.map(name => HtmlDiff.AddListener(Listener(name, next.values(name))))
 

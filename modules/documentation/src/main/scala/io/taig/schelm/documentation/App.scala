@@ -17,7 +17,7 @@ object App {
           MaterialButton.themed(
             "hello world",
             tag = MaterialButton.Tag.Button,
-            onClick = effect.run(F.delay(println("hi")))
+            onClick = action.run(F.delay(println("hi (:")))
           ),
           clickable = true
         ),
@@ -31,8 +31,8 @@ object App {
             id = Some("name"),
             value = Some(state.text),
             variant = MaterialInput.Variant.Error,
-            helper = Some("Dit war nix"),
-            onInput = effect.target(input => events.submit(Event.TextChanged(input.value)))
+            helper = Some("Dit war nix")
+//            onInput = effect.target(input => events.submit(Event.TextChanged(input.value)))
           )
         },
         MaterialTypography.body1(s"Your message to Demian, published via global event handlers: ${state.text}"),
@@ -45,8 +45,8 @@ object App {
                 id = Some("foobar"),
                 variant = MaterialInput.Variant.Success,
                 helper = Some("Dit war nix"),
-                value = Some(state.current),
-                onInput = effect.target(target => state.set(target.value))
+                value = Some(state.current)
+//                onInput = effect.target(target => state.set(target.value))
               ),
               MaterialTypography.body1(s"Your message to Demian, published via local state: ${state.current}")
             )
@@ -58,7 +58,12 @@ object App {
           id = Some("yolo"),
           variant = MaterialInput.Variant.Warning,
           helper = None
-        )
+        ),
+        stateful[F]("yolo") { state =>
+//          val listener = onInput := effect.target[F, HTMLInputElement] { target => state.set(target.value.take(10)) }
+
+          ManagedInput(value = state.current)
+        }
       )
     )
 }

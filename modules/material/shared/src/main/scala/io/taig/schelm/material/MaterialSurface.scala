@@ -9,7 +9,7 @@ object MaterialSurface {
   def apply[F[_], Event, Context](
       background: Color,
       tag: Tag.Name = syntax.html.Body,
-      property: Property[F] = Property.Empty,
+      property: Property.Default[F] = Property.Empty,
       children: Children[Widget[F, Event, Context]] = Children.Empty
   ): Widget[F, Event, Context] = {
     val style = css(backgroundColor := background, margin := zero)
@@ -18,7 +18,7 @@ object MaterialSurface {
 
   def themed[F[_], Event](
       tag: Tag.Name = syntax.html.Body,
-      property: Property[F] = Property.Empty,
+      property: Property.Default[F] = Property.Empty,
       children: Children[Widget[F, Event, MaterialTheme]] = Children.Empty
   ): Widget[F, Event, MaterialTheme] = contextual { theme =>
     MaterialSurface[F, Event, MaterialTheme](

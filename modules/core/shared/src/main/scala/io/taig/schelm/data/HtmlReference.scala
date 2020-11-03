@@ -6,7 +6,7 @@ import cats.implicits._
 import io.taig.schelm.algebra.Dom
 import io.taig.schelm.util.PathTraversal
 
-final case class HtmlReference[F[_]](reference: NodeReference[F, HtmlReference[F]]) extends AnyVal {
+final case class HtmlReference[F[_]](reference: NodeReference[F, Listeners[F], HtmlReference[F]]) extends AnyVal {
   def get(path: Path): Option[HtmlReference[F]] = path.values match {
     case Chain() => this.some
     case Key.Index(index) ==: tail =>
@@ -29,7 +29,7 @@ final case class HtmlReference[F[_]](reference: NodeReference[F, HtmlReference[F
       children.flatMap(_.get(identifier)).flatMap(_.get(Path(tail)))
   }
 
-  def html: Html[F] = Html(reference.node.bimap(_.toListeners, _.html))
+//  def html: Html[F] = Html(reference.node.bimap(_.toListeners, _.html))
 
   def dom: Vector[Dom.Node] = reference match {
     case NodeReference.Element(_, dom) => Vector(dom)
@@ -40,5 +40,8 @@ final case class HtmlReference[F[_]](reference: NodeReference[F, HtmlReference[F
 
 object HtmlReference {
   implicit def traversal[F[_]]: PathTraversal[HtmlReference[F]] =
-    PathTraversal.ofReference[F, HtmlReference[F]](_.reference, (html, reference) => html.copy(reference = reference))
+    PathTraversal.ofReference[F, Listeners[F], HtmlReference[F]](
+      _.reference,
+      (html, reference) => html.copy(reference = reference)
+    )
 }

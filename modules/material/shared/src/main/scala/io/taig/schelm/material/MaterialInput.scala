@@ -118,8 +118,8 @@ object MaterialInput {
       placeholder: Option[String] = None,
       helper: Option[String] = None,
       reserveHelperSpace: Boolean = true,
-      onChange: Listener.Action.Target[F, HTMLInputElement] = effect.noop,
-      onInput: Listener.Action.Target[F, HTMLInputElement] = effect.noop,
+      onChange: Option[Listener.Action[F]] = None,
+      onInput: Option[Listener.Action[F]] = None,
       properties: Properties[F] = Properties.Empty
   ): Widget[F, Event, Context] =
     syntax.html.div(
@@ -133,7 +133,7 @@ object MaterialInput {
             value,
             placeholder,
             reserveHelperSpace && helper.isEmpty,
-            properties.input.addListener(change := onChange).addListener(input := onInput)
+            properties.input.addListener(syntax.listener.onChange := ???)
           )
         ) ++
         Children.fromOption(helper.map(Helper(_, theme, properties.helper)))
@@ -147,8 +147,8 @@ object MaterialInput {
       placeholder: Option[String] = None,
       reserveHelperSpace: Boolean = true,
       variant: Variant = Variant.Normal,
-      onChange: Listener.Action.Target[F, HTMLInputElement] = effect.noop,
-      onInput: Listener.Action.Target[F, HTMLInputElement] = effect.noop,
+      onChange: Option[Listener.Action[F]] = None,
+      onInput: Option[Listener.Action[F]] = None,
       properties: Properties[F] = Properties.Empty
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
     val input = variant match {

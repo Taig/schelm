@@ -1,9 +1,9 @@
 package io.taig.schelm.material
 
+import cats.Applicative
 import io.taig.schelm.data.{Children, Listener}
 import io.taig.schelm.dsl._
 import io.taig.schelm.dsl.data.Property
-import org.scalajs.dom.raw.HTMLButtonElement
 
 object MaterialButton {
   sealed abstract class Tag extends Product with Serializable
@@ -26,7 +26,7 @@ object MaterialButton {
       tag: Tag,
       label: String,
       theme: MaterialTheme.Button,
-      onClick: Listener.Action.Target[F, HTMLButtonElement] = effect.noop,
+      onClick: Listener.Action[F] = action.noop,
       property: Property[F] = Property.Empty
   ): Widget[F, Nothing, Any] = {
     val style = css(
@@ -50,16 +50,22 @@ object MaterialButton {
 
     tag match {
       case Tag.A =>
-        syntax.html.a(property.prependStyle(style).addListener(click := onClick), children = Children.of(text(label)))
+        syntax.html.a(
+          property.prependStyle(style).addListener(syntax.listener.onClick := onClick),
+          children = Children.of(text(label))
+        )
       case Tag.Button =>
         syntax.html
-          .button(property.prependStyle(style).addListener(click := onClick), children = Children.of(text(label)))
+          .button(
+            property.prependStyle(style).addListener(syntax.listener.onClick := onClick),
+            children = Children.of(text(label))
+          )
       case variant: Tag.Input =>
         syntax.html.input(
           property
             .appendAttributes(attrs(value := label, tpe := variant.tpe))
             .prependStyle(style)
-            .addListener(click := onClick)
+            .addListener(syntax.listener.onClick := onClick)
         )
     }
   }
@@ -68,7 +74,7 @@ object MaterialButton {
       label: String,
       tag: Tag = Tag.Button,
       variant: Option[Variant] = None,
-      onClick: Listener.Action.Target[F, HTMLButtonElement] = effect.noop,
+      onClick: Listener.Action[F] = action.noop,
       property: Property[F] = Property.Empty
   ): Widget[F, Nothing, MaterialTheme] = contextual { theme =>
     val button = variant match {
@@ -78,6 +84,6 @@ object MaterialButton {
       case None                    => theme.variant.buttons.normal
     }
 
-    MaterialButton[F](tag, label, button, onClick, property)
+    MaterialButton(tag, label, button, onClick, property)
   }
 }

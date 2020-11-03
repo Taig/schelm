@@ -1,85 +1,80 @@
 package io.taig.schelm.interpreter
 
 import scala.annotation.nowarn
-
 import cats.MonadError
 import cats.data.Kleisli
 import cats.implicits._
 import io.taig.schelm.algebra.{Dom, Patcher, Renderer}
 import io.taig.schelm.data.Node.Element.Variant
-import io.taig.schelm.data.{Html, HtmlAttachedReference, HtmlDiff, HtmlReference, Node, NodeReference}
+import io.taig.schelm.data.{
+  Html,
+  HtmlAttachedReference,
+  HtmlDiff,
+  HtmlHydratedReference,
+  HtmlReference,
+  ListenerReferences,
+  Node,
+  NodeReference
+}
 
 object HtmlPatcher {
   @nowarn("msg=never used")
   def apply[F[_]: MonadError[*[_], Throwable]](
       dom: Dom[F],
       renderer: Renderer[F, Html[F], HtmlReference[F]]
-  ): Patcher[F, HtmlAttachedReference[F], HtmlDiff[F]] = {
-    def patch(html: HtmlAttachedReference[F], diff: HtmlDiff[F], cursor: Int): F[HtmlAttachedReference[F]] = {
+  ): Patcher[F, HtmlHydratedReference[F], HtmlDiff[F]] = {
+    def patch(html: HtmlHydratedReference[F], diff: HtmlDiff[F], cursor: Int): F[HtmlHydratedReference[F]] = {
       (html.reference, diff) match {
         case (_, diff: HtmlDiff.Group[F]) => diff.diffs.foldLeftM(html)(patch(_, _, cursor))
-        case (reference: NodeReference.Element[F, HtmlAttachedReference[F]], diff: HtmlDiff.UpdateAttribute) =>
-          val tag = reference.node.tag
-          val attributes = tag.attributes.updated(diff.key, diff.value)
-          dom
-            .setAttribute(reference.dom, diff.key.value, diff.value.value)
-            .as(
-              html.copy(reference = reference.copy(node = reference.node.copy(tag = tag.copy(attributes = attributes))))
-            )
-        //      case (NodeReference.Element(_, element), HtmlDiff.AddAttribute(attribute)) =>
-        //        dom.setAttribute(element, attribute.key.value, attribute.value.value).as(html)
-        //      case (NodeReference.Element(_, element), HtmlDiff.AppendChild(html)) =>
-        //        for {
-        //          reference <- renderer.render(html)
-        //          _ <- reference.dom.traverse_(dom.appendChild(element, _))
-        //        } yield NodeReference.Element(???, element)
-        //      case (NodeReference.Fragment(_), HtmlDiff.AppendChild(html)) => ???
-        case (reference: NodeReference.Element[F, HtmlAttachedReference[F]], diff: HtmlDiff.UpdateChild[F]) =>
-          val node = reference.node
-
-          node.variant match {
-            case Variant.Normal(children) =>
-              children.get(diff.index.toLong) match {
-                case Some(child) =>
-                  patch(child, diff.diff, cursor = 0).map { update =>
-                    html.copy(reference =
-                      reference.copy(node =
-                        node.copy(variant = Node.Element.Variant.Normal(children.updated(diff.index, update)))
-                      )
-                    )
-                  }
-                case None => fail(s"No child at index ${diff.index}")
-              }
-            case Variant.Void => fail("Can not update child on a void element")
-          }
-        case (reference: NodeReference.Fragment[HtmlAttachedReference[F]], diff: HtmlDiff.UpdateChild[F]) =>
-          val node = reference.node
-          val children = node.children
-
-          children.get(diff.index.toLong).fold(fail[HtmlAttachedReference[F]](s"No child at index ${diff.index}")) {
-            child =>
-              patch(child, diff.diff, cursor = 0).map { update =>
-                html.copy(reference = reference.copy(node = node.copy(children = children.updated(diff.index, update))))
-              }
-          }
-        case (reference: NodeReference.Element[F, HtmlAttachedReference[F]], diff: HtmlDiff.UpdateListener[F]) =>
-          reference.node.tag.listeners.get(diff.name) match {
-            case Some((previous, _)) =>
-              val next = dom.unsafeRun(diff.action)
-              val listeners = reference.node.tag.listeners.updated(diff.name, next, diff.action)
-              val update = html.copy(
-                reference =
-                  reference.copy(node = reference.node.copy(tag = reference.node.tag.copy(listeners = listeners)))
-              )
-              dom.removeEventListener(reference.dom, diff.name.value, previous) *>
-                dom.addEventListener(reference.dom, diff.name.value, next).as(update)
-            case None => fail(s"No event listener for ${diff.name.value} registered")
-          }
-        case (reference: NodeReference.Text[F], diff: HtmlDiff.UpdateText) =>
-          dom
-            .data(reference.dom, diff.value)
-            .as(html.copy(reference = reference.copy(node = reference.node.copy(value = diff.value))))
-        case (reference, diff) => fail(s"Can not apply $diff to $reference")
+//        case (reference: NodeReference.Element[F, ListenerReferences[F], HtmlHydratedReference[F]], diff: HtmlDiff.UpdateAttribute) =>
+//          val tag = reference.node.tag
+//          val attributes = tag.attributes.updated(diff.key, diff.value)
+//          dom
+//            .setAttribute(reference.dom, diff.key.value, diff.value.value)
+//            .as(
+//              html.copy(reference = reference.copy(node = reference.node.copy(tag = tag.copy(attributes = attributes))))
+//            )
+//        //      case (NodeReference.Element(_, element), HtmlDiff.AddAttribute(attribute)) =>
+//        //        dom.setAttribute(element, attribute.key.value, attribute.value.value).as(html)
+//        //      case (NodeReference.Element(_, element), HtmlDiff.AppendChild(html)) =>
+//        //        for {
+//        //          reference <- renderer.render(html)
+//        //          _ <- reference.dom.traverse_(dom.appendChild(element, _))
+//        //        } yield NodeReference.Element(???, element)
+//        //      case (NodeReference.Fragment(_), HtmlDiff.AppendChild(html)) => ???
+//        case (reference: NodeReference.Element[F, HtmlAttachedReference[F]], diff: HtmlDiff.UpdateChild[F]) =>
+//          val node = reference.node
+//
+//          node.variant match {
+//            case Variant.Normal(children) =>
+//              children.get(diff.index.toLong) match {
+//                case Some(child) =>
+//                  patch(child, diff.diff, cursor = 0).map { update =>
+//                    html.copy(reference =
+//                      reference.copy(node =
+//                        node.copy(variant = Node.Element.Variant.Normal(children.updated(diff.index, update)))
+//                      )
+//                    )
+//                  }
+//                case None => fail(s"No child at index ${diff.index}")
+//              }
+//            case Variant.Void => fail("Can not update child on a void element")
+//          }
+//        case (reference: NodeReference.Fragment[HtmlAttachedReference[F]], diff: HtmlDiff.UpdateChild[F]) =>
+//          val node = reference.node
+//          val children = node.children
+//
+//          children.get(diff.index.toLong).fold(fail[HtmlAttachedReference[F]](s"No child at index ${diff.index}")) {
+//            child =>
+//              patch(child, diff.diff, cursor = 0).map { update =>
+//                html.copy(reference = reference.copy(node = node.copy(children = children.updated(diff.index, update))))
+//              }
+//          }
+//        case (reference: NodeReference.Text[F], diff: HtmlDiff.UpdateText) =>
+//          dom
+//            .data(reference.dom, diff.value)
+//            .as(html.copy(reference = reference.copy(node = reference.node.copy(value = diff.value))))
+//        case (reference, diff) => fail(s"Can not apply $diff to $reference")
 
         //      case HtmlDiff.AddListener(listener) =>
         //        for {
@@ -143,6 +138,6 @@ object HtmlPatcher {
     Kleisli { case (reference, diff) => patch(reference, diff, cursor = 0) }
   }
 
-  def default[F[_]: MonadError[*[_], Throwable]](dom: Dom[F]): Patcher[F, HtmlAttachedReference[F], HtmlDiff[F]] =
+  def default[F[_]: MonadError[*[_], Throwable]](dom: Dom[F]): Patcher[F, HtmlHydratedReference[F], HtmlDiff[F]] =
     HtmlPatcher(dom, HtmlRenderer(dom))
 }

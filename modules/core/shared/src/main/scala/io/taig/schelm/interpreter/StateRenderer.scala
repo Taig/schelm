@@ -14,8 +14,8 @@ object StateRenderer {
       states: StateManager[F, A]
   )(implicit F: Sync[F]): Renderer[Kleisli[F, Path, *], Fix[λ[B => State[F, G[B]]]], Fix[G]] = {
     def currentState[B](snapshot: StateTree[_], initial: B, index: Int): F[B] =
-      snapshot.values
-        .lift(index)
+      snapshot.value
+        .get(index)
         .traverse(state => F.delay(state.asInstanceOf[B]))
         .map(_.getOrElse(initial))
 

@@ -6,6 +6,7 @@ import cats.implicits._
 import io.taig.schelm.algebra.Renderer
 import io.taig.schelm.css.data._
 import io.taig.schelm.data.{Attribute, Html, Listeners, Node}
+import org.scalajs.dom.raw.Event
 
 object CssHtmlRenderer {
   def apply[F[_]: Applicative]: Renderer[F, CssHtml[F], StyledHtml[F]] = {

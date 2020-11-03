@@ -20,9 +20,8 @@ final class QueueStateManager[F[_], View](
     states
       .modify[Option[StateManager.Update[View]]] { states =>
         val previous = states.find(path).getOrElse(initial)
-        println(s"Previous: $previous, Next: $state")
         if (previous == state) (states, None)
-        else (states.updatedState(path, state, index), Some(StateManager.Update(path, view)))
+        else (??? /*states.updatedState(path, state, index)*/, Some(StateManager.Update(path, view)))
       }
       .flatMap {
         case Some(update) => queue.enqueue1(update)

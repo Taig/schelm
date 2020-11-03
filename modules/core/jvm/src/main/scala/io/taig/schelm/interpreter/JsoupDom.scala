@@ -3,14 +3,14 @@ package io.taig.schelm.interpreter
 import cats.effect.Sync
 import cats.implicits._
 import io.taig.schelm.algebra.Dom
+import io.taig.schelm.data.Listener
 import org.jsoup.nodes.{Document => JDocument, Element => JElement, Node => JNode, TextNode => JText}
-import org.scalajs.dom.raw.{Event, EventTarget}
+import org.scalajs.dom.raw.Event
+
 import scala.jdk.CollectionConverters._
 
-import io.taig.schelm.data.Listener
-
 final class JsoupDom[F[_]](val document: JDocument)(implicit F: Sync[F]) extends Dom[F] {
-  override def unsafeRun[E <: Event, T <: EventTarget](action: Listener.Action[F, E, T]): Unit = ()
+  override def unsafeRun(action: Listener.Action[F]): Unit = ()
 
   override def addEventListener(node: JNode, name: String, listener: Unit): F[Unit] = F.unit
 

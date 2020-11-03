@@ -1,7 +1,6 @@
 package io.taig.schelm.data
 
 import org.jsoup.nodes.{Document => JDocument, Element => JElement, Node => JNode, TextNode => JText}
-import org.scalajs.dom.raw.Event
 
 trait Platform {
   final type Node = JNode
@@ -12,5 +11,5 @@ trait Platform {
 
   final type Document = JDocument
 
-  final type Listener[E <: Event] = Unit
+  final type Listener = Unit
 }

@@ -10,7 +10,7 @@ final case class Property[+F[_]](
     style: Style = Style.Empty,
     lifecycle: Lifecycle.Element[F] = Lifecycle.Noop
 ) {
-  def ++[G[A] >: F[A]](property: Property[G]): Property[G] =
+  def ++[G[a] >: F[a]](property: Property[G]): Property[G] =
     Property(
       attributes ++ property.attributes,
       listeners ++ property.listeners,
@@ -24,11 +24,13 @@ final case class Property[+F[_]](
 
   def appendAttributes(attributes: Attributes): Property[F] = modifyAttributes(_ ++ attributes)
 
-  def modifyListeners[G[A] >: F[A]](f: Listeners[G] => Listeners[G]): Property[G] = copy(listeners = f(listeners))
+  def modifyListeners[G[a] >: F[a]](f: Listeners[G] => Listeners[G]): Property[G] =
+    copy(listeners = f(listeners))
 
-  def addListeners[G[A] >: F[A]](listeners: Listeners[G]): Property[G] = modifyListeners[G](_ ++ listeners)
+  def addListeners[G[a] >: F[a]](listeners: Listeners[G]): Property[G] =
+    modifyListeners[G](_ ++ listeners)
 
-  def addListener[G[A] >: F[A]](listener: Listener[G, _ <: Event, _ <: EventTarget]): Property[G] =
+  def addListener[G[a] >: F[a]](listener: Listener[G]): Property[G] =
     modifyListeners[G](_ + listener)
 
   def modifyStyle(f: Style => Style): Property[F] = copy(style = f(style))

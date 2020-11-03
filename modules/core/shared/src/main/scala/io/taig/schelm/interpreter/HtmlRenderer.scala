@@ -6,6 +6,7 @@ import cats.implicits._
 import io.taig.schelm.algebra.{Dom, Renderer}
 import io.taig.schelm.data.Node.Element.Variant
 import io.taig.schelm.data._
+import org.scalajs.dom.raw.Event
 
 object HtmlRenderer {
   def apply[F[_]: Monad](dom: Dom[F]): Renderer[F, Html[F], HtmlReference[F]] = {
@@ -15,10 +16,8 @@ object HtmlRenderer {
         _ <- node.tag.attributes.toList.traverse_ { attribute =>
           dom.setAttribute(element, attribute.key.value, attribute.value.value)
         }
-        listeners <- listeners(element)(node.tag.listeners)
         variant <- variant(element)(node.variant)
-        tag = node.tag.copy(listeners = listeners)
-        reference = NodeReference.Element(node.copy(tag = tag, variant = variant), element)
+        reference = NodeReference.Element(node.copy(variant = variant), element)
       } yield HtmlReference(reference)
 
     def fragment(node: Node.Fragment[Fix[Node[F, Listeners[F], *]]]): F[HtmlReference[F]] =
@@ -27,21 +26,7 @@ object HtmlRenderer {
         .map(children => HtmlReference(NodeReference.Fragment(node.copy(children = children))))
 
     def text(node: Node.Text[F, Listeners[F]]): F[HtmlReference[F]] =
-      for {
-        text <- dom.createTextNode(node.value)
-        listeners <- listeners(text)(node.listeners)
-      } yield HtmlReference(NodeReference.Text(node.copy(listeners = listeners), text))
-
-    def listeners(node: Dom.Node): Listeners[F] => F[ListenerReferences[F]] =
-      _.toList
-        .traverse { listener =>
-          val reference = dom.unsafeRun(listener.action)
-
-          dom
-            .addEventListener(node, listener.name.value, reference)
-            .as(listener.name -> ((reference, listener.action)))
-        }
-        .map(listeners => ListenerReferences(listeners.toMap))
+      dom.createTextNode(node.value).map(text => HtmlReference(NodeReference.Text(node, text)))
 
     def variant(
         element: Dom.Element

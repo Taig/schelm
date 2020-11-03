@@ -1,6 +1,7 @@
 package io.taig.schelm.css
 
 import io.taig.schelm.data._
+import org.scalajs.dom.raw.Event
 
 package object data {
   type CssHtml[F[_]] = Fix[λ[A => Css[Node[F, Listeners[F], A]]]]
@@ -26,7 +27,8 @@ package object data {
       Fix[λ[A => Contextual[Context, Css[Node[F, Listeners[F], A]]]]](widget)
   }
 
-  type WidgetStateCssHtml[F[_], Context] = Fix[λ[A => Contextual[Context, State[F, Css[Node[F, Listeners[F], A]]]]]]
+  type WidgetStateCssHtml[F[_], Context] =
+    Fix[λ[A => Contextual[Context, State[F, Css[Node[F, Listeners[F], A]]]]]]
 
   object WidgetStateCssHtml {
     def apply[F[_], Context](

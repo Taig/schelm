@@ -1,7 +1,7 @@
 package io.taig.schelm.util
 
 import cats.implicits._
-import io.taig.schelm.data.{Key, StateTree}
+import io.taig.schelm.data.{Key, Listener, Listeners, PathTree, StateTree}
 import org.scalacheck.Gen
 import org.scalacheck.cats.implicits._
 
@@ -10,20 +10,29 @@ object Generators {
 
   val key: Gen[Key] = Gen.oneOf(identifier.map(Key.Identifier), Gen.posNum[Int].map(Key.Index))
 
-  def stateTreeChildren[A](payload: Gen[A], maxDepth: Int): Gen[Map[Key, StateTree[A]]] =
-    if (maxDepth == 0) Gen.const(Map.empty[Key, StateTree[A]])
+  def listener[F[_]](action: Gen[Listener.Action[F]]): Gen[Listener[F]] =
+    (identifier.map(Listener.Name.apply), action).mapN(Listener.apply)
+
+  def listeners[F[_]](action: Gen[Listener.Action[F]]): Gen[Listeners[F]] =
+    Gen.listOf(listener(action)).map(Listeners.from)
+
+  def stateTreeStates[A](payload: Gen[A], maxLength: Int): Gen[StateTree.States[A]] =
+    Gen.choose(0, maxLength).flatMap(Gen.listOfN(_, payload).map(_.toVector)).map(StateTree.States.apply)
+
+  def pathTreeChildren[A](payload: Gen[A], maxDepth: Int): Gen[Map[Key, PathTree[A]]] =
+    if (maxDepth == 0) Gen.const(Map.empty[Key, PathTree[A]])
     else
       Gen.choose(0, 3).flatMap { size =>
         Gen
           .listOfN(size, key)
           .map(_.distinct)
-          .flatMap(_.traverse(key => stateTree(payload, maxDepth - 1).tupleLeft(key)))
+          .flatMap(_.traverse(key => pathTree(payload, maxDepth - 1).tupleLeft(key)))
           .map(_.toMap)
       }
 
-  def stateTree[A](payload: Gen[A], maxDepth: Int): Gen[StateTree[A]] =
+  def pathTree[A](payload: Gen[A], maxDepth: Int): Gen[PathTree[A]] =
     for {
-      values <- Gen.listOf(payload).map(_.toVector)
-      children <- stateTreeChildren(payload, maxDepth)
-    } yield StateTree(values, children)
+      value <- payload
+      children <- pathTreeChildren(payload, maxDepth)
+    } yield PathTree(value, children)
 }

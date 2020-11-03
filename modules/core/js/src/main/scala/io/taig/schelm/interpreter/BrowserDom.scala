@@ -1,40 +1,31 @@
 package io.taig.schelm.interpreter
 
-import scala.scalajs.js
-
 import cats.effect.Sync
 import cats.effect.std.Dispatcher
 import cats.implicits._
 import io.taig.schelm.algebra.Dom
 import io.taig.schelm.data.Listener
-import io.taig.schelm.data.Listener.Action
 import org.scalajs.dom
 import org.scalajs.dom.Event
-import org.scalajs.dom.raw.{EventTarget, HTMLInputElement}
+import org.scalajs.dom.raw.HTMLInputElement
+
+import scala.scalajs.js
 
 final class BrowserDom[F[_]](dispatcher: Dispatcher[F])(implicit F: Sync[F]) extends Dom[F] {
   private val Value = "value"
 
-  override def unsafeRun[E <: Event, T <: EventTarget](action: Listener.Action[F, E, T]): js.Function1[E, _] = {
-    event =>
-      action match {
-        case Action.Noop => ()
-        case action: Action.Effect[F, E, T] =>
-          dispatcher.unsafeRunAndForget {
-            action
-              .f(event, event.currentTarget.asInstanceOf[T])
-              .onError { throwable =>
-                F.delay {
-                  System.err.println("Failed to run event handler")
-                  throwable.printStackTrace(System.err)
-                }
-              }
-
-          }
+  override def unsafeRun(action: Listener.Action[F]): js.Function1[Event, _] = { event =>
+    dispatcher.unsafeRunAndForget {
+      action(event).onError { throwable =>
+        F.delay {
+          System.err.println("Failed to run event handler")
+          throwable.printStackTrace(System.err)
+        }
       }
+    }
   }
 
-  override def addEventListener(node: dom.Node, name: String, listener: Dom.Listener[Event]): F[Unit] =
+  override def addEventListener(node: dom.Node, name: String, listener: Dom.Listener): F[Unit] =
     F.delay(node.addEventListener(name, listener))
 
   override def appendChild(parent: dom.Element, child: dom.Node): F[Unit] = F.delay(parent.appendChild(child)).void
@@ -85,7 +76,7 @@ final class BrowserDom[F[_]](dispatcher: Dispatcher[F])(implicit F: Sync[F]) ext
 
   override def removeChild(parent: dom.Element, child: dom.Node): F[Unit] = F.delay(parent.removeChild(child)).void
 
-  override def removeEventListener(node: dom.Node, name: String, listener: Dom.Listener[Event]): F[Unit] =
+  override def removeEventListener(node: dom.Node, name: String, listener: Dom.Listener): F[Unit] =
     F.delay(node.removeEventListener(name, listener))
 
   override def replaceChild(parent: dom.Element, current: dom.Node, next: dom.Node): F[Unit] =

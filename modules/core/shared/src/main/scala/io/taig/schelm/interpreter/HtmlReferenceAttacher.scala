@@ -11,7 +11,7 @@ object HtmlReferenceAttacher {
       attacher: Attacher[F, Vector[Dom.Node], Dom.Element]
   )(implicit F: MonadCancel[F, Throwable]): Attacher[F, HtmlReference[F], HtmlAttachedReference[F]] = {
     def notify(html: HtmlReference[F]): F[HtmlAttachedReference[F]] = html.reference match {
-      case reference: NodeReference.Element[F, HtmlReference[F]] =>
+      case reference: NodeReference.Element[F, Listeners[F], HtmlReference[F]] =>
         val element = reference.dom
         val lifecycle = reference.node.lifecycle
 
@@ -23,7 +23,7 @@ object HtmlReferenceAttacher {
         }
       case NodeReference.Fragment(Node.Fragment(_)) =>
         html.reference.traverse(notify).map(HtmlAttachedReference(_, F.unit))
-      case reference: NodeReference.Text[F] =>
+      case reference: NodeReference.Text[F, Listeners[F]] =>
         reference.node.lifecycle.mount.traverse(_.apply(reference.dom).allocated).map {
           case Some((_, release)) => HtmlAttachedReference(reference, release)
           case None               => HtmlAttachedReference(reference, F.unit)

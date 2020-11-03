@@ -1,7 +1,6 @@
 package io.taig.schelm.data
 
 import cats.Order
-import cats.implicits._
 
 sealed abstract class Key extends Product with Serializable
 

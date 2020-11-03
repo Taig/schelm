@@ -69,6 +69,7 @@ object ScalaJsJvmStubsGenerator {
                |  type Promise[+A]
                |  type Dictionary[+A]
                |  type |[A, B]
+               |  type Dynamic = scala.Dynamic
                |}""".stripMargin
 
           val domLib =

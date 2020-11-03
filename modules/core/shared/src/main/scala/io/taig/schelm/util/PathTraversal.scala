@@ -18,7 +18,10 @@ trait PathTraversal[A] {
 }
 
 object PathTraversal {
-  def ofReference[F[_], A](extract: A => NodeReference[F, A], lift: (A, NodeReference[F, A]) => A): PathTraversal[A] =
+  def ofReference[F[_], Listeners, A](
+      extract: A => NodeReference[F, Listeners, A],
+      lift: (A, NodeReference[F, Listeners, A]) => A
+  ): PathTraversal[A] =
     new PathTraversal[A] {
       override def get(reference: A)(path: Path): Option[A] = path.values match {
         case Chain() => reference.some
@@ -48,7 +51,7 @@ object PathTraversal {
           case Chain() => f(value)
           case Key.Index(index) ==: tail =>
             extract(value) match {
-              case reference: NodeReference.Element[F, A] =>
+              case reference: NodeReference.Element[F, Listeners, A] =>
                 reference.node.variant match {
                   case Variant.Normal(children @ Children.Indexed(values)) =>
                     values.get(index.toLong) match {
