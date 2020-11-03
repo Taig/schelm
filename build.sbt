@@ -7,10 +7,10 @@ val Version = new {
   val CatsEffect = "3.0.0-M2"
   val CatsScalacheck = "0.3.0"
   val Color = "0.2.3"
-  val DisciplineMunit = "0.3.0"
+  val DisciplineMunit = "1.0.0"
   val Fs2 = "3.0.0-M2"
   val Jsoup = "1.13.1"
-  val Munit = "0.7.14"
+  val Munit = "0.7.15"
   val ScalaCollectionCompat = "2.2.0"
   val ScalajsDom = "1.1.0"
 }
