@@ -10,7 +10,7 @@ import org.scalajs.dom.raw.Event
 
 object HtmlRenderer {
   def apply[F[_]: Monad](dom: Dom[F]): Renderer[F, Html[F], HtmlReference[F]] = {
-    def element(node: Node.Element[F, Listeners[F], Fix[Node[F, Listeners[F], *]]]): F[HtmlReference[F]] =
+    def element(node: Node.Element[F, Listeners[F], Html[F]]): F[HtmlReference[F]] =
       for {
         element <- dom.createElement(node.tag.name.value)
         _ <- node.tag.attributes.toList.traverse_ { attribute =>
@@ -20,7 +20,7 @@ object HtmlRenderer {
         reference = NodeReference.Element(node.copy(variant = variant), element)
       } yield HtmlReference(reference)
 
-    def fragment(node: Node.Fragment[Fix[Node[F, Listeners[F], *]]]): F[HtmlReference[F]] =
+    def fragment(node: Node.Fragment[Html[F]]): F[HtmlReference[F]] =
       node.children
         .traverse(render)
         .map(children => HtmlReference(NodeReference.Fragment(node.copy(children = children))))
@@ -28,9 +28,7 @@ object HtmlRenderer {
     def text(node: Node.Text[F, Listeners[F]]): F[HtmlReference[F]] =
       dom.createTextNode(node.value).map(text => HtmlReference(NodeReference.Text(node, text)))
 
-    def variant(
-        element: Dom.Element
-    ): Node.Element.Variant[Fix[Node[F, Listeners[F], *]]] => F[Variant[HtmlReference[F]]] = {
+    def variant(element: Dom.Element): Node.Element.Variant[Html[F]] => F[Variant[HtmlReference[F]]] = {
       case Variant.Normal(children) =>
         for {
           children <- children.traverse(render)

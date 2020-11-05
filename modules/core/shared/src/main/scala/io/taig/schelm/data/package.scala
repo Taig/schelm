@@ -6,6 +6,7 @@ package object data {
   type Html[F[_]] = Fix[Node[F, Listeners[F], *]]
 
   object Html {
+    @inline
     def apply[F[_]](node: Node[F, Listeners[F], Html[F]]): Html[F] = Fix(node)
   }
 
@@ -61,5 +62,11 @@ package object data {
     }
 
     val Empty: StateTree[Nothing] = PathTree(value = States.Empty, children = Map.empty)
+  }
+
+  type ListenerTree[+F[_]] = PathTree[Listeners[F]]
+
+  object ListenerTree {
+    val Empty: ListenerTree[Nothing] = PathTree(value = Listeners.Empty, children = Map.empty)
   }
 }

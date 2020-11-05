@@ -8,7 +8,7 @@ import io.taig.schelm.util.PathTraversal
 
 final case class HtmlReference[F[_]](reference: NodeReference[F, Listeners[F], HtmlReference[F]]) extends AnyVal {
   def get(path: Path): Option[HtmlReference[F]] = path.values match {
-    case Chain() => this.some
+    case Chain.nil => this.some
     case Key.Index(index) ==: tail =>
       val children = reference match {
         case NodeReference.Element(Node.Element(_, Node.Element.Variant.Normal(Children.Indexed(values)), _), _) =>

@@ -5,9 +5,9 @@ import cats.Monoid
 final case class Listeners[+F[_]](values: Map[Listener.Name, Listener.Action[F]]) extends AnyVal {
   def isEmpty: Boolean = values.isEmpty
 
-  def ++[G[A] >: F[A]](listeners: Listeners[G]): Listeners[G] = Listeners(values ++ listeners.values)
+  def ++[G[a] >: F[a]](listeners: Listeners[G]): Listeners[G] = Listeners(values ++ listeners.values)
 
-  def +[G[A] >: F[A]](listener: Listener[G]): Listeners[G] = Listeners(values + listener.toTuple)
+  def +[G[a] >: F[a]](listener: Listener[G]): Listeners[G] = Listeners(values + listener.toTuple)
 
   def toList: List[Listener[F]] = values.map { case (name, action) => Listener(name, action) }.toList
 }
@@ -22,7 +22,7 @@ object Listeners {
   def of[F[_]](listeners: Listener[F]*): Listeners[F] = from(listeners)
 
   implicit def monoid[F[_]]: Monoid[Listeners[F]] = new Monoid[Listeners[F]] {
-    override def empty: Listeners[F] = Empty
+    override val empty: Listeners[F] = Empty
 
     override def combine(x: Listeners[F], y: Listeners[F]): Listeners[F] = x ++ y
   }
