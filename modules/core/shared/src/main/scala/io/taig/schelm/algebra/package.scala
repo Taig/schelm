@@ -3,7 +3,7 @@ package io.taig.schelm
 import cats.data.Kleisli
 
 package object algebra {
-  type Attacher[F[_], Hydrated, Target] = Kleisli[F, Hydrated, Target]
+  type Attacher[F[_], Rendered, Target] = Kleisli[F, Rendered, Target]
 
   type Differ[F[_], Rendered, Diff] = Kleisli[F, (Rendered, Rendered), Option[Diff]]
 
