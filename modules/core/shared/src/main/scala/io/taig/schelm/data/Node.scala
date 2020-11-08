@@ -1,9 +1,10 @@
 package io.taig.schelm.data
 
-import scala.annotation.nowarn
+import scala.annotation.{nowarn, tailrec}
 
 import cats.implicits._
 import cats.{Applicative, Bifunctor, Eval, Functor, Traverse}
+import io.taig.schelm.data.Path./
 import io.taig.schelm.util.NodeTraverse
 
 @nowarn("msg=shadows")

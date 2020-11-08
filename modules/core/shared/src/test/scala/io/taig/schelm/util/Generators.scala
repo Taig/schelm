@@ -2,7 +2,7 @@ package io.taig.schelm.util
 
 import cats.implicits._
 import io.taig.schelm.data
-import io.taig.schelm.data.{Key, Listener, Listeners, PathTree, StateTree, immutable}
+import io.taig.schelm.data.{immutable, Key, Listener, Listeners, PathTree, StateTree}
 import org.scalacheck.Gen
 import org.scalacheck.cats.implicits._
 

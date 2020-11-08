@@ -7,6 +7,13 @@ import io.taig.schelm.util.Collections
 import scala.collection.immutable.VectorMap
 
 sealed abstract class Children[+A] extends Product with Serializable {
+  final def get(key: Key): Option[A] = (this, key) match {
+    case (Children.Indexed(children), Key.Index(index))              => children.lift(index)
+    case (Children.Identified(children), Key.Identifier(identifier)) => children.get(identifier)
+    case (_: Children.Indexed[_], _: Key.Identifier)                 => None
+    case (_: Children.Identified[_], _: Key.Index)                   => None
+  }
+
   final def indexed: Vector[A] = this match {
     case Children.Indexed(values)    => values
     case Children.Identified(values) => values.values.toVector
@@ -36,7 +43,7 @@ sealed abstract class Children[+A] extends Product with Serializable {
   }
 
   final def mapWithKey[B](f: (Key, A) => B): Children[B] = this match {
-    case Children.Indexed(values)    =>
+    case Children.Indexed(values) =>
       Children.Indexed(values.zipWithIndex.map { case (child, index) => f(Key.Index(index), child) })
     case Children.Identified(values) =>
       Children.Identified(values.map { case (key, child) => key -> f(Key.Identifier(key), child) })
@@ -59,7 +66,7 @@ sealed abstract class Children[+A] extends Product with Serializable {
     }
 
   final def toMap: Map[Key, A] = this match {
-    case Children.Indexed(values) => values.zipWithIndex.map { case (child, index) => Key.Index(index) -> child }.toMap
+    case Children.Indexed(values)    => values.zipWithIndex.map { case (child, index) => Key.Index(index) -> child }.toMap
     case Children.Identified(values) => values.map { case (key, child) => Key.Identifier(key) -> child }
   }
 }

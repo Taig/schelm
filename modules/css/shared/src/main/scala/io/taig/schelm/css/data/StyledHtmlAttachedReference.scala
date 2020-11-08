@@ -11,7 +11,7 @@ final case class StyledHtmlAttachedReference[F[_]](styles: Map[Selector, Style],
 object StyledHtmlAttachedReference {
   implicit def path[G[_]]: PathTraversal[StyledHtmlAttachedReference[G]] =
     new PathTraversal[StyledHtmlAttachedReference[G]] {
-      override def get(value: StyledHtmlAttachedReference[G])(path: Path): Option[StyledHtmlAttachedReference[G]] =
+      override def find(value: StyledHtmlAttachedReference[G])(path: Path): Option[StyledHtmlAttachedReference[G]] =
         value.html.get(path).map(html => value.copy(html = html))
 
       override def modify[F[_]: Applicative](value: StyledHtmlAttachedReference[G])(path: Path)(

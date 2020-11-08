@@ -12,7 +12,7 @@ import scala.collection.immutable.VectorMap
 
 @typeclass
 trait PathTraversal[A] {
-  def get(value: A)(path: Path): Option[A]
+  def find(value: A)(path: Path): Option[A]
 
   def modify[F[_]: Applicative](value: A)(path: Path)(f: A => F[A]): F[A]
 }
@@ -23,8 +23,8 @@ object PathTraversal {
       lift: (A, NodeReference[F, Listeners, A]) => A
   ): PathTraversal[A] =
     new PathTraversal[A] {
-      override def get(reference: A)(path: Path): Option[A] = path.values match {
-        case Chain() => reference.some
+      override def find(reference: A)(path: Path): Option[A] = path.values match {
+        case Chain.nil => reference.some
         case Key.Index(index) ==: tail =>
           val children: Option[Vector[A]] = extract(reference) match {
             case NodeReference.Element(Node.Element(_, Node.Element.Variant.Normal(Children.Indexed(values)), _), _) =>
@@ -33,7 +33,7 @@ object PathTraversal {
             case _                                                               => None
           }
 
-          children.flatMap(_.get(index.toLong)).flatMap(child => get(child)(Path(tail)))
+          children.flatMap(_.get(index.toLong)).flatMap(child => find(child)(Path(tail)))
         case Key.Identifier(identifier) ==: tail =>
           val children: Option[VectorMap[String, A]] = extract(reference) match {
             case NodeReference
@@ -43,12 +43,12 @@ object PathTraversal {
             case _                                                                  => None
           }
 
-          children.flatMap(_.get(identifier)).flatMap(child => get(child)(Path(tail)))
+          children.flatMap(_.get(identifier)).flatMap(child => find(child)(Path(tail)))
       }
 
       override def modify[G[_]: Applicative](value: A)(path: Path)(f: A => G[A]): G[A] =
         path.values match {
-          case Chain() => f(value)
+          case Chain.nil => f(value)
           case Key.Index(index) ==: tail =>
             extract(value) match {
               case reference: NodeReference.Element[F, Listeners, A] =>

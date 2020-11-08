@@ -9,6 +9,12 @@ final case class Listeners[+F[_]](values: Map[Listener.Name, Listener.Action[F]]
 
   def +[G[a] >: F[a]](listener: Listener[G]): Listeners[G] = Listeners(values + listener.toTuple)
 
+  @inline
+  def get(name: Listener.Name): Option[Listener.Action[F]] = values.get(name)
+
+  @inline
+  def keys: Set[Listener.Name] = values.keySet
+
   def toList: List[Listener[F]] = values.map { case (name, action) => Listener(name, action) }.toList
 }
 

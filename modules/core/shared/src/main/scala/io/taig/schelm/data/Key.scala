@@ -1,6 +1,6 @@
 package io.taig.schelm.data
 
-import cats.Order
+import cats.{Order, Show}
 
 sealed abstract class Key extends Product with Serializable
 
@@ -15,5 +15,10 @@ object Key {
       case (Identifier(_), Index(_))      => 1
       case (Index(_), Identifier(_))      => -1
     }
+  }
+
+  implicit val show: Show[Key] = {
+    case Identifier(value) => value
+    case Index(value)      => s"[$value]"
   }
 }

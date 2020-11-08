@@ -1,5 +1,6 @@
 package io.taig.schelm.data
 
+import cats.Show
 import cats.data.Chain
 import cats.implicits._
 
@@ -13,4 +14,6 @@ object Path {
   object / {
     def unapply[T](path: Path): Option[(Key, Path)] = path.values.uncons.map(_.map(apply))
   }
+
+  implicit val show: Show[Path] = _.values.mkString_(" / ")
 }
