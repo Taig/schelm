@@ -1,7 +1,8 @@
 package io.taig.schelm.util
 
 import cats.implicits._
-import io.taig.schelm.data.{Key, Listener, Listeners, PathTree, StateTree}
+import io.taig.schelm.data
+import io.taig.schelm.data.{Key, Listener, Listeners, PathTree, StateTree, immutable}
 import org.scalacheck.Gen
 import org.scalacheck.cats.implicits._
 
@@ -34,5 +35,5 @@ object Generators {
     for {
       value <- payload
       children <- pathTreeChildren(payload, maxDepth)
-    } yield PathTree(value, children)
+    } yield data.PathTree(value, children)
 }

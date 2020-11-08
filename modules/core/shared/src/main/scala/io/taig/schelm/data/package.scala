@@ -67,6 +67,14 @@ package object data {
   type ListenerTree[+F[_]] = PathTree[Listeners[F]]
 
   object ListenerTree {
-    val Empty: ListenerTree[Nothing] = PathTree(value = Listeners.Empty, children = Map.empty)
+    val EmptyChildren: Map[Key, ListenerTree[Nothing]] = Map.empty
+
+    val Empty: ListenerTree[Nothing] = PathTree(Listeners.Empty, EmptyChildren)
+
+    @inline
+    def apply[F[_]](listeners: Listeners[F], children: Map[Key, ListenerTree[F]]): ListenerTree[F] = PathTree(listeners, children)
+
+    @inline
+    def fromListeners[F[_]](listeners: Listeners[F]): ListenerTree[F] = PathTree(listeners, EmptyChildren)
   }
 }

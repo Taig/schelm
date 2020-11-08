@@ -1,10 +1,10 @@
 package io.taig.schelm.data
 
+import scala.annotation.tailrec
+
 import cats._
 import cats.implicits._
 import io.taig.schelm.data.Path./
-
-import scala.annotation.tailrec
 
 final case class PathTree[+A](value: A, children: Map[Key, PathTree[A]]) { self =>
   @tailrec

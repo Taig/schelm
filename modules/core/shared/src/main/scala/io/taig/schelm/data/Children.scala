@@ -2,7 +2,6 @@ package io.taig.schelm.data
 
 import cats.implicits._
 import cats.{Applicative, Eval, Functor, MonoidK, Traverse}
-import io.taig.schelm.data.Children.{Identified, Indexed}
 import io.taig.schelm.util.Collections
 
 import scala.collection.immutable.VectorMap
@@ -18,34 +17,51 @@ sealed abstract class Children[+A] extends Product with Serializable {
     case Children.Identified(values) => values
   }
 
-  def updated[B >: A](index: Int, value: B): Children[B] = this match {
+  final def updated[B >: A](index: Int, value: B): Children[B] = this match {
     case Children.Indexed(values) => Children.Indexed(values.updated(index, value))
     case Children.Identified(values) =>
       val key = values.keys.apply(index)
       Children.Identified(values.updated(key, value))
   }
 
-  def ++[B >: A](children: Children[B]): Children[B] = (this, children) match {
+  final def ++[B >: A](children: Children[B]): Children[B] = (this, children) match {
     case (Children.Indexed(x), Children.Indexed(y))       => Children.Indexed(x ++ y)
     case (Children.Identified(x), Children.Identified(y)) => Children.Identified(x ++ y)
     case (x, y)                                           => Children.Identified(x.identified ++ y.identified)
   }
 
-  def traverse[G[_]: Applicative, B](f: A => G[B]): G[Children[B]] =
+  final def map[B](f: A => B): Children[B] = this match {
+    case Children.Indexed(values)    => Children.Indexed(values.map(f))
+    case Children.Identified(values) => Children.Identified(values.view.mapValues(f).to(VectorMap))
+  }
+
+  final def mapWithKey[B](f: (Key, A) => B): Children[B] = this match {
+    case Children.Indexed(values)    =>
+      Children.Indexed(values.zipWithIndex.map { case (child, index) => f(Key.Index(index), child) })
+    case Children.Identified(values) =>
+      Children.Identified(values.map { case (key, child) => key -> f(Key.Identifier(key), child) })
+  }
+
+  final def traverse[G[_]: Applicative, B](f: A => G[B]): G[Children[B]] =
     this match {
-      case Children.Indexed(values)    => values.traverse(f).map(Indexed.apply)
-      case Children.Identified(values) => Collections.traverseVectorMap(values)(f).map(Identified.apply)
+      case Children.Indexed(values)    => values.traverse(f).map(Children.Indexed.apply)
+      case Children.Identified(values) => Collections.traverseVectorMap(values)(f).map(Children.Identified.apply)
     }
 
-  def traverseWithKey[G[_]: Applicative, B](f: (Key, A) => G[B]): G[Children[B]] =
+  final def traverseWithKey[G[_]: Applicative, B](f: (Key, A) => G[B]): G[Children[B]] =
     this match {
       case Children.Indexed(values) =>
-        values.zipWithIndex.traverse { case (child, index) => f(Key.Index(index), child) }.map(Indexed.apply)
+        values.zipWithIndex.traverse { case (child, index) => f(Key.Index(index), child) }.map(Children.Indexed.apply)
       case Children.Identified(values) =>
         Collections
           .traverseVectorMapWithKey(values)((identifier, value) => f(Key.Identifier(identifier), value))
-          .map(Identified.apply)
+          .map(Children.Identified.apply)
     }
+
+  final def toMap: Map[Key, A] = this match {
+    case Children.Indexed(values) => values.zipWithIndex.map { case (child, index) => Key.Index(index) -> child }.toMap
+    case Children.Identified(values) => values.map { case (key, child) => Key.Identifier(key) -> child }
+  }
 }
 
 object Children {
@@ -70,10 +86,7 @@ object Children {
   }
 
   implicit val functor: Functor[Children] = new Functor[Children] {
-    override def map[A, B](fa: Children[A])(f: A => B): Children[B] = fa match {
-      case Indexed(values)    => Indexed(values.map(f))
-      case Identified(values) => Identified(values.map { case (key, child) => (key, f(child)) })
-    }
+    override def map[A, B](fa: Children[A])(f: A => B): Children[B] = fa.map(f)
   }
 
   implicit val traverse: Traverse[Children] = new Traverse[Children] {
