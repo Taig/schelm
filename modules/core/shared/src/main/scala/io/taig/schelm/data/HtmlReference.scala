@@ -1,34 +1,9 @@
 package io.taig.schelm.data
 
-import cats.data.Chain
-import cats.data.Chain.==:
-import cats.implicits._
 import io.taig.schelm.algebra.Dom
 import io.taig.schelm.util.PathTraversal
 
 final case class HtmlReference[F[_]](reference: NodeReference[F, Listeners[F], HtmlReference[F]]) extends AnyVal {
-//  def get(path: Path): Option[HtmlReference[F]] = path.values match {
-//    case Chain.nil => this.some
-//    case Key.Index(index) ==: tail =>
-//      val children = reference match {
-//        case NodeReference.Element(Node.Element(_, Node.Element.Variant.Normal(Children.Indexed(values)), _), _) =>
-//          values.some
-//        case NodeReference.Fragment(Node.Fragment(Children.Indexed(values))) => values.some
-//        case _                                                               => None
-//      }
-//
-//      children.flatMap(_.get(index.toLong)).flatMap(_.get(Path(tail)))
-//    case Key.Identifier(identifier) ==: tail =>
-//      val children = reference match {
-//        case NodeReference.Element(Node.Element(_, Node.Element.Variant.Normal(Children.Identified(values)), _), _) =>
-//          values.some
-//        case NodeReference.Fragment(Node.Fragment(Children.Identified(values))) => values.some
-//        case _                                                                  => None
-//      }
-//
-//      children.flatMap(_.get(identifier)).flatMap(_.get(Path(tail)))
-//  }
-
 //  def html: Html[F] = Html(reference.node.bimap(_.toListeners, _.html))
 
   def dom: Vector[Dom.Node] = reference match {
@@ -39,9 +14,9 @@ final case class HtmlReference[F[_]](reference: NodeReference[F, Listeners[F], H
 }
 
 object HtmlReference {
-  implicit def traversal[F[_]]: PathTraversal[HtmlReference[F]] =
-    PathTraversal.ofReference[F, Listeners[F], HtmlReference[F]](
-      _.reference,
-      (html, reference) => html.copy(reference = reference)
-    )
+//  implicit def traversal[F[_]]: PathTraversal[HtmlReference[F]] =
+//    PathTraversal.ofNode[F, Listeners[F], HtmlReference[F]](
+//      _.reference.node,
+//      (html, reference) => html.copy(reference = html.reference)
+//    )
 }

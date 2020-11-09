@@ -1,20 +1,16 @@
 package io.taig.schelm.data
 
-import cats.implicits._
 import io.taig.schelm.algebra.Dom
 
-final case class ListenerReferences[+F[_]](
-    values: Map[Listener.Name, (Dom.Listener, Listener.Action[F])]
-) extends AnyVal {
+final case class ListenerReferences(values: Map[Listener.Name, Dom.Listener]) extends AnyVal {
   @inline
-  def get(name: Listener.Name): Option[(Dom.Listener, Listener.Action[F])] = values.get(name)
+  def get(name: Listener.Name): Option[Dom.Listener] = values.get(name)
 
-  def updated[G[a] >: F[a]](
-      name: Listener.Name,
-      reference: Dom.Listener,
-      action: Listener.Action[G]
-  ): ListenerReferences[G] =
-    ListenerReferences(values + (name -> ((reference, action))))
+  def updated(name: Listener.Name, reference: Dom.Listener): ListenerReferences =
+    ListenerReferences(values + (name -> reference))
+}
 
-  def toListeners: Listeners[F] = Listeners(values.fmap(_._2))
+object ListenerReferences {
+  def from(references: Iterable[(Listener.Name, Dom.Listener)]): ListenerReferences =
+    ListenerReferences(references.toMap)
 }

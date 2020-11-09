@@ -11,7 +11,7 @@ final case class HtmlAttachedReference[F[_]](
 }
 
 object HtmlAttachedReference {
-  implicit def traversal[F[_]]: PathTraversal[HtmlAttachedReference[F]] = ???
+  implicit def traversal[F[_]]: PathTraversal[HtmlAttachedReference, F] = ???
 //    PathTraversal
 //      .ofReference[F, ListenerReferences[F], HtmlAttachedReference[F]](
 //        _.reference,
