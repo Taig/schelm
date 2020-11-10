@@ -5,17 +5,17 @@ import cats.implicits._
 import cats.{Applicative, MonadError}
 import io.taig.schelm.algebra.{Dom, Patcher}
 import io.taig.schelm.css.data._
-import io.taig.schelm.data.{HtmlAttachedReference, HtmlDiff}
+import io.taig.schelm.data.{HtmlDiff, HtmlHydratedReference}
 import io.taig.schelm.interpreter.HtmlPatcher
 
 object CssHtmlPatcher {
   def apply[F[_]: Applicative](
-      html: Patcher[F, HtmlAttachedReference[F], HtmlDiff[F]],
+      html: Patcher[F, HtmlHydratedReference[F], HtmlDiff[F]],
       css: Patcher[F, Map[Selector, Style], List[CssDiff]]
-  ): Patcher[F, StyledHtmlAttachedReference[F], CssHtmlDiff[F]] = Kleisli {
-    case (x @ StyledHtmlAttachedReference(styles, reference), diff) =>
+  ): Patcher[F, StyledHtmlHydratedReference[F], CssHtmlDiff[F]] = Kleisli {
+    case (x @ StyledHtmlHydratedReference(styles, reference), diff) =>
       diff.value match {
-        case Ior.Left(diff)  => html.run((reference, diff)).map(StyledHtmlAttachedReference(styles, _))
+        case Ior.Left(diff)  => html.run((reference, diff)).map(StyledHtmlHydratedReference(styles, _))
         case Ior.Right(diff) => css.run((styles, diff.toList)).as(x)
         case Ior.Both(htmlDiff, cssDiff) =>
           css
@@ -25,6 +25,6 @@ object CssHtmlPatcher {
 
   def default[F[_]: MonadError[*[_], Throwable]](
       dom: Dom[F]
-  ): Patcher[F, StyledHtmlAttachedReference[F], CssHtmlDiff[F]] =
+  ): Patcher[F, StyledHtmlHydratedReference[F], CssHtmlDiff[F]] =
     CssHtmlPatcher(HtmlPatcher.default(dom), Patcher.noop)
 }

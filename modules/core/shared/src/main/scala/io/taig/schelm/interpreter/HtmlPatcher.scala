@@ -5,17 +5,7 @@ import cats.MonadError
 import cats.data.Kleisli
 import cats.implicits._
 import io.taig.schelm.algebra.{Dom, Patcher, Renderer}
-import io.taig.schelm.data.Node.Element.Variant
-import io.taig.schelm.data.{
-  Html,
-  HtmlAttachedReference,
-  HtmlDiff,
-  HtmlHydratedReference,
-  HtmlReference,
-  ListenerReferences,
-  Node,
-  NodeReference
-}
+import io.taig.schelm.data._
 
 object HtmlPatcher {
   @nowarn("msg=never used")

@@ -24,11 +24,11 @@ sealed abstract class Children[+A] extends Product with Serializable {
     case Children.Identified(values) => values
   }
 
-  final def updated[B >: A](index: Int, value: B): Children[B] = this match {
-    case Children.Indexed(values) => Children.Indexed(values.updated(index, value))
-    case Children.Identified(values) =>
-      val key = values.keys.apply(index)
-      Children.Identified(values.updated(key, value))
+  final def updated[B >: A](key: Key, value: B): Children[B] = (key, this) match {
+    case (Key.Index(index), Children.Indexed(values)) => Children.Indexed(values.updated(index, value))
+    case (Key.Identifier(identifier), Children.Identified(values)) =>
+      Children.Identified(values.updated(identifier, value))
+    case _ => this
   }
 
   final def ++[B >: A](children: Children[B]): Children[B] = (this, children) match {

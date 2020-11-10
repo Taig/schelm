@@ -16,16 +16,15 @@ import io.taig.schelm.dsl.util.Functors._
 import io.taig.schelm.interpreter._
 import io.taig.schelm.redux.algebra.EventManager
 import io.taig.schelm.redux.interpreter.{QueueEventManager, ReduxRenderer}
-import io.taig.schelm.util.PathTraversal.ops._
 
 final class Schelm[F[_], Event, Context](
     states: StateManager[F, StyledHtml[F]],
     events: EventManager[F, Event],
     structurer: Renderer[Kleisli[F, Context, *], Widget[F, Event, Context], StyledHtml[F]],
     renderer: Renderer[F, StyledHtml[F], StyledHtmlReference[F]],
-    attacher: Attacher[F, StyledHtmlReference[F], StyledHtmlAttachedReference[F]],
+    attacher: Attacher[F, StyledHtmlReference[F], StyledHtmlHydratedReference[F]],
     differ: Differ[F, StyledHtml[F], CssHtmlDiff[F]],
-    patcher: Patcher[F, StyledHtmlAttachedReference[F], CssHtmlDiff[F]]
+    patcher: Patcher[F, StyledHtmlHydratedReference[F], CssHtmlDiff[F]]
 )(implicit F: Async[F]) {
   @nowarn("msg=shadows")
   def start[State](initial: State)(
@@ -50,7 +49,7 @@ final class Schelm[F[_], Event, Context](
       context: State => Context,
       render: State => Widget[F, Event, Context],
       update: (State, Event) => State,
-      reference: StyledHtmlAttachedReference[F]
+      reference: StyledHtmlHydratedReference[F]
   ): F[Unit] =
     states.subscription
       .map(_.asLeft)
@@ -112,12 +111,12 @@ object Schelm {
       renderer = Kleisli[F, StyledHtml[F], StyledHtmlReference[F]] {
         case StyledHtml(styles, html) => htmlRenderer.run(html).map(StyledHtmlReference(styles, _))
       }
-      attacher = Kleisli[F, StyledHtmlReference[F], StyledHtmlAttachedReference[F]] {
+      attacher = Kleisli[F, StyledHtmlReference[F], StyledHtmlHydratedReference[F]] {
         case StyledHtmlReference(styles, reference) =>
           styleAttacher.run(styles) *> htmlAttacher.run(reference).map(StyledHtmlAttachedReference(styles, _))
       }
       differ = StyledHtmlDiffer.default[F]
-      patcher = Patcher[F, StyledHtmlAttachedReference[F], CssHtmlDiff[F]] { (reference, diff) =>
+      patcher = Patcher[F, StyledHtmlHydratedReference[F], CssHtmlDiff[F]] { (reference, diff) =>
         cssHtmlPatcher.run(reference -> diff)
       }
       // format: on
