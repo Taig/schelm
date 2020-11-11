@@ -14,16 +14,16 @@ object HtmlDiffer {
   def apply[F[_]: Applicative]: Differ[F, Html[F], HtmlDiff[F]] = {
     def diff(current: Html[F], next: Html[F]): Option[HtmlDiff[F]] =
       (current.unfix, next.unfix) match {
-        case (current: Node.Element[F, Listeners[F], Html[F]], next: Node.Element[F, Listeners[F], Html[F]]) =>
+        case (current: Node.Element[F, Html[F]], next: Node.Element[F, Html[F]]) =>
           element(current, next)
-        case (current: Node.Fragment[Html[F]], next: Node.Fragment[Html[F]])         => fragment(current, next)
-        case (current: Node.Text[F, Listeners[F]], next: Node.Text[F, Listeners[F]]) => text(current, next)
-        case _                                                                       => HtmlDiff.Replace(next).some
+        case (current: Node.Fragment[Html[F]], next: Node.Fragment[Html[F]]) => fragment(current, next)
+        case (current: Node.Text[F], next: Node.Text[F])                     => text(current, next)
+        case _                                                               => HtmlDiff.Replace(next).some
       }
 
     def element(
-        current: Node.Element[F, Listeners[F], Html[F]],
-        next: Node.Element[F, Listeners[F], Html[F]]
+        current: Node.Element[F, Html[F]],
+        next: Node.Element[F, Html[F]]
     ): Option[HtmlDiff[F]] = {
       if (current.tag.name != next.tag.name) HtmlDiff.Replace(Html(next)).some
       else {
@@ -42,7 +42,7 @@ object HtmlDiffer {
     def fragment(current: Node.Fragment[Html[F]], next: Node.Fragment[Html[F]]): Option[HtmlDiff[F]] =
       children(current.children, next.children)
 
-    def text(current: Node.Text[F, Listeners[F]], next: Node.Text[F, Listeners[F]]): Option[HtmlDiff[F]] =
+    def text(current: Node.Text[F], next: Node.Text[F]): Option[HtmlDiff[F]] =
       if (current.value != next.value) HtmlDiff.UpdateText(next.value).some else none
 
     def attributes(current: Attributes, next: Attributes): Option[HtmlDiff[F]] =

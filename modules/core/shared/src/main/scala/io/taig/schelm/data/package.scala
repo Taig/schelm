@@ -3,36 +3,36 @@ package io.taig.schelm
 import cats.{Eq, Monoid, MonoidK}
 
 package object data {
-  type Html[F[_]] = Fix[Node[F, Listeners[F], *]]
+  type Html[F[_]] = Fix[Node[F, *]]
 
   object Html {
     @inline
-    def apply[F[_]](node: Node[F, Listeners[F], Html[F]]): Html[F] = Fix(node)
+    def apply[F[_]](node: Node[F, Html[F]]): Html[F] = Fix(node)
   }
 
-  type StateHtml[F[_]] = Fix[λ[A => State[F, Node[F, Listeners[F], A]]]]
+  type StateHtml[F[_]] = Fix[λ[A => State[F, Node[F, A]]]]
 
   object StateHtml {
-    def apply[F[_]](state: State[F, Node[F, Listeners[F], StateHtml[F]]]): StateHtml[F] =
-      Fix[λ[A => State[F, Node[F, Listeners[F], A]]]](state)
+    def apply[F[_]](state: State[F, Node[F, StateHtml[F]]]): StateHtml[F] =
+      Fix[λ[A => State[F, Node[F, A]]]](state)
   }
 
-  type WidgetHtml[F[_], Context] = Fix[λ[A => Contextual[Context, Node[F, Listeners[F], A]]]]
+  type WidgetHtml[F[_], Context] = Fix[λ[A => Contextual[Context, Node[F, A]]]]
 
   object WidgetHtml {
     def apply[F[_], Context](
-        widget: Contextual[Context, Node[F, Listeners[F], WidgetHtml[F, Context]]]
+        widget: Contextual[Context, Node[F, WidgetHtml[F, Context]]]
     ): WidgetHtml[F, Context] =
-      Fix[λ[A => Contextual[Context, Node[F, Listeners[F], A]]]](widget)
+      Fix[λ[A => Contextual[Context, Node[F, A]]]](widget)
   }
 
-  type WidgetStateHtml[F[_], Context] = Fix[λ[A => Contextual[Context, State[F, Node[F, Listeners[F], A]]]]]
+  type WidgetStateHtml[F[_], Context] = Fix[λ[A => Contextual[Context, State[F, Node[F, A]]]]]
 
   object WidgetStateHtml {
     def apply[F[_], Context](
-        widget: Contextual[Context, State[F, Node[F, Listeners[F], WidgetStateHtml[F, Context]]]]
+        widget: Contextual[Context, State[F, Node[F, WidgetStateHtml[F, Context]]]]
     ): WidgetStateHtml[F, Context] =
-      Fix[λ[A => Contextual[Context, State[F, Node[F, Listeners[F], A]]]]](widget)
+      Fix[λ[A => Contextual[Context, State[F, Node[F, A]]]]](widget)
   }
 
   type StateTree[+A] = PathTree[StateTree.States[A]]

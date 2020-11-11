@@ -1,9 +1,9 @@
 package io.taig.schelm.data
 
 import io.taig.schelm.algebra.Dom
-import io.taig.schelm.util.PathTraversal
+import io.taig.schelm.util.PathModification
 
-final case class HtmlReference[F[_]](reference: NodeReference[F, Listeners[F], HtmlReference[F]]) extends AnyVal {
+final case class HtmlReference[F[_]](reference: NodeReference[F, HtmlReference[F]]) extends AnyVal {
 //  def html: Html[F] = Html(reference.node.bimap(_.toListeners, _.html))
 
   def dom: Vector[Dom.Node] = reference match {

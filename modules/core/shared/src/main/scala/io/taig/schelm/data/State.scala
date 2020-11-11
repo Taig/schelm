@@ -1,6 +1,6 @@
 package io.taig.schelm.data
 
-import cats.Functor
+import cats._
 
 sealed abstract class State[+F[_], +A] extends Product with Serializable {
   def map[B](f: A => B): State[F, B]

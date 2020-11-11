@@ -15,6 +15,7 @@ import io.taig.schelm.dsl.interpreter.WidgetRenderer
 import io.taig.schelm.dsl.util.Functors._
 import io.taig.schelm.interpreter._
 import io.taig.schelm.redux.algebra.EventManager
+import io.taig.schelm.util.PathModification.ops._
 import io.taig.schelm.redux.interpreter.{QueueEventManager, ReduxRenderer}
 
 final class Schelm[F[_], Event, Context](
@@ -57,7 +58,7 @@ final class Schelm[F[_], Event, Context](
       .evalScan((initial, reference)) {
         case ((previous, reference), Left(state)) =>
           reference
-            .modify[F](state.path) { reference =>
+            .modify(state.path) { reference =>
               differ
                 .run((StyledHtml(reference.styles, reference.html.html), state.structure))
                 .flatMap(_.traverse(diff => patcher.run((reference, diff))))
@@ -69,7 +70,7 @@ final class Schelm[F[_], Event, Context](
           if (next == previous) state.pure[F]
           else {
             reference
-              .modify[F](Path.Root) { reference =>
+              .modify(Path.Root) { reference =>
                 structurer.run(render(next)).run(context(next)).flatMap { html =>
                   differ
                     .run((StyledHtml(reference.styles, reference.html.html), html))
