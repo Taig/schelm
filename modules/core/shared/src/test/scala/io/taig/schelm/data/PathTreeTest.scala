@@ -4,19 +4,19 @@ import cats.implicits._
 import munit.FunSuite
 
 final class PathTreeTest extends FunSuite {
-  val Empty: PathTree[Int] = PathTree.empty[Int]
+  val Empty: StateTree[Int] = StateTree.empty[Int]
 
-  val DeepTree: PathTree[Int] = PathTree[Int](
+  val DeepTree: StateTree[Int] = StateTree[Int](
     value = 0,
     children = Map(
       Key.Index(0) -> Empty,
-      Key.Index(1) -> PathTree(
+      Key.Index(1) -> StateTree(
         value = 1,
         children = Map(
-          Key.Index(0) -> PathTree(value = 3, children = Map.empty)
+          Key.Index(0) -> StateTree(value = 3, children = Map.empty)
         )
       ),
-      Key.Identifier("foobar") -> PathTree(value = 5, children = Map.empty)
+      Key.Identifier("foobar") -> StateTree(value = 5, children = Map.empty)
     )
   )
 
@@ -41,24 +41,24 @@ final class PathTreeTest extends FunSuite {
   }
 
   test("delete on deep tree") {
-    val tree = PathTree(
+    val tree = StateTree(
       value = 0,
       children = Map(
         Key.Index(0) -> Empty,
-        Key.Index(1) -> PathTree(
+        Key.Index(1) -> StateTree(
           value = 1,
           children = Map(
-            Key.Index(0) -> PathTree(value = 2, children = Map.empty)
+            Key.Index(0) -> StateTree(value = 2, children = Map.empty)
           )
         ),
-        Key.Identifier("foobar") -> PathTree(value = 3, children = Map.empty)
+        Key.Identifier("foobar") -> StateTree(value = 3, children = Map.empty)
       )
     )
 
     assertEquals(obtained = tree.delete(Path.Root), Empty)
     assertEquals(
       obtained = tree.delete(Path.Root / Key.Index(1)).delete(Path.Root / Key.Identifier("foobar")),
-      expected = PathTree[Int](value = 0, children = Map(Key.Index(0) -> Empty))
+      expected = StateTree[Int](value = 0, children = Map(Key.Index(0) -> Empty))
     )
   }
 }

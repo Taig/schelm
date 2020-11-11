@@ -1,22 +1,18 @@
 package io.taig.schelm.data
 
 import io.taig.schelm.algebra.Dom
-import io.taig.schelm.util.PathModification
+import io.taig.schelm.util.NodeReferenceTraverse
 
-final case class HtmlReference[F[_]](reference: NodeReference[F, HtmlReference[F]]) extends AnyVal {
-//  def html: Html[F] = Html(reference.node.bimap(_.toListeners, _.html))
-
-  def dom: Vector[Dom.Node] = reference match {
-    case NodeReference.Element(_, dom) => Vector(dom)
-    case NodeReference.Fragment(node)  => node.children.indexed.flatMap(_.dom)
-    case NodeReference.Text(_, dom)    => Vector(dom)
-  }
-}
+final case class HtmlReference[F[_]](value: NodeReference[F, HtmlReference[F]]) extends AnyVal
 
 object HtmlReference {
-//  implicit def traversal[F[_]]: PathTraversal[HtmlReference[F]] =
-//    PathTraversal.ofNode[F, Listeners[F], HtmlReference[F]](
-//      _.reference.node,
-//      (html, reference) => html.copy(reference = html.reference)
-//    )
+  implicit def traverse[F[_]]: NodeReferenceTraverse[HtmlReference[F]] = new NodeReferenceTraverse[HtmlReference[F]] {
+    override def dom(html: HtmlReference[F]): Vector[Dom.Node] = html.value match {
+      case reference: NodeReference.Element[F, HtmlReference[F]] => Vector(reference.dom)
+      case reference: NodeReference.Fragment[HtmlReference[F]]   => reference.node.children.values.flatMap(dom)
+      case reference: NodeReference.Text[F]                      => Vector(reference.dom)
+    }
+
+    override def mapAttributes(fa: HtmlReference[F])(f: Attributes => Attributes): HtmlReference[F] = ???
+  }
 }

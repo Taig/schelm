@@ -1,7 +1,7 @@
 package io.taig.schelm.util
 
 import cats.implicits._
-import io.taig.schelm.data.{Key, PathTree, StateTree}
+import io.taig.schelm.data.{Key, StateTree, StateTree}
 import org.scalacheck.Cogen
 import org.scalacheck.rng.Seed
 
@@ -16,10 +16,10 @@ object Cogens {
   def stateTreeStates[A](payload: Cogen[A]): Cogen[StateTree.States[A]] =
     Cogen.it[Vector[A], A](_.iterator)(payload).contramap(_.values)
 
-  def pathTreeChildren[A](payload: Cogen[A]): Cogen[Map[Key, PathTree[A]]] =
+  def pathTreeChildren[A](payload: Cogen[A]): Cogen[Map[Key, StateTree[A]]] =
     Cogen.cogenMap(key, Ordering[Key], pathTree(payload))
 
-  def pathTree[A](payload: Cogen[A]): Cogen[PathTree[A]] = Cogen { (seed: Seed, tree: PathTree[A]) =>
+  def pathTree[A](payload: Cogen[A]): Cogen[StateTree[A]] = Cogen { (seed: Seed, tree: StateTree[A]) =>
     payload.perturb(pathTreeChildren(payload).perturb(seed, tree.children), tree.value)
   }
 }

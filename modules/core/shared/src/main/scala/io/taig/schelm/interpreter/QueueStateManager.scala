@@ -16,17 +16,17 @@ final class QueueStateManager[F[_], View](
     extends StateManager[F, View] {
   override val snapshot: F[StateTree[_]] = states.get
 
-  override def submit[A](path: Path, view: View, initial: A, state: A, index: Int): F[Unit] =
-    states
-      .modify[Option[StateManager.Update[View]]] { states =>
-        val previous = states.find(path).getOrElse(initial)
-        if (previous == state) (states, None)
-        else (??? /*states.updatedState(path, state, index)*/, Some(StateManager.Update(path, view)))
-      }
-      .flatMap {
-        case Some(update) => queue.enqueue1(update)
-        case None         => F.unit
-      }
+  override def submit[A](path: Path, view: View, initial: A, state: A, index: Int): F[Unit] = ???
+//    states
+//      .modify[Option[StateManager.Update[View]]] { states =>
+//        val previous = states.find(path).getOrElse(initial)
+//        if (previous == state) (states, None)
+//        else (??? /*states.updatedState(path, state, index)*/, Some(StateManager.Update(path, view)))
+//      }
+//      .flatMap {
+//        case Some(update) => queue.enqueue1(update)
+//        case None         => F.unit
+//      }
 
   override val subscription: Stream[F, StateManager.Update[View]] = queue.dequeue
 }

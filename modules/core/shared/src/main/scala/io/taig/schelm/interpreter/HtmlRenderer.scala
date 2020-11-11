@@ -1,16 +1,18 @@
 package io.taig.schelm.interpreter
 
+import scala.annotation.tailrec
+
 import cats.Monad
 import cats.data.Kleisli
 import cats.implicits._
 import io.taig.schelm.algebra.{Dom, Renderer}
 import io.taig.schelm.data.Node.Element.Variant
 import io.taig.schelm.data._
-import org.scalajs.dom.raw.Event
+import io.taig.schelm.util.NodeReferenceTraverse.ops._
 
 /** Turns an `Html` structure into a DOM representation
   *
-  * This resulting DOM representation depends on the given `dom` parameter. It may be used to instantiate
+  * The resulting DOM representation depends on the given `dom` parameter. It may be used to instantiate
   * <em>JavaScript</em> or <em>jsoup</em> `Node`s.
   *
   * @return An `HtmlReference` which is the original `Html` structure, annotated with the created DOM representation
@@ -46,7 +48,7 @@ object HtmlRenderer {
       case Variant.Void => Void
     }
 
-    def render(html: Html[F]): F[HtmlReference[F]] = html.unfix match {
+    def render(html: Html[F]): F[HtmlReference[F]] = html.value match {
       case node: Node.Element[F, Html[F]] => element(node)
       case node: Node.Fragment[Html[F]]   => fragment(node)
       case node: Node.Text[F]             => text(node)

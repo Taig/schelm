@@ -6,10 +6,10 @@ import munit.DisciplineSuite
 import org.scalacheck.{Arbitrary, Cogen, Gen}
 
 final class PathTreeLawsTest extends DisciplineSuite {
-  implicit val arbitrary: Arbitrary[PathTree[Int]] = Arbitrary(Generators.pathTree(Gen.posNum[Int], maxDepth = 10))
+  implicit val arbitrary: Arbitrary[StateTree[Int]] = Arbitrary(Generators.pathTree(Gen.posNum[Int], maxDepth = 10))
 
-  implicit val cogen: Cogen[PathTree[Int]] = Cogens.pathTree(Cogen[Int])
+  implicit val cogen: Cogen[StateTree[Int]] = Cogens.pathTree(Cogen[Int])
 
-  checkAll("PathTree", MonoidTests[PathTree[Int]].monoid)
-  checkAll("PathTree", EqTests[PathTree[Int]].eqv)
+  checkAll("PathTree", MonoidTests[StateTree[Int]].monoid)
+  checkAll("PathTree", EqTests[StateTree[Int]].eqv)
 }

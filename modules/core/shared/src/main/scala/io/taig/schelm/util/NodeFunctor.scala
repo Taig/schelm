@@ -1,18 +1,20 @@
 package io.taig.schelm.util
 
-import cats.Functor
-import io.taig.schelm.data._
+import io.taig.schelm.data.{Attributes, Node}
 import simulacrum.typeclass
 
 @typeclass
-trait NodeFunctor[F[_[_], _, _]] {
-  def algebra[G[_], Listeners]: Functor[F[G, Listeners, *]]
+trait NodeFunctor[A] {
+  def mapAttributes(fa: A)(f: Attributes => Attributes): A
+}
 
-  def mapWithKey[G[_], Listeners, A, B](fa: F[G, Listeners, A])(f: (Key, A) => B): F[G, Listeners, B]
-
-  def mapAttributes[G[_], Listeners, A](fa: F[G, Listeners, A])(f: Attributes => Attributes): F[G, Listeners, A]
-
-  def mapListeners[G[_], A, B, C](fa: F[G, A, C])(f: A => B): F[G, B, C]
-
-  def mapChildren[G[_], Listeners, A, B](fa: F[G, Listeners, A])(f: Children[A] => Children[B]): F[G, Listeners, B]
+object NodeFunctor {
+  implicit def node[F[_], A]: NodeFunctor[Node[F, A]] = new NodeFunctor[Node[F, A]] {
+    override def mapAttributes(node: Node[F, A])(f: Attributes => Attributes): Node[F, A] =
+      node match {
+        case node: Node.Element[F, A] => node.copy(tag = node.tag.copy(attributes = f(node.tag.attributes)))
+        case node: Node.Fragment[A]   => node
+        case node: Node.Text[F]       => node
+      }
+  }
 }

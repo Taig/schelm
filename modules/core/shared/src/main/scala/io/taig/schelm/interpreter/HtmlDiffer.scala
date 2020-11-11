@@ -13,7 +13,7 @@ import org.scalajs.dom.raw.Event
 object HtmlDiffer {
   def apply[F[_]: Applicative]: Differ[F, Html[F], HtmlDiff[F]] = {
     def diff(current: Html[F], next: Html[F]): Option[HtmlDiff[F]] =
-      (current.unfix, next.unfix) match {
+      (current.value, next.value) match {
         case (current: Node.Element[F, Html[F]], next: Node.Element[F, Html[F]]) =>
           element(current, next)
         case (current: Node.Fragment[Html[F]], next: Node.Fragment[Html[F]]) => fragment(current, next)
@@ -81,44 +81,29 @@ object HtmlDiffer {
         HtmlDiff.from(diffs)
       }
 
-    def children(current: Children[Html[F]], next: Children[Html[F]]): Option[HtmlDiff[F]] =
+    def children(current: Children[Html[F]], next: Children[Html[F]]): Option[HtmlDiff[F]] = {
       if (current.isEmpty && next.isEmpty) None
       else if (current.isEmpty) HtmlDiff.from(next.toList.map(HtmlDiff.AppendChild[F]))
       else if (next.isEmpty) Some(HtmlDiff.Clear)
-      else
-        (current, next) match {
-          case (previous: Children.Indexed[Html[F]], next: Children.Indexed[Html[F]]) =>
-            indexedChildren(previous, next)
-          case (previous: Children.Identified[Html[F]], next: Children.Identified[Html[F]]) =>
-            identifiedChildren(previous, next)
-          case (_, next) => HtmlDiff.from(HtmlDiff.Clear +: next.toList.map(HtmlDiff.AppendChild[F]))
+      else {
+        val left = current.values
+        val leftLength = left.length
+        val right = next.values
+        val rightLength = right.length
+
+        val diffs = (left zip right).zipWithIndex.mapFilter {
+          case ((previous, next), index) => diff(previous, next).map(HtmlDiff.UpdateChild(index, _))
         }
 
-    def indexedChildren(previous: Children.Indexed[Html[F]], next: Children.Indexed[Html[F]]): Option[HtmlDiff[F]] = {
-      val left = previous.values
-      val leftLength = left.length
-      val right = next.values
-      val rightLength = right.length
-
-      val diffs = (left zip right).zipWithIndex.mapFilter {
-        case ((previous, next), index) => diff(previous, next).map(HtmlDiff.UpdateChild(index, _))
+        if (leftLength < rightLength) {
+          val adds = right.slice(leftLength, rightLength).map(HtmlDiff.AppendChild[F])
+          HtmlDiff.from(diffs ++ adds)
+        } else if (left.length > rightLength) {
+          val removes = (rightLength until leftLength).map(HtmlDiff.RemoveChild)
+          HtmlDiff.from(diffs ++ removes)
+        } else HtmlDiff.from(diffs)
       }
-
-      if (leftLength < rightLength) {
-        val adds = right.slice(leftLength, rightLength).map(HtmlDiff.AppendChild[F])
-        HtmlDiff.from(diffs ++ adds)
-      } else if (left.length > rightLength) {
-        val removes = (rightLength until leftLength).map(HtmlDiff.RemoveChild)
-        HtmlDiff.from(diffs ++ removes)
-      } else HtmlDiff.from(diffs)
     }
-
-    @nowarn("msg=never used")
-    def identifiedChildren(
-        previous: Children.Identified[Html[F]],
-        next: Children.Identified[Html[F]]
-    ): Option[HtmlDiff[F]] =
-      throw new UnsupportedOperationException("Diffing identified children is not implemented yet")
 
     Kleisli {
       case (current, next) => diff(current, next).pure[F]

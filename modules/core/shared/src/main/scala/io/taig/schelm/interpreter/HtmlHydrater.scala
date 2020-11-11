@@ -7,14 +7,13 @@ import io.taig.schelm.algebra.{Dom, Hydrater}
 import io.taig.schelm.data._
 import io.taig.schelm.data.Node.Element.Variant
 import alleycats.std.set._
-import io.taig.schelm.util.PathModification.ops._
 import org.scalajs.dom.raw.Event
 
 object HtmlHydrater {
   def apply[F[_]](dom: Dom[F], html: F[Html[F]])(
       implicit F: MonadCancel[F, Throwable]
   ): Hydrater[F, (HtmlReference[F], Path), HtmlHydratedReference[F]] = {
-    def listeners(html: Html[F]): Option[Listeners[F]] = html.unfix match {
+    def listeners(html: Html[F]): Option[Listeners[F]] = html.value match {
       case node: Node.Element[F, Html[F]] => Some(node.tag.listeners)
       case _: Node.Fragment[_]            => None
       case node: Node.Text[F]             => Some(node.listeners)
@@ -72,13 +71,13 @@ object HtmlHydrater {
 //          }
 //        }
 
-    def fragment(reference: NodeReference.Fragment[HtmlReference[F]], path: Path): F[HtmlHydratedReference[F]] =
-      reference.node.children
-        .traverseWithKey((key, child) => hydrate(child, path / key))
-        .map { children =>
-          val node = reference.node.copy(children = children)
-          HtmlHydratedReference(reference.copy(node = node), F.unit)
-        }
+    def fragment(reference: NodeReference.Fragment[HtmlReference[F]], path: Path): F[HtmlHydratedReference[F]] = ???
+//      reference.node.children
+//        .traverseWithKey((key, child) => hydrate(child, path / key))
+//        .map { children =>
+//          val node = reference.node.copy(children = children)
+//          HtmlHydratedReference(reference.copy(node = node), ListenerReferences.Empty, F.unit)
+//        }
 
     def text(reference: NodeReference.Text[F], path: Path): F[HtmlHydratedReference[F]] = ???
 //      reference.node.listeners.keys
@@ -94,7 +93,7 @@ object HtmlHydrater {
 //          }
 //        }
 
-    def hydrate(html: HtmlReference[F], path: Path): F[HtmlHydratedReference[F]] = html.reference match {
+    def hydrate(html: HtmlReference[F], path: Path): F[HtmlHydratedReference[F]] = html.value match {
       case reference: NodeReference.Element[F, HtmlReference[F]] => element(reference, path)
       case reference: NodeReference.Fragment[HtmlReference[F]]   => fragment(reference, path)
       case reference: NodeReference.Text[F]                      => text(reference, path)

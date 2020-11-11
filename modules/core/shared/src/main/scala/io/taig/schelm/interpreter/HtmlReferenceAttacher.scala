@@ -8,7 +8,7 @@ import io.taig.schelm.data._
 object HtmlReferenceAttacher {
   def apply[F[_]: MonadCancel[*[_], Throwable]](
       attacher: Attacher[F, Vector[Dom.Node], Dom.Element]
-  ): Attacher[F, HtmlReference[F], Dom.Element] = Kleisli(html => attacher.run(html.dom))
+  ): Attacher[F, HtmlReference[F], Dom.Element] = Kleisli(html => attacher.run(???))
 
   def default[F[_]: MonadCancel[*[_], Throwable]](
       dom: Dom[F]
