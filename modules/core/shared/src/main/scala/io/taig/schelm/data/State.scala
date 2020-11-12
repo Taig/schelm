@@ -23,8 +23,7 @@ final case class Stateful[F[_], A, B](
   private[schelm] def internalStateUpdate(
       manager: StateManager[F],
       identification: Identification
-  ): (A => A) => F[Unit] =
-    manager.submit(identification, identifier, default, _)
+  ): (A => A) => F[Unit] = apply => manager.submit(StateManager.Update(identification, identifier, default, apply))
 
   private[schelm] def internalStateCurrent(states: Map[Identifier, Any]): A =
     try states.getOrElse(identifier, default).asInstanceOf[A]
