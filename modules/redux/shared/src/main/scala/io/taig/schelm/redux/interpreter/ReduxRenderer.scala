@@ -2,7 +2,7 @@ package io.taig.schelm.redux.interpreter
 
 import cats.data.Kleisli
 import cats.implicits._
-import cats.{~>, Applicative, Functor, Id}
+import cats.{Applicative, Functor, Id}
 import io.taig.schelm.algebra.Renderer
 import io.taig.schelm.data.Fix
 import io.taig.schelm.redux.algebra.EventManager
@@ -23,14 +23,8 @@ object ReduxRenderer {
     Kleisli(redux => Kleisli[Id, EventManager[F, Event], Fix[G]](manager => pure[F, G, Event](manager).apply(redux)))
 
   def apply[F[_]: Applicative, G[_]: Functor, Event]
-      : Renderer[Kleisli[F, EventManager[F, Event], *], Fix[λ[A => Redux[F, Event, G[A]]]], Fix[G]] = {
-    val lift = new (Kleisli[Id, EventManager[F, Event], *] ~> Kleisli[F, EventManager[F, Event], *]) {
-      override def apply[A](fa: Kleisli[Id, EventManager[F, Event], A]): Kleisli[F, EventManager[F, Event], A] =
-        fa.mapK(FunctionKs.liftId[F])
-    }
-
-    id[F, G, Event].mapK(lift)
-  }
+      : Renderer[Kleisli[F, EventManager[F, Event], *], Fix[λ[A => Redux[F, Event, G[A]]]], Fix[G]] =
+    id[F, G, Event].mapK(Kleisli.liftFunctionK(FunctionKs.liftId[F]))
 
   def fromEventManager[F[_]: Applicative, G[_]: Functor, Event](
       manager: EventManager[F, Event]

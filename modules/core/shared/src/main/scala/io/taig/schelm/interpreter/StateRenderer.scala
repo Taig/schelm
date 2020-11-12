@@ -65,7 +65,7 @@ object StateRenderer {
 
   def root[F[_]: Sync, G[_] /*: NodeTraverseX*/, A](
       renderer: Renderer[F, Fix[G], A],
-      states: StateManager[F, A]
+      states: StateManager[F]
   ): Renderer[F, Fix[λ[B => State[F, G[B]]]], Fix[G]] =
     ??? // StateRenderer(renderer, states).mapK(Kleisli.applyK(Path.Root))
 }

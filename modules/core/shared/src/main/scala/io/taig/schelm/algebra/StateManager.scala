@@ -1,16 +1,9 @@
 package io.taig.schelm.algebra
 
-import fs2.Stream
-import io.taig.schelm.data.{Path, StateTree}
+import io.taig.schelm.data.{Identification, Identifier, StateTree}
 
-abstract class StateManager[F[_], Structure] {
+abstract class StateManager[F[_]] {
   def snapshot: F[StateTree[_]]
 
-  def submit[A](path: Path, view: Structure, initial: A, state: A, index: Int): F[Unit]
-
-  def subscription: Stream[F, StateManager.Update[Structure]]
-}
-
-object StateManager {
-  final case class Update[Structure](path: Path, structure: Structure)
+  def submit[A](identification: Identification, identifier: Identifier, default: A, update: A => A): F[Unit]
 }

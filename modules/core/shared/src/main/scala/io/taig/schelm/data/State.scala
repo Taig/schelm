@@ -1,6 +1,7 @@
 package io.taig.schelm.data
 
 import cats._
+import io.taig.schelm.algebra.StateManager
 import io.taig.schelm.util.NodeFunctor
 import io.taig.schelm.util.NodeFunctor.ops._
 
@@ -8,12 +9,26 @@ sealed abstract class State[+F[_], +A] extends Product with Serializable {
   def map[B](f: A => B): State[F, B]
 }
 
-final case class Stateful[F[_], A, B](initial: A, render: ((A => A) => F[Unit], A) => State[F, B]) extends State[F, B] {
+final case class Stateful[F[_], A, B](
+    identifier: Identifier,
+    default: A,
+    render: ((A => A) => F[Unit], A) => State[F, B]
+) extends State[F, B] {
   override def map[C](f: B => C): State[F, C] =
     copy[F, A, C](render = (update, current) => render(update, current).map(f))
 
-  private[data] def internalMapAttributes(f: Attributes => Attributes)(implicit node: NodeFunctor[B]): State[F, B] =
-    Stateful[F, A, B](initial, (update, current) => render(update, current).mapAttributes(f))
+  private[schelm] def internalMapAttributes(f: Attributes => Attributes)(implicit node: NodeFunctor[B]): State[F, B] =
+    Stateful[F, A, B](identifier, default, (update, current) => render(update, current).mapAttributes(f))
+
+  private[schelm] def internalStateUpdate(
+      manager: StateManager[F],
+      identification: Identification
+  ): (A => A) => F[Unit] =
+    manager.submit(identification, identifier, default, _)
+
+  private[schelm] def internalStateCurrent(states: Map[Identifier, Any]): A =
+    try states.getOrElse(identifier, default).asInstanceOf[A]
+    catch { case _: ClassCastException => default }
 }
 
 final case class Stateless[A](value: A) extends State[Nothing, A] {
