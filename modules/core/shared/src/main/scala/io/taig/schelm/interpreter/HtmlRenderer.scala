@@ -1,14 +1,12 @@
 package io.taig.schelm.interpreter
 
-import scala.annotation.tailrec
-
 import cats.Monad
 import cats.data.Kleisli
 import cats.implicits._
 import io.taig.schelm.algebra.{Dom, Renderer}
 import io.taig.schelm.data.Node.Element.Variant
 import io.taig.schelm.data._
-import io.taig.schelm.util.NodeReferenceTraverse.ops._
+import io.taig.schelm.implicits._
 
 /** Turns an `Html` structure into a DOM representation
   *
@@ -48,7 +46,7 @@ object HtmlRenderer {
       case Variant.Void => Void
     }
 
-    def render(html: Html[F]): F[HtmlReference[F]] = html.value match {
+    def render(html: Html[F]): F[HtmlReference[F]] = html.unfix match {
       case node: Node.Element[F, Html[F]] => element(node)
       case node: Node.Fragment[Html[F]]   => fragment(node)
       case node: Node.Text[F]             => text(node)

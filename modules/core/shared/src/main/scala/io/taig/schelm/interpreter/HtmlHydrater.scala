@@ -9,11 +9,12 @@ import io.taig.schelm.data.Node.Element.Variant
 import alleycats.std.set._
 import org.scalajs.dom.raw.Event
 
+/** Receives an `HtmlReference`, triggers the lifecycle methods and initializes the listeners */
 object HtmlHydrater {
   def apply[F[_]](dom: Dom[F], html: F[Html[F]])(
       implicit F: MonadCancel[F, Throwable]
   ): Hydrater[F, (HtmlReference[F], Path), HtmlHydratedReference[F]] = {
-    def listeners(html: Html[F]): Option[Listeners[F]] = html.value match {
+    def listeners(html: Html[F]): Option[Listeners[F]] = html.unfix match {
       case node: Node.Element[F, Html[F]] => Some(node.tag.listeners)
       case _: Node.Fragment[_]            => None
       case node: Node.Text[F]             => Some(node.listeners)
@@ -93,7 +94,7 @@ object HtmlHydrater {
 //          }
 //        }
 
-    def hydrate(html: HtmlReference[F], path: Path): F[HtmlHydratedReference[F]] = html.value match {
+    def hydrate(html: HtmlReference[F], path: Path): F[HtmlHydratedReference[F]] = html.unfix match {
       case reference: NodeReference.Element[F, HtmlReference[F]] => element(reference, path)
       case reference: NodeReference.Fragment[HtmlReference[F]]   => fragment(reference, path)
       case reference: NodeReference.Text[F]                      => text(reference, path)

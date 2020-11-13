@@ -13,7 +13,7 @@ import org.scalajs.dom.raw.Event
 object HtmlDiffer {
   def apply[F[_]: Applicative]: Differ[F, Html[F], HtmlDiff[F]] = {
     def diff(current: Html[F], next: Html[F]): Option[HtmlDiff[F]] =
-      (current.value, next.value) match {
+      (current.unfix, next.unfix) match {
         case (current: Node.Element[F, Html[F]], next: Node.Element[F, Html[F]]) =>
           element(current, next)
         case (current: Node.Fragment[Html[F]], next: Node.Fragment[Html[F]]) => fragment(current, next)

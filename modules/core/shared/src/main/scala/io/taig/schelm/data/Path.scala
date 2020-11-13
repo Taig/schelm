@@ -4,16 +4,13 @@ import cats.Show
 import cats.data.Chain
 import cats.implicits._
 
-final case class Path(values: Chain[Key]) extends AnyVal {
-  def /(key: Key): Path = Path(values.append(key))
-}
+final case class Path(identification: Identification, indices: Chain[Int])
 
 object Path {
-  val Root: Path = Path(Chain.empty)
+  val Root: Path = Path(Identification.Empty, Chain.empty)
 
-  object / {
-    def unapply[T](path: Path): Option[(Key, Path)] = path.values.uncons.map(_.map(apply))
+  implicit val show: Show[Path] = {
+    case Path(identification, Chain.nil) => identification.show
+    case Path(identification, indices)   => show"$identification / ${indices.mkString_(" / ")}"
   }
-
-  implicit val show: Show[Path] = _.values.mkString_(" / ")
 }

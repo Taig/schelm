@@ -1,8 +1,10 @@
 package io.taig.schelm.data
 
+import cats.Show
 import cats.data.Chain
 import cats.implicits._
 
+/** A DOM location description that exclusively consists of `Identifier`s */
 final case class Identification(values: Chain[Identifier]) extends AnyVal {
   def ++(identification: Identification): Identification = Identification(values ++ identification.values)
 
@@ -18,4 +20,6 @@ object Identification {
     def unapply[T](identification: Identification): Option[(Identifier, Identification)] =
       identification.values.uncons.map(_.map(apply))
   }
+
+  implicit val show: Show[Identification] = _.values.mkString_(" / ")
 }

@@ -5,6 +5,7 @@ import cats.implicits._
 import cats.{Applicative, Functor, Id}
 import io.taig.schelm.algebra.{Renderer, StateManager}
 import io.taig.schelm.data._
+import io.taig.schelm.implicits._
 import io.taig.schelm.util.FunctionKs
 
 import scala.annotation.tailrec

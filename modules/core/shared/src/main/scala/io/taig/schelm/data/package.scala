@@ -1,6 +1,28 @@
 package io.taig.schelm
 
 package object data {
+  type Html[F[_]] = Fix[Node[F, *]]
+
+  object Html {
+    @inline
+    def apply[F[_]](node: Node[F, Html[F]]): Html[F] = Fix(node)
+  }
+
+  type NamespaceHtml[F[_]] = Fix[λ[A => Namespace[Node[F, A]]]]
+
+  object NamespaceHtml {
+    @inline
+    def apply[F[_]](namespace: Namespace[Node[F, NamespaceHtml[F]]]): NamespaceHtml[F] =
+      Fix[λ[A => Namespace[Node[F, A]]]](namespace)
+  }
+
+  type HtmlReference[F[_]] = Fix[NodeReference[F, *]]
+
+  object HtmlReference {
+    @inline
+    def apply[F[_]](reference: NodeReference[F, HtmlReference[F]]): HtmlReference[F] = Fix(reference)
+  }
+
   type WidgetHtml[F[_], Context] = Fix[λ[A => Contextual[Context, Node[F, A]]]]
 
   object WidgetHtml {

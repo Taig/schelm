@@ -1,6 +1,6 @@
 # TODOs
 
-  - [_] Unambiguous stateful identification with ids
-  - [_] Stateful diffing based on initial value type
-  - [_] Contextual contravariant
-  - [_] Mutable data structures
+  - [x] Unambiguous stateful identification with ids
+  - [ ] Contextual contravariant
+  - [ ] Mutable data structures
+  - [ ] Lazy evaluation

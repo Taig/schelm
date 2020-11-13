@@ -6,7 +6,7 @@ import io.taig.schelm.data.Identification./
 
 import scala.annotation.tailrec
 
-final case class StateTree[+A](states: Map[Identifier, A], children: Map[Identifier, StateTree[A]]) { self =>
+final case class StateTree[+A](states: Map[Identifier, A], children: Map[Identifier, StateTree[A]]) {
   @tailrec
   def find(identification: Identification): Option[StateTree[A]] = identification match {
     case Identification.Empty => Some(this)
