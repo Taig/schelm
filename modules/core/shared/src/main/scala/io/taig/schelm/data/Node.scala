@@ -1,6 +1,8 @@
 package io.taig.schelm.data
 
 import cats.Traverse
+import io.taig.schelm.data.Node.Element.Variant
+import io.taig.schelm.util.NodeAccessor
 
 sealed abstract class Node[+F[_], +A] extends Product with Serializable {
   final override def toString: String = this match {
@@ -29,13 +31,13 @@ object Node {
       final case object Void extends Variant[Nothing]
     }
 
-    implicit def traverse[F[_]]: Traverse[Element[F, *]] = new NodeElementInstances[F]
+    implicit def instances[F[_]]: NodeElementInstances[F] = new NodeElementInstances[F]
   }
 
   final case class Fragment[+A](children: Children[A]) extends Node[Nothing, A]
 
   object Fragment {
-    implicit val traverse: Traverse[Fragment] = NodeFragmentInstances
+    implicit val instances: NodeFragmentInstances.type = NodeFragmentInstances
   }
 
   final case class Text[+F[_]](
@@ -44,5 +46,29 @@ object Node {
       lifecycle: Lifecycle.Text[F]
   ) extends Node[F, Nothing]
 
-  implicit def traverse[F[_]]: Traverse[Node[F, *]] = new NodeInstances[F]
+  implicit def instances[F[_]]: NodeInstances[F] = new NodeInstances[F]
+
+  implicit val accessor: NodeAccessor[Node] = new NodeAccessor[Node] {
+    override def listeners[G[_], A](node: Node[G, A]): Option[Listeners[G]] = node match {
+      case node: Node.Element[G, A] => Some(node.tag.listeners)
+      case _: Node.Fragment[A]      => None
+      case node: Node.Text[G]       => Some(node.listeners)
+    }
+
+    override def children[G[_], A](node: Node[G, A]): Option[Children[A]] = node match {
+      case node: Node.Element[G, A] =>
+        node.variant match {
+          case Variant.Normal(children) => Some(children)
+          case Variant.Void             => None
+        }
+      case node: Node.Fragment[A] => Some(node.children)
+      case _: Node.Text[G]        => None
+    }
+
+    override def modifyAttributes[G[_], A](node: Node[G, A])(f: Attributes => Attributes): Node[G, A] = ???
+
+    override def modifyListeners[G[_], A](node: Node[G, A])(f: Listeners[G] => Listeners[G]): Node[G, A] = ???
+
+    override def modifyChildren[G[_], A](node: Node[G, A])(f: Children[A] => Children[A]): Node[G, A] = ???
+  }
 }

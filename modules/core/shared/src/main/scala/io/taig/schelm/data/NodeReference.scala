@@ -2,6 +2,7 @@ package io.taig.schelm.data
 
 import cats.Traverse
 import io.taig.schelm.algebra.Dom
+import io.taig.schelm.util.NodeReferenceAccessor
 
 sealed abstract class NodeReference[+F[_], +A] extends Product with Serializable {
   final override def toString: String = this match {
@@ -27,4 +28,27 @@ object NodeReference {
   final case class Text[F[_]](node: Node.Text[F], dom: Dom.Text) extends NodeReference[F, Nothing]
 
   implicit def traverse[F[_]]: Traverse[NodeReference[F, *]] = new NodeReferenceInstances[F]
+
+  implicit val accessor: NodeReferenceAccessor[NodeReference] = new NodeReferenceAccessor[NodeReference] {
+
+    override def listeners[G[_], A](fga: NodeReference[G, A]): Option[Listeners[G]] = ???
+
+    override def children[G[_], A](fga: NodeReference[G, A]): Option[Children[A]] = ???
+
+    override def modifyAttributes[G[_], A](fga: NodeReference[G, A])(f: Attributes => Attributes): NodeReference[G, A] =
+      ???
+
+    override def modifyListeners[G[_], A](fga: NodeReference[G, A])(
+        f: Listeners[G] => Listeners[G]
+    ): NodeReference[G, A] = ???
+
+    override def modifyChildren[G[_], A](fga: NodeReference[G, A])(f: Children[A] => Children[A]): NodeReference[G, A] =
+      ???
+
+    override def dom[G[_], A](reference: NodeReference[G, A]): Option[Dom.Node] = reference match {
+      case reference: NodeReference.Element[G, A] => Some(reference.dom)
+      case _: NodeReference.Fragment[A]           => None
+      case reference: NodeReference.Text[G]       => Some(reference.dom)
+    }
+  }
 }

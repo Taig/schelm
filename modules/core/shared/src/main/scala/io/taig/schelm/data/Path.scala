@@ -4,10 +4,17 @@ import cats.Show
 import cats.data.Chain
 import cats.implicits._
 
-final case class Path(identification: Identification, indices: Chain[Int])
+final case class Path(identification: Identification, indices: Chain[Int]) {
+  def /(key: Key): Path = key match {
+    case identifier: Key.Identifier => Path(identification / identifier, Path.EmptyIndices)
+    case index: Key.Index           => Path(identification, indices.append(index.value))
+  }
+}
 
 object Path {
-  val Root: Path = Path(Identification.Empty, Chain.empty)
+  private val EmptyIndices: Chain[Int] = Chain.empty
+
+  val Root: Path = Path(Identification.Empty, EmptyIndices)
 
   implicit val show: Show[Path] = {
     case Path(identification, Chain.nil) => identification.show

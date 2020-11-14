@@ -6,7 +6,7 @@ import io.taig.schelm.data.Identification./
 
 import scala.annotation.tailrec
 
-final case class StateTree[+A](states: Map[Identifier, A], children: Map[Identifier, StateTree[A]]) {
+final case class StateTree[+A](states: Map[Key.Identifier, A], children: Map[Key.Identifier, StateTree[A]]) {
   @tailrec
   def find(identification: Identification): Option[StateTree[A]] = identification match {
     case Identification.Empty => Some(this)
@@ -18,7 +18,7 @@ final case class StateTree[+A](states: Map[Identifier, A], children: Map[Identif
   }
 
   @inline
-  def get(identifier: Identifier): Option[StateTree[A]] = children.get(identifier)
+  def get(identifier: Key.Identifier): Option[StateTree[A]] = children.get(identifier)
 
 //  def updatedWith[B >: A](path: Path)(f: Option[StateTree[B]] => Option[StateTree[B]]): StateTree[B] = path match {
 //    case head / Path.Root => copy(children = children.updatedWith[StateTree[B]](head)(f))
