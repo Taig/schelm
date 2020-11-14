@@ -52,8 +52,7 @@ object IdentifierTree {
 
   def empty[A: Monoid]: IdentifierTree[A] = IdentifierTree(Monoid[A].empty, EmptyChildren)
 
-  def of[A](value: A, children: (Identifier, IdentifierTree[A])*): IdentifierTree[A] =
-    IdentifierTree(value, children.toMap)
+  def of[A](value: A, children: (Identifier, IdentifierTree[A])*): IdentifierTree[A] = IdentifierTree(value, children.toMap)
 
   def leaf[A](value: A): IdentifierTree[A] = IdentifierTree(value, EmptyChildren)
 
