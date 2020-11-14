@@ -6,6 +6,8 @@ import cats.{Applicative, Eval, Monad}
 import io.taig.schelm.algebra.Renderer
 import io.taig.schelm.data.Node.Element.Variant
 import io.taig.schelm.data._
+import io.taig.schelm.implicits._
+import io.taig.schelm.util.NodeAccessor
 
 object NamespaceHtmlIdentifierRenderer {
   def apply[F[_]: Monad]: Renderer[F, NamespaceHtml[F], IdentificationLookup[Eval[Html[F]]]] = {
@@ -33,7 +35,7 @@ object NamespaceHtmlIdentifierRenderer {
         identified.namespace match {
           case identified: Namespace.Identified[Node[F, NamespaceHtml[F]]] =>
             render(NamespaceHtml(identified)).map { children =>
-              Map(identifier -> IdentifierTree(Eval.later(toHtml(namespace)), children))
+              Map(identifier -> IdentifierTree(Eval.later(namespace.html), children))
             }
           case anonymous: Namespace.Anonymous[Node[F, NamespaceHtml[F]]] =>
             flatten(anonymous.value).map(tree => Map(identifier -> tree))
@@ -41,26 +43,28 @@ object NamespaceHtmlIdentifierRenderer {
       case _: Namespace.Anonymous[Node[F, NamespaceHtml[F]]] => EmptyChildren.pure[F]
     }
 
-    def flatten(node: Node[F, NamespaceHtml[F]]): F[IdentifierTree[Eval[Html[F]]]] = node match {
-      case node: Node.Element[F, NamespaceHtml[F]] =>
-      node.variant match {
-        case Variant.Normal(children) =>
-          children.foldLeftM(IdentifierTree.leaf(Eval.later(toHtml(???)))) { (tree, child) =>
+    def flatten(node: Node[F, NamespaceHtml[F]]): F[IdentifierTree[Eval[Html[F]]]] = {
+      node match {
+        case node: Node.Element[F, NamespaceHtml[F]] =>
+          node.variant match {
+            case Variant.Normal(children) =>
+              children.foldLeftM(IdentifierTree.leaf(Eval.later(toHtml(???)))) { (tree, child) =>
+                render(child).map { children =>
+                  // TODO error on conflict
+                  if(children.isEmpty) tree else tree.copy(children = tree.children ++ children)
+                }
+              }
+            case Variant.Void => IdentifierTree.leaf(Eval.later(toHtml(???))).pure[F]
+          }
+        case node: Node.Fragment[NamespaceHtml[F]] =>
+          node.children.foldLeftM(IdentifierTree.leaf(Eval.later(toHtml(???)))) { (tree, child) =>
             render(child).map { children =>
               // TODO error on conflict
               if(children.isEmpty) tree else tree.copy(children = tree.children ++ children)
             }
           }
-        case Variant.Void => IdentifierTree.leaf(Eval.later(toHtml(???))).pure[F]
+        case node: Node.Text[F] => IdentifierTree.leaf(Eval.now(Html(node))).pure[F]
       }
-      case node: Node.Fragment[NamespaceHtml[F]] =>
-        node.children.foldLeftM(IdentifierTree.leaf(Eval.later(toHtml(???)))) { (tree, child) =>
-          render(child).map { children =>
-            // TODO error on conflict
-            if(children.isEmpty) tree else tree.copy(children = tree.children ++ children)
-          }
-        }
-      case node: Node.Text[F] => IdentifierTree.leaf(Eval.now(Html(node))).pure[F]
     }
 
     Kleisli(namespace => render(namespace).map(IdentificationLookup(Eval.later(toHtml(namespace)), _)))

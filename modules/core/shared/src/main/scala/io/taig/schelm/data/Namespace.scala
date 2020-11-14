@@ -2,6 +2,7 @@ package io.taig.schelm.data
 
 import scala.annotation.tailrec
 
+import alleycats.Extract
 import cats._
 import cats.implicits._
 import io.taig.schelm.util.NamespaceTraverse
@@ -12,7 +13,19 @@ object Namespace {
   final case class Identified[A](identifier: Identifier, namespace: Namespace[A]) extends Namespace[A]
   final case class Anonymous[A](value: A) extends Namespace[A]
 
-  implicit val traverse: NamespaceTraverse[Namespace] = new NamespaceTraverse[Namespace] {
+  implicit val traverse: NamespaceTraverse[Namespace] with Comonad[Namespace] = new NamespaceTraverse[Namespace] with Comonad[Namespace] {
+     @tailrec
+    override def extract[A](namespace: Namespace[A]): A = namespace match {
+      case Identified(_, namespace) => extract(namespace)
+      case Anonymous(value) => value
+    }
+
+    override def coflatMap[A, B](namespace: Namespace[A])(f: Namespace[A] => B): Namespace[B] =
+      namespace match {
+        case Identified(identifier, namespace) => Identified(identifier, coflatMap(namespace)(f))
+        case anonymous: Anonymous[A] => Anonymous(f(anonymous))
+      }
+
     override def map[A, B](fa: Namespace[A])(f: A => B): Namespace[B] = fa match {
       case identified @ Identified(_, namespace) => identified.copy(namespace = map(namespace)(f))
       case anonymous @ Anonymous(value)          => anonymous.copy(value = f(value))

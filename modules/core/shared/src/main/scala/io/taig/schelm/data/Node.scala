@@ -49,6 +49,9 @@ object Node {
   implicit def instances[F[_]]: NodeInstances[F] = new NodeInstances[F]
 
   implicit val accessor: NodeAccessor[Node] = new NodeAccessor[Node] {
+    @inline
+    override def node[G[_], A](fga: Node[G, A]): Node[G, A] = fga
+
     override def listeners[G[_], A](node: Node[G, A]): Option[Listeners[G]] = node match {
       case node: Node.Element[G, A] => Some(node.tag.listeners)
       case _: Node.Fragment[A]      => None
