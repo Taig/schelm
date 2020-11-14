@@ -7,15 +7,15 @@ import io.taig.schelm.data.Identification./
 import scala.annotation.tailrec
 
 final case class StateTree[+A](states: Map[Key.Identifier, A], children: Map[Key.Identifier, StateTree[A]]) {
-  @tailrec
-  def find(identification: Identification): Option[StateTree[A]] = identification match {
-    case Identification.Empty => Some(this)
-    case head / tail =>
-      children.get(head) match {
-        case Some(child) => child.find(tail)
-        case None        => None
-      }
-  }
+//  @tailrec
+//  def find(identification: Identification): Option[StateTree[A]] = identification match {
+//    case Identification.Root => Some(this)
+//    case head / tail =>
+//      children.get(head) match {
+//        case Some(child) => child.find(tail)
+//        case None        => None
+//      }
+//  }
 
   @inline
   def get(identifier: Key.Identifier): Option[StateTree[A]] = children.get(identifier)

@@ -6,7 +6,7 @@ import cats.implicits._
 
 final case class Path(identification: Identification, indices: Chain[Int]) {
   def /(key: Key): Path = key match {
-    case identifier: Key.Identifier => Path(identification / identifier, Path.EmptyIndices)
+    case identifier: Key.Identifier => Path(identification / Identifier(identifier.value), Path.EmptyIndices)
     case index: Key.Index           => Path(identification, indices.append(index.value))
   }
 }
@@ -14,7 +14,7 @@ final case class Path(identification: Identification, indices: Chain[Int]) {
 object Path {
   private val EmptyIndices: Chain[Int] = Chain.empty
 
-  val Root: Path = Path(Identification.Empty, EmptyIndices)
+  val Root: Path = Path(Identification.Root, EmptyIndices)
 
   implicit val show: Show[Path] = {
     case Path(identification, Chain.nil) => identification.show

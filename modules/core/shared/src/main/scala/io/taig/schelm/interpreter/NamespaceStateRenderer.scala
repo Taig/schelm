@@ -16,11 +16,11 @@ object NamespaceStateRenderer {
       prefix: Identification,
       snapshot: StateTree[Any],
       namespace: Fix[λ[A => Namespace[State[F, G[A]]]]]
-  ): Fix[λ[A => Namespace[G[A]]]] =
-    Fix[λ[A => Namespace[G[A]]]](namespace.unfix.mapWithIdentification { (identification, state) =>
-      val data = identification.last.fold(snapshot)(snapshot.get(_).orEmpty)
-      flatten(manager)(prefix ++ identification, data, state)
-    })
+  ): Fix[λ[A => Namespace[G[A]]]] = ???
+//    Fix[λ[A => Namespace[G[A]]]](namespace.unfix.mapWithIdentification { (identification, state) =>
+//      val data = identification.last.fold(snapshot)(snapshot.get(_).orEmpty)
+//      flatten(manager)(prefix ++ identification, data, state)
+//    })
 
   @tailrec
   private def flatten[F[_], G[_]: Functor](manager: StateManager[F])(

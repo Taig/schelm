@@ -9,7 +9,7 @@ import io.taig.schelm.util.NamespaceTraverse
 sealed abstract class Namespace[+A] extends Product with Serializable
 
 object Namespace {
-  final case class Identified[A](identifier: Key.Identifier, namespace: Namespace[A]) extends Namespace[A]
+  final case class Identified[A](identifier: Identifier, namespace: Namespace[A]) extends Namespace[A]
   final case class Anonymous[A](value: A) extends Namespace[A]
 
   implicit val traverse: NamespaceTraverse[Namespace] = new NamespaceTraverse[Namespace] {
@@ -19,7 +19,7 @@ object Namespace {
     }
 
     override def mapWithIdentification[A, B](fa: Namespace[A])(f: (Identification, A) => B): Namespace[B] =
-      mapWithIdentification(fa, Identification.Empty, f)
+      mapWithIdentification(fa, Identification.Root, f)
 
     def mapWithIdentification[A, B](
         fa: Namespace[A],
@@ -48,7 +48,7 @@ object Namespace {
     override def traverseWithIdentification[G[_]: Applicative, A, B](
         fa: Namespace[A]
     )(f: (Identification, A) => G[B]): G[Namespace[B]] =
-      traverseWithIdentification(fa, Identification.Empty, f)
+      traverseWithIdentification(fa, Identification.Root, f)
 
     def traverseWithIdentification[G[_]: Applicative, A, B](
         fa: Namespace[A],
@@ -69,7 +69,7 @@ object Namespace {
     }
 
     override def foldLeftWithIdentification[A, B](fa: Namespace[A], b: B)(f: (B, Identification, A) => B): B =
-      foldLeftWithIdentification(fa, Identification.Empty, b, f)
+      foldLeftWithIdentification(fa, Identification.Root, b, f)
 
     @tailrec
     def foldLeftWithIdentification[A, B](
