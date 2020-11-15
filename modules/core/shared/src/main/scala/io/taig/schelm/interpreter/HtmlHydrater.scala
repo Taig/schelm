@@ -6,7 +6,6 @@ import cats.implicits._
 import io.taig.schelm.algebra.{Dom, Hydrater}
 import io.taig.schelm.data._
 import io.taig.schelm.data.Node.Element.Variant
-import alleycats.std.set._
 import org.scalajs.dom.raw.Event
 
 /** Receives an `HtmlReference`, triggers the lifecycle methods and initializes the listeners */

@@ -26,7 +26,6 @@ lazy val core: CrossProject = crossProject(JVMPlatform, JSPlatform)
   .settings(
     libraryDependencies ++=
       "org.typelevel" %%% "cats-effect" % Version.CatsEffect ::
-        "org.typelevel" %%% "alleycats-core" % Version.Cats ::
         "co.fs2" %%% "fs2-core" % Version.Fs2 ::
         "io.chrisdavenport" %%% "cats-scalacheck" % Version.CatsScalacheck % "test" ::
         "org.scalameta" %%% "munit" % Version.Munit % "test" ::
