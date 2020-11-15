@@ -17,7 +17,4 @@ object Playground {
   nested[Namespace, Node].children(x)
   //toNodeAccessorOps[Lambda[(G[_], A) => Namespace[Node[G, A]]], IO, NamespaceHtml[IO]](x)
 
-  def test[A](value: A)(implicit na: NodeAccessor[Lambda[(F[_], B) => A]])
-
-
 }

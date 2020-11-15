@@ -1,10 +1,8 @@
 package io.taig.schelm.util
 
 import io.taig.schelm.algebra.Dom
-import io.taig.schelm.data.{Attributes, Children, Fix, Html, Listeners, Node}
+import io.taig.schelm.data.{Attributes, Children, Fix, Listeners}
 import simulacrum.typeclass
-import cats.implicits._
-import io.taig.schelm.data.Node.Element.Variant
 
 @typeclass
 trait FixReferenceAccessor[F[_[_]]] extends FixAccessor[F] {
@@ -16,8 +14,6 @@ object FixReferenceAccessor {
       implicit accessor: NodeReferenceAccessor[F]
   ): FixReferenceAccessor[λ[G[_] => Fix[F[G, *]]]] =
     new FixReferenceAccessor[λ[G[_] => Fix[F[G, *]]]] {
-      override def html[G[_]](fg: Fix[F[G, *]]): Html[G] = Html(accessor.node(fg.unfix).map(html))
-
       override def listeners[G[_]](fg: Fix[F[G, *]]): Option[Listeners[G]] = ???
 
       override def modifyAttributes[G[_]](fg: Fix[F[G, *]])(f: Attributes => Attributes): Fix[F[G, *]] = ???

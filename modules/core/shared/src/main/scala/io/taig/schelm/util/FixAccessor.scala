@@ -1,6 +1,6 @@
 package io.taig.schelm.util
 
-import io.taig.schelm.data.{Attributes, Children, Fix, Html, Listeners}
+import io.taig.schelm.data.{Attributes, Children, Fix, Listeners}
 import simulacrum.typeclass
 
 @typeclass
@@ -8,8 +8,6 @@ trait FixAccessor[F[_[_]]] extends FixModification[F] {
   def listeners[G[_]](fg: F[G]): Option[Listeners[G]]
 
   def children[G[_]](fg: F[G]): Option[Children[F[G]]]
-
-  def html[G[_]](fg: F[G]): Html[G]
 }
 
 object FixAccessor {
@@ -19,8 +17,6 @@ object FixAccessor {
 
       override def children[G[_]](fg: Fix[F[G, *]]): Option[Children[Fix[F[G, *]]]] =
         accessor.children(fg.unfix)
-
-      override def html[G[_]](fg: Fix[F[G, *]]): Html[G] = ???
 
       override def modifyAttributes[G[_]](fg: Fix[F[G, *]])(f: Attributes => Attributes): Fix[F[G, *]] =
         Fix(accessor.modifyAttributes(fg.unfix)(f))
