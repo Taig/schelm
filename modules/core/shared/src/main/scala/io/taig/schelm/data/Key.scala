@@ -2,14 +2,7 @@ package io.taig.schelm.data
 
 import cats.{Order, Show}
 
-sealed abstract class Key extends Product with Serializable {
-
-  /** If this `Key` is an `Key.Identifier`, return it, otherwise return the provided `Key.Index` */
-  final def identifierOrIndex(index: Key.Index): Key = this match {
-    case key: Key.Identifier => key
-    case _: Key.Index        => index
-  }
-}
+sealed abstract class Key extends Product with Serializable
 
 object Key {
   final case class Identifier(value: String) extends Key

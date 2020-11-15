@@ -25,7 +25,7 @@ object NamespaceIdentifierRenderer {
 
   def apply[F[_]: Monad, G[_[_], _]: NodeAccessor](
       implicit G: Traverse[G[F, *]]
-  ): Renderer[F, Fix[λ[A => Namespace[G[F, A]]]], IdentificationLookup[Eval[Fix[G[F, *]]]]] = {
+  ): Renderer[F, Fix[λ[A => Namespace[G[F, A]]]], IdentifierTree[Eval[Fix[G[F, *]]]]] = {
     val EmptyChildren: Map[Identifier, IdentifierTree[Eval[Fix[G[F, *]]]]] = IdentifierTree.EmptyChildren
 
     def render(namespace: Fix[λ[A => Namespace[G[F, A]]]]): F[Map[Identifier, IdentifierTree[Eval[Fix[G[F, *]]]]]] =
@@ -54,8 +54,6 @@ object NamespaceIdentifierRenderer {
       case None => IdentifierTree.leaf(Eval.later(unwrap(g))).pure[F]
     }
 
-    Kleisli { namespace =>
-      render(namespace).map(children => IdentificationLookup(Eval.later(unwrap(namespace.unfix)), children))
-    }
+    Kleisli(namespace => render(namespace).map(IdentifierTree(Eval.later(unwrap(namespace.unfix)), _)))
   }
 }

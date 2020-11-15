@@ -7,6 +7,12 @@ sealed abstract class State[+F[_], +A] extends Product with Serializable {
   def map[B](f: A => B): State[F, B]
 }
 
+object State {
+  implicit def functor[F[_]]: Functor[State[F, *]] = new Functor[State[F, *]] {
+    override def map[A, B](fa: State[F, A])(f: A => B): State[F, B] = fa.map(f)
+  }
+}
+
 final case class Stateful[F[_], A, B](
     identifier: Identifier,
     default: A,
@@ -27,10 +33,4 @@ final case class Stateful[F[_], A, B](
 
 final case class Stateless[A](value: A) extends State[Nothing, A] {
   override def map[B](f: A => B): State[Nothing, B] = copy(value = f(value))
-}
-
-object State {
-  implicit def functor[F[_]]: Functor[State[F, *]] = new Functor[State[F, *]] {
-    override def map[A, B](fa: State[F, A])(f: A => B): State[F, B] = fa.map(f)
-  }
 }

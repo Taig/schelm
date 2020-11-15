@@ -4,8 +4,8 @@ import io.taig.schelm.algebra.Dom
 
 /** A collection of listener names and their DOM instances
   *
-  * This is primarily intended as a lookup for the removal of listeners from the DOM, which requires the exact
-  * instance to be specified.
+  * This is primarily intended as a lookup for the removal of listeners from the DOM, which requires a reference to
+  * the instance.
   */
 final case class ListenerReferences(values: Map[Listener.Name, Dom.Listener]) extends AnyVal {
   @inline

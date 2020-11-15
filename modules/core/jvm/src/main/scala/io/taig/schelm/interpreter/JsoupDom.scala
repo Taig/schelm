@@ -5,7 +5,6 @@ import cats.implicits._
 import io.taig.schelm.algebra.Dom
 import io.taig.schelm.data.Listener
 import org.jsoup.nodes.{Document => JDocument, Element => JElement, Node => JNode, TextNode => JText}
-import org.scalajs.dom.raw.Event
 
 import scala.jdk.CollectionConverters._
 

@@ -1,6 +1,6 @@
 package io.taig.schelm.algebra
 
-import io.taig.schelm.data.{Listener, Platform}
+import io.taig.schelm.data.Platform
 import org.scalajs.dom.raw.Event
 
 abstract class Dom[F[_]] {

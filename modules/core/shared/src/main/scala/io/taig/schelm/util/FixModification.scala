@@ -1,6 +1,6 @@
 package io.taig.schelm.util
 
-import io.taig.schelm.data.{Attributes, Children, Fix, Listeners, Node}
+import io.taig.schelm.data.{Attributes, Children, Fix, Listeners}
 import simulacrum.typeclass
 
 @typeclass

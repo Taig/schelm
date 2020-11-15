@@ -26,24 +26,29 @@ final case class IdentifierTree[+A](value: A, children: Map[Identifier, Identifi
     case Identification.Root        => copy(children = IdentifierTree.EmptyChildren)
   }
 
+  @inline
   def updated[B >: A](identifier: Identifier, tree: IdentifierTree[B]): IdentifierTree[B] =
     copy(children = children.updated(identifier, tree))
 
-  def merge[B >: A](tree: IdentifierTree[B])(implicit monoid: Monoid[B]): IdentifierTree[B] = {
+  /** Recursively merge `this` `IdentifierTree` with the given `tree` */
+  def merge[B >: A](tree: IdentifierTree[B])(implicit monoid: Monoid[B]): IdentifierTree[B] =
+    merge(tree, monoid.combine)
+
+  def merge[B >: A](tree: IdentifierTree[B], combine: (B, B) => B): IdentifierTree[B] = {
     val keys = children.keySet ++ tree.children.keySet
 
     val builder = Map.newBuilder[Identifier, IdentifierTree[B]]
 
     keys.foreach { key =>
       (get(key), tree.get(key)) match {
-        case (Some(x), Some(y)) => builder.addOne(key -> x.merge(y))
+        case (Some(x), Some(y)) => builder.addOne(key -> x.merge(y, combine))
         case (Some(x), None)    => builder.addOne(key -> x)
         case (None, Some(y))    => builder.addOne(key -> y)
         case (None, None)       => ()
       }
     }
 
-    IdentifierTree(monoid.combine(value, tree.value), builder.result())
+    IdentifierTree(combine(value, tree.value), builder.result())
   }
 }
 

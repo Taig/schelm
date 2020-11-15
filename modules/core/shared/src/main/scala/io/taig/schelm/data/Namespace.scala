@@ -2,7 +2,6 @@ package io.taig.schelm.data
 
 import scala.annotation.tailrec
 
-import alleycats.Extract
 import cats._
 import cats.implicits._
 import io.taig.schelm.util.NamespaceTraverse

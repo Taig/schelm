@@ -1,6 +1,7 @@
 # TODOs
 
   - [x] Unambiguous stateful identification with ids
+  - [ ] Namespacing
   - [ ] Contextual contravariant
-  - [ ] Mutable data structures
   - [ ] Lazy evaluation
+  - [ ] Mutable data structures
