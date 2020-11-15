@@ -23,6 +23,14 @@ package object data {
     def apply[F[_]](reference: NodeReference[F, HtmlReference[F]]): HtmlReference[F] = Fix(reference)
   }
 
+  type NamespaceHtmlReference[F[_]] = Fix[λ[A => Namespace[NodeReference[F, A]]]]
+
+  object NamespaceHtmlReference {
+    @inline
+    def apply[F[_]](namespace: Namespace[NodeReference[F, NamespaceHtmlReference[F]]]): NamespaceHtmlReference[F] =
+      Fix[λ[A => Namespace[NodeReference[F, A]]]](namespace)
+  }
+
   type WidgetHtml[F[_], Context] = Fix[λ[A => Contextual[Context, Node[F, A]]]]
 
   object WidgetHtml {

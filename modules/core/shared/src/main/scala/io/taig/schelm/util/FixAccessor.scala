@@ -1,5 +1,7 @@
 package io.taig.schelm.util
 
+import cats.data.Chain
+import cats.data.Chain.==:
 import io.taig.schelm.data.{Attributes, Children, Fix, Listeners}
 import simulacrum.typeclass
 
@@ -8,6 +10,11 @@ trait FixAccessor[F[_[_]]] extends FixModification[F] {
   def listeners[G[_]](fg: F[G]): Option[Listeners[G]]
 
   def children[G[_]](fg: F[G]): Option[Children[F[G]]]
+
+  final def select[G[_]](fg: F[G])(indices: Chain[Int]): Option[F[G]] = indices match {
+    case Chain.nil     => Some(fg)
+    case head ==: tail => children(fg).flatMap(_.get(head)).flatMap(select(_)(tail))
+  }
 }
 
 object FixAccessor {

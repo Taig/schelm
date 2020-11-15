@@ -5,10 +5,12 @@ import cats.data.Chain
 import cats.implicits._
 
 final case class Path(identification: Identification, indices: Chain[Int]) {
-  def /(key: Key): Path = key match {
-    case identifier: Key.Identifier => Path(identification / Identifier(identifier.value), Path.EmptyIndices)
-    case index: Key.Index           => Path(identification, indices.append(index.value))
-  }
+  def /(identifier: Identifier): Path = Path(identification / identifier, Path.EmptyIndices)
+
+//  def /(key: Key): Path = key match {
+//    case identifier: Key.Identifier => Path(identification / Identifier(identifier.value), Path.EmptyIndices)
+//    case index: Key.Index           => Path(identification, indices.append(index.value))
+//  }
 }
 
 object Path {

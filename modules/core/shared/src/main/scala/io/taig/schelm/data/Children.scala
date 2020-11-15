@@ -4,6 +4,9 @@ import cats._
 import cats.implicits._
 
 final case class Children[+A](values: Vector[A]) extends AnyVal {
+  @inline
+  def get(index: Int): Option[A] = values.lift(index)
+
   def ++[B >: A](children: Children[B]): Children[B] = Children(values ++ children.values)
 }
 
