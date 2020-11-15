@@ -32,8 +32,8 @@ object NodeReference {
   implicit val accessor: NodeReferenceAccessor[NodeReference] = new NodeReferenceAccessor[NodeReference] {
     override def node[G[_], A](fga: NodeReference[G, A]): Node[G, A] = fga match {
       case reference: Element[G, A] => reference.node
-      case reference: Fragment[A] => reference.node
-      case reference: Text[G] => reference.node
+      case reference: Fragment[A]   => reference.node
+      case reference: Text[G]       => reference.node
     }
 
     override def listeners[G[_], A](fga: NodeReference[G, A]): Option[Listeners[G]] = ???

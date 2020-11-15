@@ -24,7 +24,7 @@ object NamespaceHtmlIdentifierRenderer {
               case Node.Element.Variant.Void => Html(node.asInstanceOf[Node[F, Html[F]]])
             }
           case node: Node.Fragment[NamespaceHtml[F]] => Html(node.copy(children = node.children.map(toHtml)))
-          case node: Node.Text[F] => Html(node)
+          case node: Node.Text[F]                    => Html(node)
         }
     }
 
@@ -51,7 +51,7 @@ object NamespaceHtmlIdentifierRenderer {
               children.foldLeftM(IdentifierTree.leaf(Eval.later(toHtml(???)))) { (tree, child) =>
                 render(child).map { children =>
                   // TODO error on conflict
-                  if(children.isEmpty) tree else tree.copy(children = tree.children ++ children)
+                  if (children.isEmpty) tree else tree.copy(children = tree.children ++ children)
                 }
               }
             case Variant.Void => IdentifierTree.leaf(Eval.later(toHtml(???))).pure[F]
@@ -60,7 +60,7 @@ object NamespaceHtmlIdentifierRenderer {
           node.children.foldLeftM(IdentifierTree.leaf(Eval.later(toHtml(???)))) { (tree, child) =>
             render(child).map { children =>
               // TODO error on conflict
-              if(children.isEmpty) tree else tree.copy(children = tree.children ++ children)
+              if (children.isEmpty) tree else tree.copy(children = tree.children ++ children)
             }
           }
         case node: Node.Text[F] => IdentifierTree.leaf(Eval.now(Html(node))).pure[F]
