@@ -42,4 +42,10 @@ package object data {
     ): WidgetStateHtml[F, Context] =
       Fix[λ[A => Contextual[Context, State[F, Node[F, A]]]]](widget)
   }
+
+  type StateTree = IdentifierTree[Map[Identifier, Any]]
+
+  object StateTree {
+    val Empty: IdentifierTree[Map[Identifier, Any]] = IdentifierTree(Map.empty, Map.empty)
+  }
 }

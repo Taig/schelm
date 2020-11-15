@@ -1,7 +1,7 @@
 package io.taig.schelm.algebra
 
 import fs2.Stream
-import io.taig.schelm.data.{Identification, Key}
+import io.taig.schelm.data.{Identification, Identifier}
 
 abstract class StateManager[F[_]] {
   def submit[A](update: StateManager.Update[A]): F[Unit]
@@ -10,5 +10,5 @@ abstract class StateManager[F[_]] {
 }
 
 object StateManager {
-  final case class Update[A](identification: Identification, identifier: Key.Identifier, default: A, apply: A => A)
+  final case class Update[A](identification: Identification, identifier: Identifier, default: A, apply: A => A)
 }

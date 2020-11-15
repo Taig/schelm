@@ -8,7 +8,7 @@ sealed abstract class State[+F[_], +A] extends Product with Serializable {
 }
 
 final case class Stateful[F[_], A, B](
-    identifier: Key.Identifier,
+    identifier: Identifier,
     default: A,
     render: ((A => A) => F[Unit], A) => State[F, B]
 ) extends State[F, B] {
@@ -20,7 +20,7 @@ final case class Stateful[F[_], A, B](
       identification: Identification
   ): (A => A) => F[Unit] = apply => manager.submit(StateManager.Update(identification, identifier, default, apply))
 
-  private[schelm] def internalStateCurrent(states: Map[Key.Identifier, Any]): A =
+  private[schelm] def internalStateCurrent(states: Map[Identifier, Any]): A =
     try states.getOrElse(identifier, default).asInstanceOf[A]
     catch { case _: ClassCastException => default }
 }
