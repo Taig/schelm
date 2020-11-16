@@ -29,7 +29,7 @@ object HtmlHydrater {
         .flatMap(_.select(path.indices))
         .flatMap(_.listeners)
         .flatMap(_.get(name))
-        .liftTo[F](new IllegalStateException(show"No listener for ${name.value} in $path"))
+        .liftTo[F](new IllegalStateException(show"No listener for $name in $path"))
         .flatMap(_.apply(event))
     }
 
@@ -56,7 +56,7 @@ object HtmlHydrater {
                   children.traverse(hydrate(_, path)).map { children =>
                     HtmlHydratedReference(
                       reference.copy(node = reference.node.copy(variant = Node.Element.Variant.Normal(children))),
-                      ListenerReferences.Empty,
+                      listeners,
                       Noop
                     )
                   }
@@ -112,4 +112,9 @@ object HtmlHydrater {
 
     Kleisli((hydrate _).tupled)
   }
+
+  def root[F[_]](dom: Dom[F], identifiers: F[IdentifierTree[Eval[Html[F]]]])(
+      implicit F: MonadCancel[F, Throwable]
+  ): Hydrater[F, NamespaceHtmlReference[F], HtmlHydratedReference[F]] =
+    HtmlHydrater[F](dom, identifiers).local((_, Path.Root))
 }
