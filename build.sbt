@@ -1,113 +1,113 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
+import sbtcrossproject.CrossProject
 
-lazy val root = project
-  .in(file("."))
-  .settings(noPublishSettings)
+noPublishSettings
+
+ThisBuild / scalacOptions ++= "-Ypatmat-exhaust-depth" :: "off" :: Nil
+ThisBuild / scalaVersion := "2.13.5"
+
+val Version = new {
+  val CatsEffect = "3.0.0-RC2"
+  val Color = "0.4.1"
+  val Fs2 = "3.0.0-M9"
+  val Jsoup = "1.13.1"
+  val ScalajsDom = "1.1.0"
+}
+
+lazy val dom: CrossProject = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Full)
+  .in(file("modules/dom"))
   .settings(
-    name := "schelm"
+    name := "schelm-dom",
+    scalacOptions += "-Wconf:src=src_managed/.*:silent",
+    Compile / sourceGenerators += Def.taskDyn {
+      Def.task {
+        val classpath = (dom.js / Compile / dependencyClasspath).value
+        val sources = ScalaJsJvmStubsGenerator(classpath)
+        val target = (Compile / sourceManaged).value
+        sources.zipWithIndex.map { case (source, index) =>
+          val file = target / s"scalajs-stub-$index.scala"
+          println(file)
+          IO.write(file, source)
+          file
+        }
+      }
+    }
   )
-  .aggregate(
-    coreJVM,
-    coreJS,
-    cssJVM,
-    cssJS,
-    dslJVM,
-    dslJS,
-    playgroundJVM,
-    playgroundJS
+  .jsSettings(
+    libraryDependencies ++=
+      "org.scala-js" %%% "scalajs-dom" % Version.ScalajsDom ::
+        Nil
   )
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
-  .crossType(CrossType.Pure)
+  .crossType(CrossType.Full)
+  .in(file("modules/core"))
   .settings(sonatypePublishSettings)
   .settings(
     libraryDependencies ++=
-      "org.typelevel" %%% "cats-effect" % "2.0.0" ::
-        "co.fs2" %%% "fs2-core" % "2.1.0" ::
+      "org.typelevel" %%% "cats-effect" % Version.CatsEffect ::
+        "co.fs2" %%% "fs2-core" % Version.Fs2 ::
         Nil,
     name := "schelm-core"
   )
   .jvmSettings(
     libraryDependencies ++=
-      "org.jsoup" % "jsoup" % "1.12.1" ::
-        "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.3" ::
+      "org.jsoup" % "jsoup" % Version.Jsoup ::
         Nil
   )
-  .jsSettings(
-    libraryDependencies ++=
-      "org.scala-js" %%% "scalajs-dom" % "0.9.8" ::
-        Nil
-  )
-
-lazy val coreJVM = core.jvm
-
-lazy val coreJS = core.js
+  .dependsOn(dom)
 
 lazy val css = crossProject(JVMPlatform, JSPlatform)
-  .crossType(CrossType.Pure)
+  .crossType(CrossType.Full)
+  .in(file("modules/css"))
   .settings(sonatypePublishSettings)
   .settings(
-    name := "schelm-css",
-    Compile / sourceGenerators += Def.task {
-      val source = (baseDirectory in LocalRootProject).value / "normalize.css" / "normalize.css"
-      val target = (sourceManaged in Compile).value / "normalize.scala"
-      NormalizeCssGenerator("io.taig.schelm.css", source, target)
-      Seq(target)
-    }
+    name := "schelm-css"
   )
   .dependsOn(core)
 
-lazy val cssJVM = css.jvm
-
-lazy val cssJS = css.js
-
-lazy val dsl = crossProject(JVMPlatform, JSPlatform)
-  .crossType(CrossType.Pure)
+lazy val redux = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Full)
+  .in(file("modules/redux"))
   .settings(sonatypePublishSettings)
   .settings(
-    name := "schelm-dsl"
+    name := "schelm-redux"
   )
-  .dependsOn(css)
+  .dependsOn(core)
 
-lazy val dslJVM = dsl.jvm
-
-lazy val dslJS = dsl.js
-
-lazy val website = project
-  .enablePlugins(MicrositesPlugin)
-  .settings(micrositeSettings)
+lazy val dsl = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Full)
+  .in(file("modules/dsl"))
+  .settings(sonatypePublishSettings)
   .settings(
-    mdocVariables ++= {
-      val format: String => String =
-        version => s"`${version.replaceAll("\\.\\d+$", "")}`"
-
-      Map(
-        "MODULE_CORE" -> (coreJVM / normalizedName).value,
-        "MODULE_CSS" -> (cssJVM / normalizedName).value,
-        "MODULE_DSL" -> (dslJVM / normalizedName).value,
-        "ORGANIZATION" -> organization.value,
-        "VERSION" -> version.value,
-        "SCALA_VERSIONS" -> crossScalaVersions.value.map(format).mkString(", "),
-        "SCALAJS_VERSION" -> format(scalaJSVersion)
-      )
-    },
-    name := "schelm-website",
-    micrositeBaseUrl := "",
-    micrositeDescription := "The Elm architecture on top of cats-effect and fs2",
-    micrositeHomepage := "https://schelm.taig.io",
-    micrositeName := "Schelm",
-    micrositeUrl := micrositeHomepage.value
+    libraryDependencies ++=
+      "io.taig" %%% "color-core" % Version.Color ::
+        Nil,
+    name := "schelm-dsl",
+    Compile / sourceGenerators += Def.task {
+      val html = (Compile / sourceManaged).value / "html.scala"
+      IO.write(html, HtmlGenerator())
+      List(html)
+    }
   )
-  .dependsOn(dslJVM)
+  .dependsOn(core, css, redux)
 
-lazy val playground = crossProject(JVMPlatform, JSPlatform)
-  .settings(noPublishSettings)
+lazy val ui = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Full)
+  .in(file("modules/ui"))
+  .settings(sonatypePublishSettings)
   .settings(
-    name := "schelm-playground",
-    scalaJSUseMainModuleInitializer := true
+    name := "schelm-ui"
   )
   .dependsOn(dsl)
 
-lazy val playgroundJVM = playground.jvm
-
-lazy val playgroundJS = playground.js
+lazy val documentation = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Full)
+  .in(file("modules/documentation"))
+  .settings(noPublishSettings)
+  .settings(
+    name := "schelm-documentation",
+    scalaJSUseMainModuleInitializer := true
+  )
+  .dependsOn(ui)
